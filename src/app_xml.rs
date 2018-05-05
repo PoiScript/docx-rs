@@ -1,10 +1,11 @@
 /// docProps/app.xml
 
+use std::collections::LinkedList;
 use std::io::Cursor;
 use quick_xml::events::*;
 use quick_xml::Writer;
 
-use utility::add_tag;
+use utility::{add_tag, events_to_xml};
 
 pub struct AppXml<'a> {
   template: &'a str,
@@ -48,14 +49,13 @@ impl<'a> AppXml<'a> {
   }
 
   pub fn generate(&self) -> Vec<u8> {
-    let mut events = vec![
-      Event::Decl(BytesDecl::new(b"1.0", Some(b"UTF-8"), Some(b"yes"))),
-      Event::Start(BytesStart::borrowed(b"Properties", b"Properties".len())
-        .with_attributes(vec![
-          ("xmlns", "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"),
-          ("xmlns:vt", "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes")
-        ]))
-    ];
+    let mut events = LinkedList::new();
+    events.push_back(Event::Decl(BytesDecl::new(b"1.0", Some(b"UTF-8"), Some(b"yes"))));
+    events.push_back(Event::Start(BytesStart::borrowed(b"Properties", b"Properties".len())
+      .with_attributes(vec![
+        ("xmlns", "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"),
+        ("xmlns:vt", "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes")
+      ])));
 
     add_tag(&mut events, b"Template", self.template);
     add_tag(&mut events, b"TotalTime", self.total_time);
@@ -74,14 +74,8 @@ impl<'a> AppXml<'a> {
     add_tag(&mut events, b"HyperlinksChanged", self.hyperlinks_changed);
     add_tag(&mut events, b"AppVersion", self.app_version);
 
-    events.push(Event::End(BytesEnd::borrowed(b"Properties")));
+    events.push_back(Event::End(BytesEnd::borrowed(b"Properties")));
 
-    let mut writer = Writer::new(Cursor::new(Vec::new()));
-
-    for event in events {
-      writer.write_event(event);
-    }
-
-    writer.into_inner().into_inner()
+    events_to_xml(&events)
   }
 }
