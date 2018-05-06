@@ -1,7 +1,7 @@
-use std::collections::LinkedList;
-use std::io::Cursor;
 use quick_xml::events::*;
 use quick_xml::Writer;
+use std::collections::LinkedList;
+use std::io::Cursor;
 
 use utility::LinkUtil;
 
@@ -16,9 +16,7 @@ impl<'a> Run<'a> {
     let mut events = LinkedList::new();
 
     // TODO: run props
-    events
-      .add_tag(b"w:t", self.text)
-      .warp_tag(b"w:r");
+    events.add_tag(b"w:t", self.text).warp_tag(b"w:r");
 
     events
   }

@@ -1,14 +1,14 @@
-use std::str;
-use std::io::{Write, Seek};
 use app_xml::AppXml;
 use content_types_xml::ContentTypesXml;
 use core_xml::CoreXml;
 use document_xml::DocumentXml;
 use rels::Relationships;
+use std::io::{Seek, Write};
+use std::str;
 use zip::result::ZipResult;
-use zip::ZipWriter;
 use zip::write::FileOptions;
 use zip::CompressionMethod;
+use zip::ZipWriter;
 
 static APP_XML: &'static str = "docProps/app.xml";
 static CONTENT_TYPES_XML: &'static str = "[Content_Types].xml";

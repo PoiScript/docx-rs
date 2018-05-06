@@ -1,23 +1,28 @@
 // utility functions
 
-use std::io::Cursor;
-use quick_xml::events::{BytesStart, BytesEnd, BytesDecl, BytesText, Event};
 use quick_xml::events::attributes::Attribute;
+use quick_xml::events::{BytesDecl, BytesEnd, BytesStart, BytesText, Event};
 use quick_xml::Writer;
 use std::collections::LinkedList;
+use std::io::Cursor;
 
 pub trait LinkUtil<'a> {
   fn add_decl(&mut self) -> &mut Self;
   fn add_tag(&mut self, tag: &'a [u8], content: &'a str) -> &mut Self;
   fn add_tag_with_attr(&mut self, tag: &'a [u8], attributes: Vec<(&'a str, &'a str)>) -> &mut Self;
   fn warp_tag(&mut self, tag: &'a [u8]) -> &mut Self;
-  fn wrap_tag_with_attr(&mut self, tag: &'a [u8], attributes: Vec<(&'a str, &'a str)>) -> &mut Self;
+  fn wrap_tag_with_attr(&mut self, tag: &'a [u8], attributes: Vec<(&'a str, &'a str)>)
+    -> &mut Self;
   fn to_xml(&self) -> Vec<u8>;
 }
 
 impl<'a> LinkUtil<'a> for LinkedList<Event<'a>> {
   fn add_decl(&mut self) -> &mut Self {
-    self.push_front(Event::Decl(BytesDecl::new(b"1.0", Some(b"UTF-8"), Some(b"yes"))));
+    self.push_front(Event::Decl(BytesDecl::new(
+      b"1.0",
+      Some(b"UTF-8"),
+      Some(b"yes"),
+    )));
 
     self
   }
@@ -31,7 +36,9 @@ impl<'a> LinkUtil<'a> for LinkedList<Event<'a>> {
   }
 
   fn add_tag_with_attr(&mut self, tag: &'a [u8], attributes: Vec<(&'a str, &'a str)>) -> &mut Self {
-    self.push_back(Event::Start(BytesStart::borrowed(tag, tag.len()).with_attributes(attributes)));
+    self.push_back(Event::Start(
+      BytesStart::borrowed(tag, tag.len()).with_attributes(attributes),
+    ));
     self.push_back(Event::End(BytesEnd::borrowed(tag)));
 
     self
@@ -44,8 +51,14 @@ impl<'a> LinkUtil<'a> for LinkedList<Event<'a>> {
     self
   }
 
-  fn wrap_tag_with_attr(&mut self, tag: &'a [u8], attributes: Vec<(&'a str, &'a str)>) -> &mut Self {
-    self.push_front(Event::Start(BytesStart::borrowed(tag, tag.len()).with_attributes(attributes)));
+  fn wrap_tag_with_attr(
+    &mut self,
+    tag: &'a [u8],
+    attributes: Vec<(&'a str, &'a str)>,
+  ) -> &mut Self {
+    self.push_front(Event::Start(
+      BytesStart::borrowed(tag, tag.len()).with_attributes(attributes),
+    ));
     self.push_back(Event::End(BytesEnd::borrowed(tag)));
 
     self

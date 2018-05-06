@@ -1,9 +1,7 @@
-/// docProps/app.xml
-
-use std::collections::LinkedList;
-use std::io::Cursor;
 use quick_xml::events::*;
 use quick_xml::Writer;
+use std::collections::LinkedList;
+use std::io::Cursor;
 
 use utility::LinkUtil;
 
@@ -69,10 +67,19 @@ impl<'a> AppXml<'a> {
       .add_tag(b"SharedDoc", self.shared_doc)
       .add_tag(b"HyperlinksChanged", self.hyperlinks_changed)
       .add_tag(b"AppVersion", self.app_version)
-      .wrap_tag_with_attr(b"Properties", vec![
-        ("xmlns", "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"),
-        ("xmlns:vt", "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes")
-      ])
+      .wrap_tag_with_attr(
+        b"Properties",
+        vec![
+          (
+            "xmlns",
+            "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties",
+          ),
+          (
+            "xmlns:vt",
+            "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes",
+          ),
+        ],
+      )
       .add_decl()
       .to_xml()
   }

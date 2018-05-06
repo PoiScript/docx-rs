@@ -1,9 +1,8 @@
-/// docProps/core.xml
-
-use std::collections::LinkedList;
-use std::io::Cursor;
 use quick_xml::events::*;
 use quick_xml::Writer;
+/// docProps/core.xml
+use std::collections::LinkedList;
+use std::io::Cursor;
 
 use utility::LinkUtil;
 
