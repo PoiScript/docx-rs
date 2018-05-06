@@ -31,11 +31,19 @@ impl<'a> ContentTypesXml<'a> {
     let mut events = LinkedList::new();
 
     for i in 0..self.defaults.len() {
-      events.add_tag_with_attr(b"Default", vec![self.defaults[i]]);
+      let (part_name, content_type) = self.defaults[i];
+      events.add_tag_with_attr(b"Default", vec![
+        ("PartName", part_name),
+        ("ContentType", content_type),
+      ]);
     }
 
     for i in 0..self.overrides.len() {
-      events.add_tag_with_attr(b"Override", vec![self.overrides[i]]);
+      let (part_name, content_type) = self.overrides[i];
+      events.add_tag_with_attr(b"Override", vec![
+        ("PartName", part_name),
+        ("ContentType", content_type),
+      ]);
     }
 
     events
