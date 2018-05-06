@@ -5,7 +5,7 @@ use std::io::Cursor;
 use quick_xml::events::*;
 use quick_xml::Writer;
 
-use utility::{add_tag, events_to_xml};
+use utility::LinkUtil;
 
 pub struct CoreXml<'a> {
   title: &'a str,
@@ -32,27 +32,24 @@ impl<'a> CoreXml<'a> {
 
   pub fn generate(&self) -> Vec<u8> {
     let mut events = LinkedList::new();
-    events.push_back(Event::Decl(BytesDecl::new(b"1.0", Some(b"UTF-8"), Some(b"yes"))));
-    events.push_back(Event::Start(BytesStart::borrowed(b"cp:coreProperties", b"cp:coreProperties".len())
-      .with_attributes(vec![
+
+    events
+      .add_tag(b"dc:title", self.title)
+      .add_tag(b"dc:subject", self.subject)
+      .add_tag(b"dc:creator", self.creator)
+      .add_tag(b"cp:keywords", self.keywords)
+      .add_tag(b"dc:description", self.description)
+      .add_tag(b"cp:lastModifiedBy", self.last_modified_by)
+      .add_tag(b"cp:revision", self.revision)
+      // TODO: <dcterms:created> and <dcterms:modified>
+      .wrap_tag_with_attr(b"cp:coreProperties", vec![
         ("xmlns:cp", "http://schemas.openxmlformats.org/package/2006/metadata/core-properties"),
         ("xmlns:dc", "http://purl.org/dc/elements/1.1/"),
         ("xmlns:dcterms", "http://purl.org/dc/terms/"),
         ("xmlns:dcmitype", "http://purl.org/dc/dcmitype/"),
         ("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance"),
-      ])));
-
-    add_tag(&mut events, b"dc:title", self.title);
-    add_tag(&mut events, b"dc:subject", self.subject);
-    add_tag(&mut events, b"dc:creator", self.creator);
-    add_tag(&mut events, b"cp:keywords", self.keywords);
-    add_tag(&mut events, b"dc:description", self.description);
-    add_tag(&mut events, b"cp:lastModifiedBy", self.last_modified_by);
-    add_tag(&mut events, b"cp:revision", self.revision);
-    // TODO: <dcterms:created> and <dcterms:modified>
-
-    events.push_back(Event::End(BytesEnd::borrowed(b"cp:coreProperties")));
-
-    events_to_xml(&events)
+      ])
+      .add_decl()
+      .to_xml()
   }
 }

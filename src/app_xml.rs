@@ -5,7 +5,7 @@ use std::io::Cursor;
 use quick_xml::events::*;
 use quick_xml::Writer;
 
-use utility::{add_tag, events_to_xml};
+use utility::LinkUtil;
 
 pub struct AppXml<'a> {
   template: &'a str,
@@ -50,32 +50,30 @@ impl<'a> AppXml<'a> {
 
   pub fn generate(&self) -> Vec<u8> {
     let mut events = LinkedList::new();
-    events.push_back(Event::Decl(BytesDecl::new(b"1.0", Some(b"UTF-8"), Some(b"yes"))));
-    events.push_back(Event::Start(BytesStart::borrowed(b"Properties", b"Properties".len())
-      .with_attributes(vec![
+
+    events
+      .add_tag(b"Template", self.template)
+      .add_tag(b"Template", self.template)
+      .add_tag(b"TotalTime", self.total_time)
+      .add_tag(b"Pages", self.pages)
+      .add_tag(b"Words", self.words)
+      .add_tag(b"Characters", self.characters)
+      .add_tag(b"Application", self.applications)
+      .add_tag(b"DocSecurity", self.doc_security)
+      .add_tag(b"Lines", self.lines)
+      .add_tag(b"Paragraphs", self.paragraphs)
+      .add_tag(b"ScaleCrop", self.scale_crop)
+      .add_tag(b"Company", self.company)
+      .add_tag(b"LinksUpToDate", self.links_up_to_date)
+      .add_tag(b"CharactersWithSpaces", self.characters_with_spaces)
+      .add_tag(b"SharedDoc", self.shared_doc)
+      .add_tag(b"HyperlinksChanged", self.hyperlinks_changed)
+      .add_tag(b"AppVersion", self.app_version)
+      .wrap_tag_with_attr(b"Properties", vec![
         ("xmlns", "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"),
         ("xmlns:vt", "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes")
-      ])));
-
-    add_tag(&mut events, b"Template", self.template);
-    add_tag(&mut events, b"TotalTime", self.total_time);
-    add_tag(&mut events, b"Pages", self.pages);
-    add_tag(&mut events, b"Words", self.words);
-    add_tag(&mut events, b"Characters", self.characters);
-    add_tag(&mut events, b"Application", self.applications);
-    add_tag(&mut events, b"DocSecurity", self.doc_security);
-    add_tag(&mut events, b"Lines", self.lines);
-    add_tag(&mut events, b"Paragraphs", self.paragraphs);
-    add_tag(&mut events, b"ScaleCrop", self.scale_crop);
-    add_tag(&mut events, b"Company", self.company);
-    add_tag(&mut events, b"LinksUpToDate", self.links_up_to_date);
-    add_tag(&mut events, b"CharactersWithSpaces", self.characters_with_spaces);
-    add_tag(&mut events, b"SharedDoc", self.shared_doc);
-    add_tag(&mut events, b"HyperlinksChanged", self.hyperlinks_changed);
-    add_tag(&mut events, b"AppVersion", self.app_version);
-
-    events.push_back(Event::End(BytesEnd::borrowed(b"Properties")));
-
-    events_to_xml(&events)
+      ])
+      .add_decl()
+      .to_xml()
   }
 }

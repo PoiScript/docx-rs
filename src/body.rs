@@ -3,7 +3,7 @@ use std::io::Cursor;
 use quick_xml::events::*;
 use quick_xml::Writer;
 
-use utility::{add_tag, warp_tag};
+use utility::LinkUtil;
 
 // Specifies a run of content within the paragraph.
 pub struct Run<'a> {
@@ -16,8 +16,9 @@ impl<'a> Run<'a> {
     let mut events = LinkedList::new();
 
     // TODO: run props
-    add_tag(&mut events, b"w:t", self.text);
-    warp_tag(&mut events, b"w:r");
+    events
+      .add_tag(b"w:t", self.text)
+      .warp_tag(b"w:r");
 
     events
   }
@@ -41,7 +42,7 @@ impl<'a> Para<'a> {
         events.push_back(event);
       }
     }
-    warp_tag(&mut events, b"w:p");
+    events.warp_tag(b"w:p");
 
     events
   }
