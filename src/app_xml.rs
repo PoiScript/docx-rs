@@ -1,9 +1,19 @@
-use quick_xml::events::*;
-use quick_xml::Writer;
+use quick_xml::events::Event;
 use std::collections::LinkedList;
-use std::io::Cursor;
 
-use utility::LinkUtil;
+use element::Element;
+use events_list::EventListExt;
+
+static PROPERTIES_NAMESPACES: [(&'static str, &'static str); 2] = [
+  (
+    "xmlns",
+    "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties",
+  ),
+  (
+    "xmlns:vt",
+    "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes",
+  ),
+];
 
 pub struct AppXml<'a> {
   template: &'a str,
@@ -24,8 +34,8 @@ pub struct AppXml<'a> {
   app_version: &'a str,
 }
 
-impl<'a> AppXml<'a> {
-  pub fn default() -> AppXml<'a> {
+impl<'a> Element<'a> for AppXml<'a> {
+  fn default() -> AppXml<'a> {
     AppXml {
       template: "Normal.dotm",
       total_time: "1",
@@ -46,41 +56,30 @@ impl<'a> AppXml<'a> {
     }
   }
 
-  pub fn generate(&self) -> Vec<u8> {
+  fn events(&self) -> LinkedList<Event<'a>> {
     let mut events = LinkedList::new();
 
     events
-      .add_tag(b"Template", self.template)
-      .add_tag(b"Template", self.template)
-      .add_tag(b"TotalTime", self.total_time)
-      .add_tag(b"Pages", self.pages)
-      .add_tag(b"Words", self.words)
-      .add_tag(b"Characters", self.characters)
-      .add_tag(b"Application", self.applications)
-      .add_tag(b"DocSecurity", self.doc_security)
-      .add_tag(b"Lines", self.lines)
-      .add_tag(b"Paragraphs", self.paragraphs)
-      .add_tag(b"ScaleCrop", self.scale_crop)
-      .add_tag(b"Company", self.company)
-      .add_tag(b"LinksUpToDate", self.links_up_to_date)
-      .add_tag(b"CharactersWithSpaces", self.characters_with_spaces)
-      .add_tag(b"SharedDoc", self.shared_doc)
-      .add_tag(b"HyperlinksChanged", self.hyperlinks_changed)
-      .add_tag(b"AppVersion", self.app_version)
-      .wrap_tag_with_attr(
-        b"Properties",
-        vec![
-          (
-            "xmlns",
-            "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties",
-          ),
-          (
-            "xmlns:vt",
-            "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes",
-          ),
-        ],
-      )
-      .add_decl()
-      .to_xml()
+      .add_text_tag("SharedDoc", self.shared_doc)
+      .add_text_tag("Template", self.template)
+      .add_text_tag("Template", self.template)
+      .add_text_tag("TotalTime", self.total_time)
+      .add_text_tag("Pages", self.pages)
+      .add_text_tag("Words", self.words)
+      .add_text_tag("Characters", self.characters)
+      .add_text_tag("Application", self.applications)
+      .add_text_tag("DocSecurity", self.doc_security)
+      .add_text_tag("Lines", self.lines)
+      .add_text_tag("Paragraphs", self.paragraphs)
+      .add_text_tag("ScaleCrop", self.scale_crop)
+      .add_text_tag("Company", self.company)
+      .add_text_tag("LinksUpToDate", self.links_up_to_date)
+      .add_text_tag("CharactersWithSpaces", self.characters_with_spaces)
+      .add_text_tag("SharedDoc", self.shared_doc)
+      .add_text_tag("HyperlinksChanged", self.hyperlinks_changed)
+      .add_text_tag("AppVersion", self.app_version)
+      .warp_attrs_tag("Properties", PROPERTIES_NAMESPACES.to_vec());
+
+    events
   }
 }

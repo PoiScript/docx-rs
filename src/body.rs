@@ -1,9 +1,8 @@
-use quick_xml::events::*;
-use quick_xml::Writer;
+use quick_xml::events::Event;
 use std::collections::LinkedList;
-use std::io::Cursor;
 
-use utility::LinkUtil;
+use element::Element;
+use events_list::EventListExt;
 
 // Specifies a run of content within the paragraph.
 pub struct Run<'a> {
@@ -11,12 +10,19 @@ pub struct Run<'a> {
   props: Vec<RunProp>,
 }
 
-impl<'a> Run<'a> {
-  fn xml_events(&self) -> LinkedList<Event<'a>> {
+impl<'a> Element<'a> for Run<'a> {
+  fn default() -> Run<'a> {
+    Run {
+      text: "",
+      props: Vec::new(),
+    }
+  }
+
+  fn events(&self) -> LinkedList<Event<'a>> {
     let mut events = LinkedList::new();
 
     // TODO: run props
-    events.add_tag(b"w:t", self.text).warp_tag(b"w:r");
+    events.add_text_tag("w:t", self.text).warp_tag("w:r");
 
     events
   }
@@ -30,17 +36,24 @@ pub struct Para<'a> {
   runs: Vec<Run<'a>>,
 }
 
-impl<'a> Para<'a> {
-  pub fn xml_events(&self) -> LinkedList<Event<'a>> {
+impl<'a> Element<'a> for Para<'a> {
+  fn default() -> Para<'a> {
+    Para {
+      runs: Vec::new(),
+      props: Vec::new(),
+    }
+  }
+
+  fn events(&self) -> LinkedList<Event<'a>> {
     let mut events = LinkedList::new();
 
-    // TODO: para props
-    for i in 0..self.runs.len() {
-      for event in self.runs[i].xml_events() {
-        events.push_back(event);
-      }
-    }
-    events.warp_tag(b"w:p");
+    // TODO
+    //    for i in 0..self.runs.len() {
+    //      for tag in self.runs[i].tags() {
+    //        tags.push(tag);
+    //      }
+    //    }
+    events.warp_tag("w:p");
 
     events
   }

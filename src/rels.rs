@@ -1,10 +1,14 @@
+use quick_xml::events::Event;
 use std::collections::LinkedList;
-use std::slice;
 
-use utility::LinkUtil;
+use element::Element;
+use events_list::EventListExt;
 
-static RELATIONSHIPS_SCHEMAS: &'static str =
-  "http://schemas.openxmlformats.org/package/2006/relationships";
+static RELATIONSHIPS_NAMESPACES: [(&'static str, &'static str); 1] = [(
+  "xmlns",
+  "http://schemas.openxmlformats.org/package/2006/relationships",
+)];
+
 static OFFICE_DOCUMENT_SCHEMAS: &'static str =
   "http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument";
 static CORE_SCHEMAS: &'static str =
@@ -36,7 +40,13 @@ pub struct Relationships<'a> {
 }
 
 impl<'a> Relationships<'a> {
-  pub fn default() -> Relationships<'a> {
+  pub fn add_rel(&mut self, rel: (Relationship, &'a str)) {
+    self.relationships.push(rel);
+  }
+}
+
+impl<'a> Element<'a> for Relationships<'a> {
+  fn default() -> Relationships<'a> {
     Relationships {
       relationships: vec![
         (Relationship::Core, "docProps/core.xml"),
@@ -46,37 +56,33 @@ impl<'a> Relationships<'a> {
     }
   }
 
-  pub fn add_rel(&mut self, rel: (Relationship, &'a str)) {
-    self.relationships.push(rel);
-  }
-
-  pub fn generate(&self) -> Vec<u8> {
+  fn events(&self) -> LinkedList<Event<'a>> {
     let mut events = LinkedList::new();
 
-    for i in 0..self.relationships.len() {
-      let (ref rel_type, target) = self.relationships[i];
-      events.add_tag_with_attr(
-        b"Relationship",
-        vec![
-          ("Id", IDS[i]),
-          ("Target", target),
-          (
-            "Type",
-            match rel_type {
-              &Relationship::Document => OFFICE_DOCUMENT_SCHEMAS,
-              &Relationship::Core => CORE_SCHEMAS,
-              &Relationship::Extended => EXTENDED_SCHEMAS,
-              // TODO: more schemas
-              _ => CORE_SCHEMAS,
-            },
-          ),
-        ],
-      );
-    }
+    // TODO
+    //    for i in 0..self.relationships.len() {
+    //      let (ref rel_type, target) = self.relationships[i];
+    //      events.add_attrs_empty_tag(
+    //        "Relationship",
+    //        vec![
+    //          ("Id", IDS[i]),
+    //          ("Target", target),
+    //          (
+    //            "Type",
+    //            match rel_type {
+    //              &Relationship::Document => OFFICE_DOCUMENT_SCHEMAS,
+    //              &Relationship::Core => CORE_SCHEMAS,
+    //              &Relationship::Extended => EXTENDED_SCHEMAS,
+    //              // TODO: more schemas
+    //              _ => CORE_SCHEMAS,
+    //            },
+    //          ),
+    //        ],
+    //      );
+    //    }
+
+    events.warp_attrs_tag("Relationships", RELATIONSHIPS_NAMESPACES.to_vec());
 
     events
-      .wrap_tag_with_attr(b"Relationships", vec![("xmlns", RELATIONSHIPS_SCHEMAS)])
-      .add_decl()
-      .to_xml()
   }
 }

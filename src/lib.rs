@@ -7,7 +7,8 @@ mod content_types_xml;
 mod core_xml;
 mod document_xml;
 mod docx;
+mod element;
+mod events_list;
 mod rels;
-mod utility;
 
 pub use docx::Docx;

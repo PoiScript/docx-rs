@@ -1,14 +1,15 @@
-use app_xml::AppXml;
-use content_types_xml::ContentTypesXml;
-use core_xml::CoreXml;
-use document_xml::DocumentXml;
-use rels::Relationships;
 use std::io::{Seek, Write};
-use std::str;
 use zip::result::ZipResult;
 use zip::write::FileOptions;
 use zip::CompressionMethod;
 use zip::ZipWriter;
+
+use app_xml::AppXml;
+use content_types_xml::ContentTypesXml;
+use core_xml::CoreXml;
+use document_xml::DocumentXml;
+use element::Element;
+use rels::Relationships;
 
 static APP_XML: &'static str = "docProps/app.xml";
 static CONTENT_TYPES_XML: &'static str = "[Content_Types].xml";
@@ -32,7 +33,7 @@ impl<'a> Docx<'a> {
       app_xml: AppXml::default(),
       content_types_xml: ContentTypesXml::default(),
       core_xml: CoreXml::default(),
-      document_xml: DocumentXml::new(),
+      document_xml: DocumentXml::default(),
       rels: Relationships::default(),
     }
   }
