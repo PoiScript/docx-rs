@@ -16,12 +16,6 @@ static CORE_SCHEMAS: &'static str =
 static EXTENDED_SCHEMAS: &'static str =
   "http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties";
 
-// FIXME
-static IDS: [&'static str; 14] = [
-  "rId1", "rId2", "rId3", "rId4", "rId5", "rId6", "rId7", "rId8", "rId9", "rId10", "rId11",
-  "rId12", "rId13", "rId14",
-];
-
 pub enum Rel {
   Core,
   Extended,
@@ -61,23 +55,23 @@ impl<'a> Xml<'a> for RelsXml<'a> {
 
     let mut iter = self.relationships.iter().enumerate();
     while let Some((i, &(ref rel_type, target))) = iter.next() {
-      events.add_attrs_empty_tag(
-        "Relationship",
-        vec![
-          ("Id", IDS[i]),
-          ("Target", target),
-          (
-            "Type",
-            match rel_type {
-              &Rel::Document => OFFICE_DOCUMENT_SCHEMAS,
-              &Rel::Core => CORE_SCHEMAS,
-              &Rel::Extended => EXTENDED_SCHEMAS,
-              // TODO: more schemas
-              _ => CORE_SCHEMAS,
-            },
-          ),
-        ],
-      );
+      let mut start = BytesStart::borrowed(b"Relationship", b"Relationship".len());
+      start.push_attribute(("Id", format!("rId{}", i).as_str()));
+      start.extend_attributes(vec![
+        ("Target", target),
+        (
+          "Type",
+          match rel_type {
+            &Rel::Document => OFFICE_DOCUMENT_SCHEMAS,
+            &Rel::Core => CORE_SCHEMAS,
+            &Rel::Extended => EXTENDED_SCHEMAS,
+            // TODO: more schemas
+            _ => CORE_SCHEMAS,
+          },
+        ),
+      ]);
+      events.push_back(Event::Start(start));
+      events.push_back(Event::End(BytesEnd::borrowed(b"Relationship")));
     }
 
     events.warp_attrs_tag("Relationships", RELATIONSHIPS_NAMESPACES.to_vec());
