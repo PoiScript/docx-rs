@@ -3,13 +3,13 @@ use std::collections::LinkedList;
 use std::iter::IntoIterator;
 
 pub trait EventListExt<'a> {
-  fn add_empty_tag(&'a mut self, name: &'a str) -> &mut Self;
+  fn add_empty_tag(&mut self, name: &'a str) -> &mut Self;
 
   fn add_text_tag(&mut self, name: &'a str, content: &'a str) -> &mut Self;
 
   fn warp_tag(&mut self, name: &'a str) -> &mut Self;
 
-  fn add_attrs_empty_tag<I>(&'a mut self, name: &'a str, attrs: I) -> &mut Self
+  fn add_attrs_empty_tag<I>(&mut self, name: &'a str, attrs: I) -> &mut Self
   where
     I: IntoIterator<Item = (&'a str, &'a str)>;
 
@@ -23,7 +23,7 @@ pub trait EventListExt<'a> {
 }
 
 impl<'a> EventListExt<'a> for LinkedList<Event<'a>> {
-  fn add_empty_tag(&'a mut self, name: &'a str) -> &mut Self {
+  fn add_empty_tag(&mut self, name: &'a str) -> &mut Self {
     self.push_back(Event::Empty(BytesStart::borrowed(
       name.as_bytes(),
       name.len(),
@@ -53,7 +53,7 @@ impl<'a> EventListExt<'a> for LinkedList<Event<'a>> {
   }
 
   #[inline]
-  fn add_attrs_empty_tag<I>(&'a mut self, name: &'a str, attrs: I) -> &mut Self
+  fn add_attrs_empty_tag<I>(&mut self, name: &'a str, attrs: I) -> &mut Self
   where
     I: IntoIterator<Item = (&'a str, &'a str)>,
   {

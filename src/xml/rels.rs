@@ -61,25 +61,9 @@ impl<'a> Xml<'a> for RelsXml<'a> {
 
     let mut iter = self.relationships.iter().enumerate();
     while let Some((i, &(ref rel_type, target))) = iter.next() {
-      //      events.add_attrs_empty_tag(
-      //        "Relationship",
-      //        vec![
-      //          ("Id", IDS[i]),
-      //          ("Target", target),
-      //          (
-      //            "Type",
-      //            match rel_type {
-      //              &Rel::Document => OFFICE_DOCUMENT_SCHEMAS,
-      //              &Rel::Core => CORE_SCHEMAS,
-      //              &Rel::Extended => EXTENDED_SCHEMAS,
-      //              // TODO: more schemas
-      //              _ => CORE_SCHEMAS,
-      //            },
-      //          ),
-      //        ],
-      //      );
-      events.push_back(Event::Empty(
-        BytesStart::borrowed(b"Relationship", b"Relationship".len()).with_attributes(vec![
+      events.add_attrs_empty_tag(
+        "Relationship",
+        vec![
           ("Id", IDS[i]),
           ("Target", target),
           (
@@ -92,8 +76,8 @@ impl<'a> Xml<'a> for RelsXml<'a> {
               _ => CORE_SCHEMAS,
             },
           ),
-        ]),
-      ));
+        ],
+      );
     }
 
     events.warp_attrs_tag("Relationships", RELATIONSHIPS_NAMESPACES.to_vec());

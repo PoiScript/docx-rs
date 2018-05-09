@@ -70,18 +70,18 @@ impl<'a> Xml<'a> for ContentTypesXml<'a> {
 
     let mut iter = self.defaults.iter();
     while let Some(&(part_name, content_type)) = iter.next() {
-      events.push_back(Event::Empty(
-        BytesStart::borrowed(b"Default", b"Default".len())
-          .with_attributes(vec![("PartName", part_name), ("ContentType", content_type)]),
-      ));
+      events.add_attrs_empty_tag(
+        "Default",
+        vec![("PartName", part_name), ("ContentType", content_type)],
+      );
     }
 
     let mut iter = self.overrides.iter();
     while let Some(&(part_name, content_type)) = iter.next() {
-      events.push_back(Event::Empty(
-        BytesStart::borrowed(b"Override", b"Override".len())
-          .with_attributes(vec![("PartName", part_name), ("ContentType", content_type)]),
-      ));
+      events.add_attrs_empty_tag(
+        "Override",
+        vec![("PartName", part_name), ("ContentType", content_type)],
+      );
     }
 
     events.warp_attrs_tag("Types", CONTENT_TYPES_NAMESPACES.to_vec());
