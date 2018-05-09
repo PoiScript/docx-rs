@@ -53,12 +53,10 @@ impl<'a> Xml<'a> for DocumentXml<'a> {
   fn events(&self) -> LinkedList<Event<'a>> {
     let mut events = LinkedList::new();
 
-    // TODO
-    //    for i in 0..self.body.len() {
-    //      for tag in self.body[i].tags() {
-    //        tags.push(tag);
-    //      }
-    //    }
+    let mut iter = self.body.iter();
+    while let Some(para) = iter.next() {
+      events.append(&mut para.events());
+    }
 
     events
       .warp_tag("w:body")

@@ -1,4 +1,4 @@
-use quick_xml::events::Event;
+use quick_xml::events::*;
 use std::collections::LinkedList;
 
 use events_list::EventListExt;
@@ -68,31 +68,21 @@ impl<'a> Xml<'a> for ContentTypesXml<'a> {
   fn events(&self) -> LinkedList<Event<'a>> {
     let mut events = LinkedList::new();
 
-    // TODO
-    //    for i in 0..self.defaults.len() {
-    //      let vec = self
-    //        .defaults
-    //        .into_iter()
-    //        .map(|(part_name, content_type)| {
-    //          vec![("PartName", part_name), ("ContentType", content_type)]
-    //        })
-    //        .collect::<Vec<(&str, &str)>>();
-    //      events.add_attrs_empty_tag("Default", vec);
-    //    }
-    //    for (part_name, content_type) in self.defaults.iter() {
-    //      events.add_attrs_empty_tag(
-    //        "Default",
-    //        vec![("PartName", part_name), ("ContentType", content_type)],
-    //      );
-    //    }
-    //
-    //    for i in 0..self.overrides.len() {
-    //      let (part_name, content_type) = self.overrides[i];
-    //      events.add_attrs_empty_tag(
-    //        "Override",
-    //        vec![("PartName", part_name), ("ContentType", content_type)],
-    //      );
-    //    }
+    let mut iter = self.defaults.iter();
+    while let Some(&(part_name, content_type)) = iter.next() {
+      events.push_back(Event::Empty(
+        BytesStart::borrowed(b"Default", b"Default".len())
+          .with_attributes(vec![("PartName", part_name), ("ContentType", content_type)]),
+      ));
+    }
+
+    let mut iter = self.overrides.iter();
+    while let Some(&(part_name, content_type)) = iter.next() {
+      events.push_back(Event::Empty(
+        BytesStart::borrowed(b"Override", b"Override".len())
+          .with_attributes(vec![("PartName", part_name), ("ContentType", content_type)]),
+      ));
+    }
 
     events.warp_attrs_tag("Types", CONTENT_TYPES_NAMESPACES.to_vec());
 

@@ -47,12 +47,11 @@ impl<'a> Xml<'a> for Para<'a> {
   fn events(&self) -> LinkedList<Event<'a>> {
     let mut events = LinkedList::new();
 
-    // TODO
-    //    for i in 0..self.runs.len() {
-    //      for tag in self.runs[i].tags() {
-    //        tags.push(tag);
-    //      }
-    //    }
+    let mut iter = self.runs.iter();
+    while let Some(run) = iter.next() {
+      events.append(&mut run.events());
+    }
+
     events.warp_tag("w:p");
 
     events

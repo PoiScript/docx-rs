@@ -1,4 +1,4 @@
-use quick_xml::events::Event;
+use quick_xml::events::*;
 use std::collections::LinkedList;
 
 use events_list::EventListExt;
@@ -59,27 +59,42 @@ impl<'a> Xml<'a> for RelsXml<'a> {
   fn events(&self) -> LinkedList<Event<'a>> {
     let mut events = LinkedList::new();
 
-    // TODO
-    //    for i in 0..self.relationships.len() {
-    //      let (ref rel_type, target) = self.relationships[i];
-    //      events.add_attrs_empty_tag(
-    //        "Relationship",
-    //        vec![
-    //          ("Id", IDS[i]),
-    //          ("Target", target),
-    //          (
-    //            "Type",
-    //            match rel_type {
-    //              &Relationship::Document => OFFICE_DOCUMENT_SCHEMAS,
-    //              &Relationship::Core => CORE_SCHEMAS,
-    //              &Relationship::Extended => EXTENDED_SCHEMAS,
-    //              // TODO: more schemas
-    //              _ => CORE_SCHEMAS,
-    //            },
-    //          ),
-    //        ],
-    //      );
-    //    }
+    let mut iter = self.relationships.iter().enumerate();
+    while let Some((i, &(ref rel_type, target))) = iter.next() {
+      //      events.add_attrs_empty_tag(
+      //        "Relationship",
+      //        vec![
+      //          ("Id", IDS[i]),
+      //          ("Target", target),
+      //          (
+      //            "Type",
+      //            match rel_type {
+      //              &Rel::Document => OFFICE_DOCUMENT_SCHEMAS,
+      //              &Rel::Core => CORE_SCHEMAS,
+      //              &Rel::Extended => EXTENDED_SCHEMAS,
+      //              // TODO: more schemas
+      //              _ => CORE_SCHEMAS,
+      //            },
+      //          ),
+      //        ],
+      //      );
+      events.push_back(Event::Empty(
+        BytesStart::borrowed(b"Relationship", b"Relationship".len()).with_attributes(vec![
+          ("Id", IDS[i]),
+          ("Target", target),
+          (
+            "Type",
+            match rel_type {
+              &Rel::Document => OFFICE_DOCUMENT_SCHEMAS,
+              &Rel::Core => CORE_SCHEMAS,
+              &Rel::Extended => EXTENDED_SCHEMAS,
+              // TODO: more schemas
+              _ => CORE_SCHEMAS,
+            },
+          ),
+        ]),
+      ));
+    }
 
     events.warp_attrs_tag("Relationships", RELATIONSHIPS_NAMESPACES.to_vec());
 
