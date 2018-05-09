@@ -1,8 +1,8 @@
 use quick_xml::events::Event;
 use std::collections::LinkedList;
 
-use element::Element;
 use events_list::EventListExt;
+use xml::Xml;
 
 static PROPERTIES_NAMESPACES: [(&'static str, &'static str); 2] = [
   (
@@ -34,7 +34,7 @@ pub struct AppXml<'a> {
   app_version: &'a str,
 }
 
-impl<'a> Element<'a> for AppXml<'a> {
+impl<'a> Xml<'a> for AppXml<'a> {
   fn default() -> AppXml<'a> {
     AppXml {
       template: "Normal.dotm",

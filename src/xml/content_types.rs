@@ -1,8 +1,8 @@
 use quick_xml::events::Event;
 use std::collections::LinkedList;
 
-use element::Element;
 use events_list::EventListExt;
+use xml::Xml;
 
 static DEFAULTS_CT: &[(&'static str, &'static str); 2] = &[
   (
@@ -57,7 +57,7 @@ pub struct ContentTypesXml<'a> {
   overrides: Vec<(&'a str, &'a str)>,
 }
 
-impl<'a> Element<'a> for ContentTypesXml<'a> {
+impl<'a> Xml<'a> for ContentTypesXml<'a> {
   fn default() -> ContentTypesXml<'a> {
     ContentTypesXml {
       defaults: DEFAULTS_CT.to_vec(),

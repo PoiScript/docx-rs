@@ -1,8 +1,8 @@
 use quick_xml::events::Event;
 use std::collections::LinkedList;
 
-use element::Element;
 use events_list::EventListExt;
+use xml::Xml;
 
 // Specifies a run of content within the paragraph.
 pub struct Run<'a> {
@@ -10,7 +10,7 @@ pub struct Run<'a> {
   props: Vec<RunProp>,
 }
 
-impl<'a> Element<'a> for Run<'a> {
+impl<'a> Xml<'a> for Run<'a> {
   fn default() -> Run<'a> {
     Run {
       text: "",
@@ -36,7 +36,7 @@ pub struct Para<'a> {
   runs: Vec<Run<'a>>,
 }
 
-impl<'a> Element<'a> for Para<'a> {
+impl<'a> Xml<'a> for Para<'a> {
   fn default() -> Para<'a> {
     Para {
       runs: Vec::new(),

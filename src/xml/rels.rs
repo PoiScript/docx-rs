@@ -1,8 +1,8 @@
 use quick_xml::events::Event;
 use std::collections::LinkedList;
 
-use element::Element;
 use events_list::EventListExt;
+use xml::Xml;
 
 static RELATIONSHIPS_NAMESPACES: [(&'static str, &'static str); 1] = [(
   "xmlns",
@@ -22,7 +22,7 @@ static IDS: [&'static str; 14] = [
   "rId12", "rId13", "rId14",
 ];
 
-pub enum Relationship {
+pub enum Rel {
   Core,
   Extended,
   Document,
@@ -35,23 +35,23 @@ pub enum Relationship {
   Numbering,
 }
 
-pub struct Relationships<'a> {
-  relationships: Vec<(Relationship, &'a str)>,
+pub struct RelsXml<'a> {
+  relationships: Vec<(Rel, &'a str)>,
 }
 
-impl<'a> Relationships<'a> {
-  pub fn add_rel(&mut self, rel: (Relationship, &'a str)) {
+impl<'a> RelsXml<'a> {
+  pub fn add_rel(&mut self, rel: (Rel, &'a str)) {
     self.relationships.push(rel);
   }
 }
 
-impl<'a> Element<'a> for Relationships<'a> {
-  fn default() -> Relationships<'a> {
-    Relationships {
+impl<'a> Xml<'a> for RelsXml<'a> {
+  fn default() -> RelsXml<'a> {
+    RelsXml {
       relationships: vec![
-        (Relationship::Core, "docProps/core.xml"),
-        (Relationship::Extended, "docProps/app.xml"),
-        (Relationship::Document, "word/document.xml"),
+        (Rel::Core, "docProps/core.xml"),
+        (Rel::Extended, "docProps/app.xml"),
+        (Rel::Document, "word/document.xml"),
       ],
     }
   }

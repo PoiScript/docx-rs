@@ -31,6 +31,7 @@ impl<'a> EventListExt<'a> for LinkedList<Event<'a>> {
     self
   }
 
+  #[inline]
   fn add_text_tag(&mut self, name: &'a str, content: &'a str) -> &mut Self {
     self.push_back(Event::Start(BytesStart::borrowed(
       name.as_bytes(),
@@ -41,6 +42,7 @@ impl<'a> EventListExt<'a> for LinkedList<Event<'a>> {
     self
   }
 
+  #[inline]
   fn warp_tag(&mut self, name: &'a str) -> &mut Self {
     self.push_front(Event::Start(BytesStart::borrowed(
       name.as_bytes(),
@@ -50,6 +52,7 @@ impl<'a> EventListExt<'a> for LinkedList<Event<'a>> {
     self
   }
 
+  #[inline]
   fn add_attrs_empty_tag<I>(&'a mut self, name: &'a str, attrs: I) -> &mut Self
   where
     I: IntoIterator<Item = (&'a str, &'a str)>,
@@ -60,6 +63,7 @@ impl<'a> EventListExt<'a> for LinkedList<Event<'a>> {
     self
   }
 
+  #[inline]
   fn add_attrs_text_tag<I>(&mut self, name: &'a str, content: &'a str, attrs: I) -> &mut Self
   where
     I: IntoIterator<Item = (&'a str, &'a str)>,
@@ -72,6 +76,7 @@ impl<'a> EventListExt<'a> for LinkedList<Event<'a>> {
     self
   }
 
+  #[inline]
   fn warp_attrs_tag<I>(&mut self, name: &'a str, attrs: I) -> &mut Self
   where
     I: IntoIterator<Item = (&'a str, &'a str)>,

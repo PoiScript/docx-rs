@@ -1,8 +1,8 @@
 use quick_xml::events::Event;
 use std::collections::LinkedList;
 
-use element::Element;
 use events_list::EventListExt;
+use xml::Xml;
 
 static CORE_PROPERTIES_NAMESPACES: [(&'static str, &'static str); 5] = [
   (
@@ -25,7 +25,7 @@ pub struct CoreXml<'a> {
   revision: &'a str,
 }
 
-impl<'a> Element<'a> for CoreXml<'a> {
+impl<'a> Xml<'a> for CoreXml<'a> {
   fn default() -> CoreXml<'a> {
     CoreXml {
       title: "",

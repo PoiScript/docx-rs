@@ -2,8 +2,8 @@ use quick_xml::events::Event;
 use std::collections::LinkedList;
 
 use body::Para;
-use element::Element;
 use events_list::EventListExt;
+use xml::Xml;
 
 static DOCUMENT_NAMESPACES: [(&'static str, &'static str); 9] = [
   (
@@ -45,7 +45,7 @@ impl<'a> DocumentXml<'a> {
   }
 }
 
-impl<'a> Element<'a> for DocumentXml<'a> {
+impl<'a> Xml<'a> for DocumentXml<'a> {
   fn default() -> DocumentXml<'a> {
     DocumentXml { body: Vec::new() }
   }

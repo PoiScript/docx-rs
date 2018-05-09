@@ -4,12 +4,7 @@ use zip::write::FileOptions;
 use zip::CompressionMethod;
 use zip::ZipWriter;
 
-use app_xml::AppXml;
-use content_types_xml::ContentTypesXml;
-use core_xml::CoreXml;
-use document_xml::DocumentXml;
-use element::Element;
-use rels::Relationships;
+use xml::{AppXml, ContentTypesXml, CoreXml, DocumentXml, RelsXml, Xml};
 
 static APP_XML: &'static str = "docProps/app.xml";
 static CONTENT_TYPES_XML: &'static str = "[Content_Types].xml";
@@ -24,7 +19,7 @@ pub struct Docx<'a> {
   content_types_xml: ContentTypesXml<'a>,
   core_xml: CoreXml<'a>,
   document_xml: DocumentXml<'a>,
-  rels: Relationships<'a>,
+  rels: RelsXml<'a>,
 }
 
 impl<'a> Docx<'a> {
@@ -34,7 +29,7 @@ impl<'a> Docx<'a> {
       content_types_xml: ContentTypesXml::default(),
       core_xml: CoreXml::default(),
       document_xml: DocumentXml::default(),
-      rels: Relationships::default(),
+      rels: RelsXml::default(),
     }
   }
 

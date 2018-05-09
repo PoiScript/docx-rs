@@ -1,10 +1,22 @@
+mod app;
+mod content_types;
+mod core;
+mod document;
+mod rels;
+
+pub use self::app::AppXml;
+pub use self::content_types::ContentTypesXml;
+pub use self::core::CoreXml;
+pub use self::document::DocumentXml;
+pub use self::rels::RelsXml;
+
 use quick_xml::events::Event;
 use quick_xml::Result;
 use quick_xml::Writer;
 use std::collections::LinkedList;
 use std::io::Cursor;
 
-pub trait Element<'a> {
+pub trait Xml<'a> {
   fn default() -> Self;
 
   fn events(&self) -> LinkedList<Event<'a>>;
