@@ -55,23 +55,22 @@ impl<'a> Xml<'a> for RelsXml<'a> {
 
     let mut iter = self.relationships.iter().enumerate();
     while let Some((i, &(ref rel_type, target))) = iter.next() {
-      let mut start = BytesStart::borrowed(b"Relationship", b"Relationship".len());
-      start.push_attribute(("Id", format!("rId{}", i).as_str()));
-      start.extend_attributes(vec![
-        ("Target", target),
-        (
-          "Type",
-          match rel_type {
-            &Rel::Document => OFFICE_DOCUMENT_SCHEMAS,
-            &Rel::Core => CORE_SCHEMAS,
-            &Rel::Extended => EXTENDED_SCHEMAS,
-            // TODO: more schemas
-            _ => CORE_SCHEMAS,
-          },
-        ),
-      ]);
-      events.push_back(Event::Start(start));
-      events.push_back(Event::End(BytesEnd::borrowed(b"Relationship")));
+      events.push_back(Event::Empty(
+        BytesStart::borrowed(b"Relationship", b"Relationship".len()).with_attributes(vec![
+          ("Id", format!("rId{}", i).as_str()),
+          ("Target", target),
+          (
+            "Type",
+            match rel_type {
+              &Rel::Document => OFFICE_DOCUMENT_SCHEMAS,
+              &Rel::Core => CORE_SCHEMAS,
+              &Rel::Extended => EXTENDED_SCHEMAS,
+              // TODO: more schemas
+              _ => CORE_SCHEMAS,
+            },
+          ),
+        ]),
+      ));
     }
 
     events.warp_attrs_tag("Relationships", RELATIONSHIPS_NAMESPACES.to_vec());
