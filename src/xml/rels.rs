@@ -9,43 +9,73 @@ static RELATIONSHIPS_NAMESPACES: [(&'static str, &'static str); 1] = [(
   "http://schemas.openxmlformats.org/package/2006/relationships",
 )];
 
-static OFFICE_DOCUMENT_SCHEMAS: &'static str =
-  "http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument";
-static CORE_SCHEMAS: &'static str =
-  "http://schemas.openxmlformats.org/officedocument/2006/relationships/metadata/core-properties";
-static EXTENDED_SCHEMAS: &'static str =
-  "http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties";
-
-pub enum Rel {
+pub enum RelType {
   Core,
   Extended,
-  Document,
+  OfficeDocument,
   Theme,
   Settings,
   FontTable,
   Styles,
   Image,
-  Header,
   Numbering,
+  Hyperlink,
+  Footnotes,
+  EndNotes,
+  Comments,
+  CustomXml,
+}
+
+impl RelType {
+  fn get_schemas(&self) -> &'static str {
+    match self {
+      &RelType::Core => "http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument",
+      &RelType::Extended => "http://schemas.openxmlformats.org/officedocument/2006/relationships/metadata/core-properties",
+      &RelType::OfficeDocument => "http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties",
+      &RelType::Theme => "http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles",
+      &RelType::Settings => "http://schemas.openxmlformats.org/officeDocument/2006/relationships/fontTable",
+      &RelType::FontTable => "http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings",
+      &RelType::Styles => "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink",
+      &RelType::Image => "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image",
+      &RelType::Numbering => "http://schemas.openxmlformats.org/officeDocument/2006/relationships/footnotes",
+      &RelType::Hyperlink => "http://schemas.openxmlformats.org/officeDocument/2006/relationships/endnotes",
+      &RelType::Footnotes => "http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments",
+      &RelType::EndNotes => "http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering",
+      &RelType::Comments => "http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme",
+      &RelType::CustomXml => "http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml",
+    }
+  }
 }
 
 pub struct RelsXml<'a> {
-  relationships: Vec<(Rel, &'a str)>,
+  relationships: Vec<(RelType, &'a str)>,
 }
 
 impl<'a> RelsXml<'a> {
-  pub fn add_rel(&mut self, rel: (Rel, &'a str)) {
+  /// Return default relationships for document.xml
+  pub fn document() -> RelsXml<'a> {
+    RelsXml {
+      relationships: vec![
+        (RelType::Styles, "styles.xml"),
+        (RelType::FontTable, "fontTable.xml"),
+        (RelType::Settings, "settings.xml"),
+      ],
+    }
+  }
+
+  pub fn add_rel(&mut self, rel: (RelType, &'a str)) {
     self.relationships.push(rel);
   }
 }
 
 impl<'a> Xml<'a> for RelsXml<'a> {
+  /// Return default relationships for the whole package
   fn default() -> RelsXml<'a> {
     RelsXml {
       relationships: vec![
-        (Rel::Core, "docProps/core.xml"),
-        (Rel::Extended, "docProps/app.xml"),
-        (Rel::Document, "word/document.xml"),
+        (RelType::Core, "docProps/core.xml"),
+        (RelType::Extended, "docProps/app.xml"),
+        (RelType::OfficeDocument, "word/document.xml"),
       ],
     }
   }
@@ -53,22 +83,12 @@ impl<'a> Xml<'a> for RelsXml<'a> {
   fn events(&self) -> LinkedList<Event<'a>> {
     let mut events = LinkedList::new();
 
-    let mut iter = self.relationships.iter().enumerate();
-    while let Some((i, &(ref rel_type, target))) = iter.next() {
+    for (i, (rel_type, target)) in self.relationships.iter().enumerate() {
       events.push_back(Event::Empty(
         BytesStart::borrowed(b"Relationship", b"Relationship".len()).with_attributes(vec![
           ("Id", format!("rId{}", i).as_str()),
           ("Target", target),
-          (
-            "Type",
-            match rel_type {
-              &Rel::Document => OFFICE_DOCUMENT_SCHEMAS,
-              &Rel::Core => CORE_SCHEMAS,
-              &Rel::Extended => EXTENDED_SCHEMAS,
-              // TODO: more schemas
-              _ => CORE_SCHEMAS,
-            },
-          ),
+          ("Type", rel_type.get_schemas()),
         ]),
       ));
     }
