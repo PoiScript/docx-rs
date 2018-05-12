@@ -36,11 +36,7 @@ impl<'a> Xml<'a> for RelsXml<'a> {
   /// Return default relationships for the whole package
   fn default() -> RelsXml<'a> {
     RelsXml {
-      relationships: vec![
-        (SCHEMA_CORE, "docProps/core.xml"),
-        (SCHEMA_REL_EXTENDED, "docProps/app.xml"),
-        (SCHEMA_OFFICE_DOCUMENT, "word/document.xml"),
-      ],
+      relationships: vec![(SCHEMA_OFFICE_DOCUMENT, "word/document.xml")],
     }
   }
 
