@@ -29,9 +29,9 @@ pub enum RelType {
 impl RelType {
   fn get_schemas(&self) -> &'static str {
     match self {
-      &RelType::Core => "http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument",
-      &RelType::Extended => "http://schemas.openxmlformats.org/officedocument/2006/relationships/metadata/core-properties",
-      &RelType::OfficeDocument => "http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties",
+      &RelType::Core => "http://schemas.openxmlformats.org/officedocument/2006/relationships/metadata/core-properties",
+      &RelType::Extended => "http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties",
+      &RelType::OfficeDocument  => "http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument",
       &RelType::Theme => "http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles",
       &RelType::Settings => "http://schemas.openxmlformats.org/officeDocument/2006/relationships/fontTable",
       &RelType::FontTable => "http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings",
