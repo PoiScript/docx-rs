@@ -6,12 +6,13 @@ use zip::ZipWriter;
 
 use body::Para;
 use schema::{SCHEMA_CORE, SCHEMA_REL_EXTENDED};
-use xml::{AppXml, ContentTypesXml, CoreXml, DocumentXml, RelsXml, Xml};
+use xml::{AppXml, ContentTypesXml, CoreXml, DocumentXml, FontTableXml, RelsXml, Xml};
 
 static APP_XML: &'static str = "docProps/app.xml";
 static CONTENT_TYPES_XML: &'static str = "[Content_Types].xml";
 static CORE_XML: &'static str = "docProps/core.xml";
 static DOCUMENT_XML: &'static str = "word/document.xml";
+static FONT_TABLE_XML: &'static str = "word/fontTable.xml";
 
 static RELS: &'static str = "_rels/.rels";
 //static DOCUMENT_RELS: &'static str = "word/_rels/document.xml.rels";
@@ -22,6 +23,7 @@ pub struct Docx<'a> {
   core_xml: Option<CoreXml<'a>>,
   content_types_xml: ContentTypesXml<'a>,
   document_xml: DocumentXml<'a>,
+  font_table_xml: Option<FontTableXml<'a>>,
   rels: RelsXml<'a>,
 }
 
@@ -32,6 +34,7 @@ impl<'a> Docx<'a> {
       core_xml: None,
       content_types_xml: ContentTypesXml::default(),
       document_xml: DocumentXml::default(),
+      font_table_xml: None,
       rels: RelsXml::default(),
     }
   }
@@ -63,6 +66,11 @@ impl<'a> Docx<'a> {
 
     zip.start_file(DOCUMENT_XML, opt)?;
     zip.write_all(&self.document_xml.generate())?;
+
+    if let Some(font_table_xml) = &self.font_table_xml {
+      zip.start_file(FONT_TABLE_XML, opt)?;
+      zip.write_all(&font_table_xml.generate())?;
+    }
 
     zip.start_file(RELS, opt)?;
     zip.write_all(&self.rels.generate())?;
