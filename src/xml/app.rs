@@ -2,17 +2,12 @@ use quick_xml::events::Event;
 use std::collections::LinkedList;
 
 use events_list::EventListExt;
+use schema::{SCHEMAS_EXTENDED, SCHEMA_DOC_PROPS_V_TYPES};
 use xml::Xml;
 
 static PROPERTIES_NAMESPACES: [(&'static str, &'static str); 2] = [
-  (
-    "xmlns",
-    "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties",
-  ),
-  (
-    "xmlns:vt",
-    "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes",
-  ),
+  ("xmlns", SCHEMAS_EXTENDED),
+  ("xmlns:vt", SCHEMA_DOC_PROPS_V_TYPES),
 ];
 
 pub struct AppXml<'a> {

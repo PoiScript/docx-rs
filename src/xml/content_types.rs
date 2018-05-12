@@ -1,36 +1,27 @@
 use quick_xml::events::*;
 use std::collections::LinkedList;
 
+use content_type::{
+  CONTENT_TYPE_CORE, CONTENT_TYPE_DOCUMENT, CONTENT_TYPE_EXTENDED, CONTENT_TYPE_RELATIONSHIP,
+  CONTENT_TYPE_XML,
+};
 use events_list::EventListExt;
+use schema::SCHEMA_CONTENT_TYPES;
 use xml::Xml;
 
-static DEFAULTS_CT: &[(&'static str, &'static str); 2] = &[
-  (
-    "rels",
-    "application/vnd.openxmlformats-package.relationships+xml",
-  ),
-  ("xml", "application/xml"),
+static DEFAULTS_CT: [(&'static str, &'static str); 2] = [
+  ("rels", CONTENT_TYPE_RELATIONSHIP),
+  ("xml", CONTENT_TYPE_XML),
 ];
 
 static OVERRIDES_CT: [(&'static str, &'static str); 3] = [
-  (
-    "/docProps/app.xml",
-    "application/vnd.openxmlformats-officedocument.extended-properties+xml",
-  ),
-  (
-    "/docProps/core.xml",
-    "application/vnd.openxmlformats-package.core-properties+xml",
-  ),
-  (
-    "/word/document.xml",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml",
-  ),
+  ("/docProps/app.xml", CONTENT_TYPE_EXTENDED),
+  ("/docProps/core.xml", CONTENT_TYPE_CORE),
+  ("/word/document.xml", CONTENT_TYPE_DOCUMENT),
 ];
 
-static CONTENT_TYPES_NAMESPACES: [(&'static str, &'static str); 1] = [(
-  "xmlns",
-  "http://schemas.openxmlformats.org/package/2006/content-types",
-)];
+static CONTENT_TYPES_NAMESPACES: [(&'static str, &'static str); 1] =
+  [("xmlns", SCHEMA_CONTENT_TYPES)];
 
 pub struct ContentTypesXml<'a> {
   defaults: Vec<(&'a str, &'a str)>,

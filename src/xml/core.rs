@@ -2,18 +2,10 @@ use quick_xml::events::Event;
 use std::collections::LinkedList;
 
 use events_list::EventListExt;
+use schema::SCHEMA_CORE;
 use xml::Xml;
 
-static CORE_PROPERTIES_NAMESPACES: [(&'static str, &'static str); 5] = [
-  (
-    "xmlns:cp",
-    "http://schemas.openxmlformats.org/package/2006/metadata/core-properties",
-  ),
-  ("xmlns:dc", "http://purl.org/dc/elements/1.1/"),
-  ("xmlns:dcterms", "http://purl.org/dc/terms/"),
-  ("xmlns:dcmitype", "http://purl.org/dc/dcmitype/"),
-  ("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance"),
-];
+static CORE_PROPERTIES_NAMESPACES: [(&'static str, &'static str); 1] = [("xmlns:cp", SCHEMA_CORE)];
 
 pub struct CoreXml<'a> {
   title: &'a str,
