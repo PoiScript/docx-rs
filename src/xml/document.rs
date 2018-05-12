@@ -8,6 +8,7 @@ use xml::Xml;
 
 static DOCUMENT_NAMESPACES: [(&'static str, &'static str); 1] = [("xmlns:w", SCHEMA_MAIN)];
 
+#[derive(Debug)]
 pub struct DocumentXml<'a> {
   body: Vec<Para<'a>>,
 }

@@ -11,6 +11,7 @@ use xml::Xml;
 static RELATIONSHIPS_NAMESPACES: [(&'static str, &'static str); 1] =
   [("xmlns", SCHEMA_RELATIONSHIPS)];
 
+#[derive(Debug)]
 pub struct RelsXml<'a> {
   relationships: Vec<(&'static str, &'a str)>,
 }

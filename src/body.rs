@@ -5,9 +5,19 @@ use events_list::EventListExt;
 use xml::Xml;
 
 // Specifies a run of content within the paragraph.
+#[derive(Debug)]
 pub struct Run<'a> {
   text: &'a str,
   props: Vec<RunProp>,
+}
+
+impl<'a> Run<'a> {
+  fn new(text: &'a str) -> Run<'a> {
+    Run {
+      text,
+      props: Vec::new(),
+    }
+  }
 }
 
 impl<'a> Xml<'a> for Run<'a> {
@@ -29,11 +39,22 @@ impl<'a> Xml<'a> for Run<'a> {
 }
 
 // Specifies properties for the run.
+#[derive(Debug)]
 pub enum RunProp {}
 
+#[derive(Debug)]
 pub struct Para<'a> {
   props: Vec<ParaProp>,
   runs: Vec<Run<'a>>,
+}
+
+impl<'a> Para<'a> {
+  pub fn new(text: &'a str) -> Para<'a> {
+    Para {
+      runs: vec![Run::new(text)],
+      props: Vec::new(),
+    }
+  }
 }
 
 impl<'a> Xml<'a> for Para<'a> {
@@ -58,6 +79,7 @@ impl<'a> Xml<'a> for Para<'a> {
 }
 
 // Specifies a set of properties for the paragraph.
+#[derive(Debug)]
 pub enum ParaProp {}
 
 // Specifies the contents of the body of the document.

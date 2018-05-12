@@ -16,6 +16,7 @@ static DOCUMENT_XML: &'static str = "word/document.xml";
 static RELS: &'static str = "_rels/.rels";
 //static DOCUMENT_RELS: &'static str = "word/_rels/document.xml.rels";
 
+#[derive(Debug)]
 pub struct Docx<'a> {
   app_xml: Option<AppXml<'a>>,
   core_xml: Option<CoreXml<'a>>,

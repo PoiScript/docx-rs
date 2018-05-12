@@ -23,6 +23,7 @@ static OVERRIDES_CT: [(&'static str, &'static str); 3] = [
 static CONTENT_TYPES_NAMESPACES: [(&'static str, &'static str); 1] =
   [("xmlns", SCHEMA_CONTENT_TYPES)];
 
+#[derive(Debug)]
 pub struct ContentTypesXml<'a> {
   defaults: Vec<(&'a str, &'a str)>,
   overrides: Vec<(&'a str, &'a str)>,

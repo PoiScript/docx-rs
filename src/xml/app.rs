@@ -10,6 +10,7 @@ static PROPERTIES_NAMESPACES: [(&'static str, &'static str); 2] = [
   ("xmlns:vt", SCHEMA_DOC_PROPS_V_TYPES),
 ];
 
+#[derive(Debug)]
 pub struct AppXml<'a> {
   template: &'a str,
   total_time: &'a str,

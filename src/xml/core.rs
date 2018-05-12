@@ -7,6 +7,7 @@ use xml::Xml;
 
 static CORE_PROPERTIES_NAMESPACES: [(&'static str, &'static str); 1] = [("xmlns:cp", SCHEMA_CORE)];
 
+#[derive(Debug)]
 pub struct CoreXml<'a> {
   title: &'a str,
   subject: &'a str,
