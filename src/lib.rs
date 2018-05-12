@@ -8,4 +8,5 @@ mod events_list;
 mod schema;
 mod xml;
 
+pub use body::Para;
 pub use docx::Docx;
