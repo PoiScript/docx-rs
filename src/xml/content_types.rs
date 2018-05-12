@@ -12,38 +12,18 @@ static DEFAULTS_CT: &[(&'static str, &'static str); 2] = &[
   ("xml", "application/xml"),
 ];
 
-static OVERRIDES_CT: [(&'static str, &'static str); 8] = [
-  (
-    "/word/document.xml",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml",
-  ),
-  (
-    "/word/styles.xml",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml",
-  ),
+static OVERRIDES_CT: [(&'static str, &'static str); 3] = [
   (
     "/docProps/app.xml",
     "application/vnd.openxmlformats-officedocument.extended-properties+xml",
   ),
   (
-    "/word/settings.xml",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml",
-  ),
-  (
-    "/word/theme/theme1.xml",
-    "application/vnd.openxmlformats-officedocument.theme+xml",
-  ),
-  (
-    "/word/fontTable.xml",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.fontTable+xml",
-  ),
-  (
-    "/word/webSettings.xml",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.webSettings+xml",
-  ),
-  (
     "/docProps/core.xml",
     "application/vnd.openxmlformats-package.core-properties+xml",
+  ),
+  (
+    "/word/document.xml",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml",
   ),
 ];
 
@@ -68,16 +48,14 @@ impl<'a> Xml<'a> for ContentTypesXml<'a> {
   fn events(&self) -> LinkedList<Event<'a>> {
     let mut events = LinkedList::new();
 
-    let mut iter = self.defaults.iter();
-    while let Some(&(part_name, content_type)) = iter.next() {
+    for &(extension, content_type) in &self.defaults {
       events.add_attrs_empty_tag(
         "Default",
-        vec![("PartName", part_name), ("ContentType", content_type)],
+        vec![("Extension", extension), ("ContentType", content_type)],
       );
     }
 
-    let mut iter = self.overrides.iter();
-    while let Some(&(part_name, content_type)) = iter.next() {
+    for &(part_name, content_type) in &self.overrides {
       events.add_attrs_empty_tag(
         "Override",
         vec![("PartName", part_name), ("ContentType", content_type)],

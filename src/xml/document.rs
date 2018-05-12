@@ -53,8 +53,7 @@ impl<'a> Xml<'a> for DocumentXml<'a> {
   fn events(&self) -> LinkedList<Event<'a>> {
     let mut events = LinkedList::new();
 
-    let mut iter = self.body.iter();
-    while let Some(para) = iter.next() {
+    for para in &self.body {
       events.append(&mut para.events());
     }
 

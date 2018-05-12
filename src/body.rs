@@ -47,8 +47,7 @@ impl<'a> Xml<'a> for Para<'a> {
   fn events(&self) -> LinkedList<Event<'a>> {
     let mut events = LinkedList::new();
 
-    let mut iter = self.runs.iter();
-    while let Some(run) = iter.next() {
+    for run in &self.runs {
       events.append(&mut run.events());
     }
 
