@@ -14,49 +14,46 @@ namespace validator
       {
         System.Console.WriteLine("Please enter path docx file.");
         System.Console.WriteLine("Usage: dotnet run [path]");
-        return 1;
+        return 128;
       }
 
       string filepath = Path.GetFullPath(args[0]);
       Console.WriteLine("Validating {0} ...", filepath);
 
-      ValidateWordDocument(filepath);
-      Console.WriteLine("All done!");
-
-      return 0;
+      return ValidateWordDocument(filepath);
     }
 
-    public static void ValidateWordDocument(string filepath)
+    public static int ValidateWordDocument(string filepath)
     {
-      using (WordprocessingDocument wordprocessingDocument =
-      WordprocessingDocument.Open(filepath, true))
+      try
       {
-        try
+        WordprocessingDocument doc = WordprocessingDocument.Open(filepath, false);
+        OpenXmlValidator validator = new OpenXmlValidator();
+        int count = 0;
+        foreach (ValidationErrorInfo error in validator.Validate(doc))
         {
-          OpenXmlValidator validator = new OpenXmlValidator();
-          int count = 0;
-          foreach (ValidationErrorInfo error in
-            validator.Validate(wordprocessingDocument))
-          {
-            count++;
-            Console.WriteLine("Error " + count);
-            Console.WriteLine("Description: " + error.Description);
-            Console.WriteLine("ErrorType: " + error.ErrorType);
-            Console.WriteLine("Node: " + error.Node);
-            Console.WriteLine("Path: " + error.Path.XPath);
-            Console.WriteLine("Part: " + error.Part.Uri);
-            Console.WriteLine("-------------------------------------------");
-          }
-
-          Console.WriteLine("count={0}", count);
+          count++;
+          Console.WriteLine("Error " + count);
+          Console.WriteLine("Description: " + error.Description);
+          Console.WriteLine("ErrorType: " + error.ErrorType);
+          Console.WriteLine("Node: " + error.Node);
+          Console.WriteLine("Path: " + error.Path.XPath);
+          Console.WriteLine("Part: " + error.Part.Uri);
+          Console.WriteLine("-------------------------------------------");
         }
 
-        catch (Exception ex)
-        {
-          Console.WriteLine(ex.Message);
-        }
+        Console.WriteLine("count={0}", count);
 
-        wordprocessingDocument.Close();
+        doc.Close();
+
+        return 0;
+      }
+
+      catch (Exception ex)
+      {
+        Console.WriteLine(ex);
+
+        return 1;
       }
     }
   }
