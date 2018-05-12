@@ -10,7 +10,7 @@ pub use self::core::CoreXml;
 pub use self::document::DocumentXml;
 pub use self::rels::RelsXml;
 
-use quick_xml::events::Event;
+use quick_xml::events::{BytesDecl, Event};
 use quick_xml::Result;
 use quick_xml::Writer;
 use std::collections::LinkedList;
@@ -22,6 +22,8 @@ pub trait Xml<'a> {
   fn events(&self) -> LinkedList<Event<'a>>;
 
   fn write(&self, writer: &mut Writer<Cursor<Vec<u8>>>) -> Result<()> {
+    // write XML declaration
+    writer.write_event(Event::Decl(BytesDecl::new(b"1.0", Some(b"utf-8"), None)));
     for event in self.events() {
       writer.write_event(event)?;
     }
