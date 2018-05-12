@@ -31,7 +31,7 @@ pub const SCHEMA_DOC_PROPS_V_TYPES: &'static str =
 pub const SCHEMA_CONTENT_TYPES: &'static str =
   "http://schemas.openxmlformats.org/package/2006/content-types";
 pub const SCHEMA_MAIN: &'static str =
-  "http://schemas.openxmlformats.org/wordprocessingml/2006/3/main";
+  "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
 pub const SCHEMA_RELATIONSHIPS: &'static str =
   "http://schemas.openxmlformats.org/package/2006/relationships";
 pub const SCHEMAS_EXTENDED: &'static str =
