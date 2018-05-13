@@ -1,5 +1,6 @@
 use quick_xml::events::Event;
 use std::collections::LinkedList;
+use std::default::Default;
 
 use events_list::EventListExt;
 use schema::{SCHEMAS_EXTENDED, SCHEMA_DOC_PROPS_V_TYPES};
@@ -30,7 +31,7 @@ pub struct AppXml<'a> {
   app_version: &'a str,
 }
 
-impl<'a> Xml<'a> for AppXml<'a> {
+impl<'a> Default for AppXml<'a> {
   fn default() -> AppXml<'a> {
     AppXml {
       template: "Normal.dotm",
@@ -51,7 +52,9 @@ impl<'a> Xml<'a> for AppXml<'a> {
       app_version: "12.0000",
     }
   }
+}
 
+impl<'a> Xml<'a> for AppXml<'a> {
   fn events(&self) -> LinkedList<Event<'a>> {
     let mut events = LinkedList::new();
 

@@ -1,5 +1,6 @@
 use quick_xml::events::*;
 use std::collections::LinkedList;
+use std::default::Default;
 
 use content_type::{
   CONTENT_TYPE_CORE, CONTENT_TYPE_DOCUMENT, CONTENT_TYPE_EXTENDED, CONTENT_TYPE_RELATIONSHIP,
@@ -29,14 +30,16 @@ pub struct ContentTypesXml<'a> {
   overrides: Vec<(&'a str, &'a str)>,
 }
 
-impl<'a> Xml<'a> for ContentTypesXml<'a> {
+impl<'a> Default for ContentTypesXml<'a> {
   fn default() -> ContentTypesXml<'a> {
     ContentTypesXml {
       defaults: DEFAULTS_CT.to_vec(),
       overrides: OVERRIDES_CT.to_vec(),
     }
   }
+}
 
+impl<'a> Xml<'a> for ContentTypesXml<'a> {
   fn events(&self) -> LinkedList<Event<'a>> {
     let mut events = LinkedList::new();
 

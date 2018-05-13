@@ -16,11 +16,10 @@ use quick_xml::events::{BytesDecl, Event};
 use quick_xml::Result;
 use quick_xml::Writer;
 use std::collections::LinkedList;
+use std::default::Default;
 use std::io::Cursor;
 
-pub trait Xml<'a> {
-  fn default() -> Self;
-
+pub trait Xml<'a>: Default {
   fn events(&self) -> LinkedList<Event<'a>>;
 
   fn write(&self, writer: &mut Writer<Cursor<Vec<u8>>>) -> Result<()> {

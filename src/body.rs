@@ -1,5 +1,6 @@
 use quick_xml::events::Event;
 use std::collections::LinkedList;
+use std::default::Default;
 
 use events_list::EventListExt;
 use xml::Xml;
@@ -20,14 +21,16 @@ impl<'a> Run<'a> {
   }
 }
 
-impl<'a> Xml<'a> for Run<'a> {
+impl<'a> Default for Run<'a> {
   fn default() -> Run<'a> {
     Run {
       text: "",
       props: Vec::new(),
     }
   }
+}
 
+impl<'a> Xml<'a> for Run<'a> {
   fn events(&self) -> LinkedList<Event<'a>> {
     let mut events = LinkedList::new();
 
@@ -57,14 +60,16 @@ impl<'a> Para<'a> {
   }
 }
 
-impl<'a> Xml<'a> for Para<'a> {
+impl<'a> Default for Para<'a> {
   fn default() -> Para<'a> {
     Para {
       runs: Vec::new(),
       props: Vec::new(),
     }
   }
+}
 
+impl<'a> Xml<'a> for Para<'a> {
   fn events(&self) -> LinkedList<Event<'a>> {
     let mut events = LinkedList::new();
 

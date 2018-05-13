@@ -1,5 +1,6 @@
 use quick_xml::events::Event;
 use std::collections::LinkedList;
+use std::default::Default;
 
 use body::Para;
 use events_list::EventListExt;
@@ -19,11 +20,13 @@ impl<'a> DocumentXml<'a> {
   }
 }
 
-impl<'a> Xml<'a> for DocumentXml<'a> {
+impl<'a> Default for DocumentXml<'a> {
   fn default() -> DocumentXml<'a> {
     DocumentXml { body: Vec::new() }
   }
+}
 
+impl<'a> Xml<'a> for DocumentXml<'a> {
   fn events(&self) -> LinkedList<Event<'a>> {
     let mut events = LinkedList::new();
 

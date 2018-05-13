@@ -1,5 +1,6 @@
 use quick_xml::events::*;
 use std::collections::LinkedList;
+use std::default::Default;
 
 use events_list::EventListExt;
 use schema::{
@@ -32,14 +33,16 @@ impl<'a> RelsXml<'a> {
   }
 }
 
-impl<'a> Xml<'a> for RelsXml<'a> {
+impl<'a> Default for RelsXml<'a> {
   /// Return default relationships for the whole package
   fn default() -> RelsXml<'a> {
     RelsXml {
       relationships: vec![(SCHEMA_OFFICE_DOCUMENT, "word/document.xml")],
     }
   }
+}
 
+impl<'a> Xml<'a> for RelsXml<'a> {
   fn events(&self) -> LinkedList<Event<'a>> {
     let mut events = LinkedList::new();
 

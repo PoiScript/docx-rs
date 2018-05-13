@@ -1,3 +1,4 @@
+use std::default::Default;
 use std::io::{Seek, Write};
 use zip::result::ZipResult;
 use zip::write::FileOptions;
@@ -17,7 +18,7 @@ static FONT_TABLE_XML: &'static str = "word/fontTable.xml";
 static RELS: &'static str = "_rels/.rels";
 //static DOCUMENT_RELS: &'static str = "word/_rels/document.xml.rels";
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Docx<'a> {
   app_xml: Option<AppXml<'a>>,
   core_xml: Option<CoreXml<'a>>,

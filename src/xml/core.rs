@@ -18,7 +18,7 @@ pub struct CoreXml<'a> {
   revision: &'a str,
 }
 
-impl<'a> Xml<'a> for CoreXml<'a> {
+impl<'a> Default for CoreXml<'a> {
   fn default() -> CoreXml<'a> {
     CoreXml {
       title: "",
@@ -30,7 +30,9 @@ impl<'a> Xml<'a> for CoreXml<'a> {
       revision: "",
     }
   }
+}
 
+impl<'a> Xml<'a> for CoreXml<'a> {
   fn events(&self) -> LinkedList<Event<'a>> {
     let mut events = LinkedList::new();
 

@@ -1,5 +1,6 @@
 use quick_xml::events::*;
 use std::collections::LinkedList;
+use std::default::Default;
 
 use events_list::EventListExt;
 use schema::{SCHEMA_MAIN, SCHEMA_RELATIONSHIPS};
@@ -13,7 +14,7 @@ pub struct Font<'a> {
   pitch: &'a str,
 }
 
-impl<'a> Xml<'a> for Font<'a> {
+impl<'a> Default for Font<'a> {
   fn default() -> Font<'a> {
     Font {
       name: "Times New Roman",
@@ -22,7 +23,9 @@ impl<'a> Xml<'a> for Font<'a> {
       pitch: "variable",
     }
   }
+}
 
+impl<'a> Xml<'a> for Font<'a> {
   fn events(&self) -> LinkedList<Event<'a>> {
     let mut events = LinkedList::new();
 
@@ -41,13 +44,15 @@ pub struct FontTableXml<'a> {
   fonts: Vec<Font<'a>>,
 }
 
-impl<'a> Xml<'a> for FontTableXml<'a> {
+impl<'a> Default for FontTableXml<'a> {
   fn default() -> FontTableXml<'a> {
     FontTableXml {
       fonts: vec![Font::default()],
     }
   }
+}
 
+impl<'a> Xml<'a> for FontTableXml<'a> {
   fn events(&self) -> LinkedList<Event<'a>> {
     let mut events = LinkedList::new();
 
