@@ -8,12 +8,11 @@ use schema::{
 };
 use xml::Xml;
 
-static RELATIONSHIPS_NAMESPACES: [(&'static str, &'static str); 1] =
-  [("xmlns", SCHEMA_RELATIONSHIPS)];
+static RELATIONSHIPS_NAMESPACES: [(&str, &str); 1] = [("xmlns", SCHEMA_RELATIONSHIPS)];
 
 #[derive(Debug)]
 pub struct RelsXml<'a> {
-  relationships: Vec<(&'static str, &'a str)>,
+  relationships: Vec<(&'a str, &'a str)>,
 }
 
 impl<'a> RelsXml<'a> {
@@ -28,7 +27,7 @@ impl<'a> RelsXml<'a> {
     }
   }
 
-  pub fn add_rel(&mut self, rel: (&'static str, &'a str)) {
+  pub fn add_rel(&mut self, rel: (&'a str, &'a str)) {
     self.relationships.push(rel);
   }
 }

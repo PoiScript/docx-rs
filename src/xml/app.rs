@@ -5,7 +5,7 @@ use events_list::EventListExt;
 use schema::{SCHEMAS_EXTENDED, SCHEMA_DOC_PROPS_V_TYPES};
 use xml::Xml;
 
-static PROPERTIES_NAMESPACES: [(&'static str, &'static str); 2] = [
+static PROPERTIES_NAMESPACES: [(&str, &str); 2] = [
   ("xmlns", SCHEMAS_EXTENDED),
   ("xmlns:vt", SCHEMA_DOC_PROPS_V_TYPES),
 ];

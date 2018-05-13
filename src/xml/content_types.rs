@@ -9,12 +9,12 @@ use events_list::EventListExt;
 use schema::SCHEMA_CONTENT_TYPES;
 use xml::Xml;
 
-static DEFAULTS_CT: [(&'static str, &'static str); 2] = [
+static DEFAULTS_CT: [(&str, &str); 2] = [
   ("rels", CONTENT_TYPE_RELATIONSHIP),
   ("xml", CONTENT_TYPE_XML),
 ];
 
-static OVERRIDES_CT: [(&'static str, &'static str); 3] = [
+static OVERRIDES_CT: [(&str, &str); 3] = [
   ("/docProps/app.xml", CONTENT_TYPE_EXTENDED),
   ("/docProps/core.xml", CONTENT_TYPE_CORE),
   ("/word/document.xml", CONTENT_TYPE_DOCUMENT),

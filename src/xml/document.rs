@@ -6,7 +6,7 @@ use events_list::EventListExt;
 use schema::SCHEMA_MAIN;
 use xml::Xml;
 
-static DOCUMENT_NAMESPACES: [(&'static str, &'static str); 1] = [("xmlns:w", SCHEMA_MAIN)];
+static DOCUMENT_NAMESPACES: [(&str, &str); 1] = [("xmlns:w", SCHEMA_MAIN)];
 
 #[derive(Debug)]
 pub struct DocumentXml<'a> {
