@@ -8,7 +8,6 @@ mod event_macro;
 mod body;
 mod content_type;
 mod docx;
-mod events_list;
 mod schema;
 mod xml;
 
