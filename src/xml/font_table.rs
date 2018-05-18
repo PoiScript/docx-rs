@@ -1,8 +1,10 @@
 use quick_xml::events::*;
-use std::collections::LinkedList;
+use quick_xml::Result;
+use quick_xml::Writer;
 use std::default::Default;
+use std::io::{Seek, Write};
+use zip::ZipWriter;
 
-use events_list::EventListExt;
 use schema::{SCHEMA_MAIN, SCHEMA_RELATIONSHIPS};
 use xml::Xml;
 
@@ -26,16 +28,13 @@ impl<'a> Default for Font<'a> {
 }
 
 impl<'a> Xml<'a> for Font<'a> {
-  fn events(&self) -> LinkedList<Event<'a>> {
-    let mut events = LinkedList::new();
-
-    events
-      .add_attrs_empty_tag("w:charset", vec![("w:val", self.charset)])
-      .add_attrs_empty_tag("w:family", vec![("w:val", self.family)])
-      .add_attrs_empty_tag("w:pitch", vec![("w:val", self.pitch)])
-      .warp_attrs_tag("w:font", vec![("w:name", self.name)]);
-
-    events
+  fn write<T: Write + Seek>(&self, writer: &mut Writer<ZipWriter<T>>) -> Result<()> {
+    write_events!(writer, (b"w:font", "w:name", self.name) {
+      (b"w:charset", "w:val", self.charset)
+      (b"w:family", "w:val", self.family)
+      (b"w:pitch", "w:val", self.pitch)
+    });
+    Ok(())
   }
 }
 
@@ -53,18 +52,19 @@ impl<'a> Default for FontTableXml<'a> {
 }
 
 impl<'a> Xml<'a> for FontTableXml<'a> {
-  fn events(&self) -> LinkedList<Event<'a>> {
-    let mut events = LinkedList::new();
-
-    for font in &self.fonts {
-      events.append(&mut font.events());
-    }
-
-    events.warp_attrs_tag(
-      "w:fonts",
-      vec![("xmlns:w", SCHEMA_MAIN), ("xmlns:r", SCHEMA_RELATIONSHIPS)],
+  fn write<T: Write + Seek>(&self, writer: &mut Writer<ZipWriter<T>>) -> Result<()> {
+    write_start_event!(
+      writer,
+      b"w:fonts",
+      "xmlns:w",
+      SCHEMA_MAIN,
+      "xmlns:r",
+      SCHEMA_RELATIONSHIPS
     );
-
-    events
+    for font in &self.fonts {
+      font.write(writer);
+    }
+    write_end_event!(writer, b"w:fonts");
+    Ok(())
   }
 }

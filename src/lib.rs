@@ -2,11 +2,12 @@
 extern crate quick_xml;
 extern crate zip;
 
+#[macro_use]
+mod event_macro;
+
 mod body;
 mod content_type;
 mod docx;
-#[macro_use]
-mod event_macro;
 mod events_list;
 mod schema;
 mod xml;

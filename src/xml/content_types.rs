@@ -1,12 +1,14 @@
 use quick_xml::events::*;
-use std::collections::LinkedList;
+use quick_xml::Result;
+use quick_xml::Writer;
 use std::default::Default;
+use std::io::{Seek, Write};
+use zip::ZipWriter;
 
 use content_type::{
   CONTENT_TYPE_CORE, CONTENT_TYPE_DOCUMENT, CONTENT_TYPE_EXTENDED, CONTENT_TYPE_RELATIONSHIP,
   CONTENT_TYPE_XML,
 };
-use events_list::EventListExt;
 use schema::SCHEMA_CONTENT_TYPES;
 use xml::Xml;
 
@@ -20,9 +22,6 @@ static OVERRIDES_CT: [(&str, &str); 3] = [
   ("/docProps/core.xml", CONTENT_TYPE_CORE),
   ("/word/document.xml", CONTENT_TYPE_DOCUMENT),
 ];
-
-static CONTENT_TYPES_NAMESPACES: [(&'static str, &'static str); 1] =
-  [("xmlns", SCHEMA_CONTENT_TYPES)];
 
 #[derive(Debug)]
 pub struct ContentTypesXml<'a> {
@@ -40,25 +39,29 @@ impl<'a> Default for ContentTypesXml<'a> {
 }
 
 impl<'a> Xml<'a> for ContentTypesXml<'a> {
-  fn events(&self) -> LinkedList<Event<'a>> {
-    let mut events = LinkedList::new();
-
+  fn write<T: Write + Seek>(&self, writer: &mut Writer<ZipWriter<T>>) -> Result<()> {
+    write_start_event!(writer, b"Types", "xmlns", SCHEMA_CONTENT_TYPES);
     for &(extension, content_type) in &self.defaults {
-      events.add_attrs_empty_tag(
-        "Default",
-        vec![("Extension", extension), ("ContentType", content_type)],
+      write_empty_event!(
+        writer,
+        b"Default",
+        "Extension",
+        extension,
+        "ContentType",
+        content_type
       );
     }
-
     for &(part_name, content_type) in &self.overrides {
-      events.add_attrs_empty_tag(
-        "Override",
-        vec![("PartName", part_name), ("ContentType", content_type)],
+      write_empty_event!(
+        writer,
+        b"Override",
+        "PartName",
+        part_name,
+        "ContentType",
+        content_type
       );
     }
-
-    events.warp_attrs_tag("Types", CONTENT_TYPES_NAMESPACES.to_vec());
-
-    events
+    write_end_event!(writer, b"Types");
+    Ok(())
   }
 }

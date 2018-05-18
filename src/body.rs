@@ -1,8 +1,10 @@
-use quick_xml::events::Event;
-use std::collections::LinkedList;
+use quick_xml::events::*;
+use quick_xml::Result;
+use quick_xml::Writer;
 use std::default::Default;
+use std::io::{Seek, Write};
+use zip::ZipWriter;
 
-use events_list::EventListExt;
 use xml::Xml;
 
 // Specifies a run of content within the paragraph.
@@ -31,13 +33,11 @@ impl<'a> Default for Run<'a> {
 }
 
 impl<'a> Xml<'a> for Run<'a> {
-  fn events(&self) -> LinkedList<Event<'a>> {
-    let mut events = LinkedList::new();
-
-    // TODO: run props
-    events.add_text_tag("w:t", self.text).warp_tag("w:r");
-
-    events
+  fn write<T: Write + Seek>(&self, writer: &mut Writer<ZipWriter<T>>) -> Result<()> {
+    write_start_event!(writer, b"w:r");
+    write_events!(writer, b"w:t"{self.text});
+    write_end_event!(writer, b"w:r");
+    Ok(())
   }
 }
 
@@ -70,16 +70,13 @@ impl<'a> Default for Para<'a> {
 }
 
 impl<'a> Xml<'a> for Para<'a> {
-  fn events(&self) -> LinkedList<Event<'a>> {
-    let mut events = LinkedList::new();
-
+  fn write<T: Write + Seek>(&self, writer: &mut Writer<ZipWriter<T>>) -> Result<()> {
+    write_start_event!(writer, b"w:p");
     for run in &self.runs {
-      events.append(&mut run.events());
+      run.write(writer);
     }
-
-    events.warp_tag("w:p");
-
-    events
+    write_end_event!(writer, b"w:p");
+    Ok(())
   }
 }
 

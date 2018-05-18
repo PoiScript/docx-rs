@@ -1,11 +1,11 @@
-use quick_xml::events::Event;
-use std::collections::LinkedList;
+use quick_xml::events::*;
+use quick_xml::Result;
+use quick_xml::Writer;
+use std::io::{Seek, Write};
+use zip::ZipWriter;
 
-use events_list::EventListExt;
 use schema::SCHEMA_CORE;
 use xml::Xml;
-
-static CORE_PROPERTIES_NAMESPACES: [(&str, &str); 1] = [("xmlns:cp", SCHEMA_CORE)];
 
 #[derive(Debug)]
 pub struct CoreXml<'a> {
@@ -33,21 +33,17 @@ impl<'a> Default for CoreXml<'a> {
 }
 
 impl<'a> Xml<'a> for CoreXml<'a> {
-  fn events(&self) -> LinkedList<Event<'a>> {
-    let mut events = LinkedList::new();
-
-    events
-      .add_text_tag("dc:title", self.title)
-      .add_text_tag("dc:title", self.title)
-      .add_text_tag("dc:subject", self.subject)
-      .add_text_tag("dc:creator", self.creator)
-      .add_text_tag("cp:keywords", self.keywords)
-      .add_text_tag("dc:description", self.description)
-      .add_text_tag("cp:lastModifiedBy", self.last_modified_by)
-      .add_text_tag("cp:revision", self.revision)
+  fn write<T: Write + Seek>(&self, writer: &mut Writer<ZipWriter<T>>) -> Result<()> {
+    write_events!(writer, (b"cp:coreProperties", "xmlns:cp", SCHEMA_CORE) {
+      b"dc:title"{self.title}
+      b"dc:subject"{self.subject}
+      b"dc:creator"{self.creator}
+      b"cp:keywords"{self.keywords}
+      b"dc:description"{self.description}
+      b"cp:lastModifiedBy"{self.last_modified_by}
+      b"cp:revision"{self.revision}
       // TODO: <dcterms:created> and <dcterms:modified>
-      .warp_attrs_tag("cp:coreProperties", CORE_PROPERTIES_NAMESPACES.to_vec());
-
-    events
+    });
+    Ok(())
   }
 }

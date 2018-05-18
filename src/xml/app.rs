@@ -1,15 +1,12 @@
-use quick_xml::events::Event;
-use std::collections::LinkedList;
+use quick_xml::events::*;
+use quick_xml::Result;
+use quick_xml::Writer;
 use std::default::Default;
+use std::io::{Seek, Write};
+use zip::ZipWriter;
 
-use events_list::EventListExt;
 use schema::{SCHEMAS_EXTENDED, SCHEMA_DOC_PROPS_V_TYPES};
 use xml::Xml;
-
-static PROPERTIES_NAMESPACES: [(&str, &str); 2] = [
-  ("xmlns", SCHEMAS_EXTENDED),
-  ("xmlns:vt", SCHEMA_DOC_PROPS_V_TYPES),
-];
 
 #[derive(Debug)]
 pub struct AppXml<'a> {
@@ -55,30 +52,32 @@ impl<'a> Default for AppXml<'a> {
 }
 
 impl<'a> Xml<'a> for AppXml<'a> {
-  fn events(&self) -> LinkedList<Event<'a>> {
-    let mut events = LinkedList::new();
-
-    events
-      .add_text_tag("SharedDoc", self.shared_doc)
-      .add_text_tag("Template", self.template)
-      .add_text_tag("Template", self.template)
-      .add_text_tag("TotalTime", self.total_time)
-      .add_text_tag("Pages", self.pages)
-      .add_text_tag("Words", self.words)
-      .add_text_tag("Characters", self.characters)
-      .add_text_tag("Application", self.applications)
-      .add_text_tag("DocSecurity", self.doc_security)
-      .add_text_tag("Lines", self.lines)
-      .add_text_tag("Paragraphs", self.paragraphs)
-      .add_text_tag("ScaleCrop", self.scale_crop)
-      .add_text_tag("Company", self.company)
-      .add_text_tag("LinksUpToDate", self.links_up_to_date)
-      .add_text_tag("CharactersWithSpaces", self.characters_with_spaces)
-      .add_text_tag("SharedDoc", self.shared_doc)
-      .add_text_tag("HyperlinksChanged", self.hyperlinks_changed)
-      .add_text_tag("AppVersion", self.app_version)
-      .warp_attrs_tag("Properties", PROPERTIES_NAMESPACES.to_vec());
-
-    events
+  fn write<T: Write + Seek>(&self, writer: &mut Writer<ZipWriter<T>>) -> Result<()> {
+    write_events!(writer, (
+      b"Properties",
+      "xmlns",
+      SCHEMAS_EXTENDED,
+      "xmlns:vt",
+      SCHEMA_DOC_PROPS_V_TYPES
+    ) {
+      b"SharedDoc"{self.shared_doc}
+      b"Template"{self.template}
+      b"TotalTime"{self.total_time}
+      b"Pages"{self.pages}
+      b"Words"{self.words}
+      b"Characters"{self.characters}
+      b"Application"{self.applications}
+      b"DocSecurity"{self.doc_security}
+      b"Lines"{self.lines}
+      b"Paragraphs"{self.paragraphs}
+      b"ScaleCrop"{self.scale_crop}
+      b"Company"{self.company}
+      b"LinksUpToDate"{self.links_up_to_date}
+      b"CharactersWithSpaces"{self.characters_with_spaces}
+      b"SharedDoc"{self.shared_doc}
+      b"HyperlinksChanged"{self.hyperlinks_changed}
+      b"AppVersion"{self.app_version}
+    });
+    Ok(())
   }
 }

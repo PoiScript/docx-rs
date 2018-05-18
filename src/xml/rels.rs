@@ -1,15 +1,15 @@
 use quick_xml::events::*;
-use std::collections::LinkedList;
+use quick_xml::Result;
+use quick_xml::Writer;
 use std::default::Default;
+use std::io::{Seek, Write};
+use zip::ZipWriter;
 
-use events_list::EventListExt;
 use schema::{
   SCHEMA_CORE, SCHEMA_FONT_TABLE, SCHEMA_OFFICE_DOCUMENT, SCHEMA_RELATIONSHIPS,
   SCHEMA_REL_EXTENDED, SCHEMA_SETTINGS, SCHEMA_STYLES,
 };
 use xml::Xml;
-
-static RELATIONSHIPS_NAMESPACES: [(&str, &str); 1] = [("xmlns", SCHEMA_RELATIONSHIPS)];
 
 #[derive(Debug)]
 pub struct RelsXml<'a> {
@@ -43,21 +43,21 @@ impl<'a> Default for RelsXml<'a> {
 }
 
 impl<'a> Xml<'a> for RelsXml<'a> {
-  fn events(&self) -> LinkedList<Event<'a>> {
-    let mut events = LinkedList::new();
-
+  fn write<T: Write + Seek>(&self, writer: &mut Writer<ZipWriter<T>>) -> Result<()> {
+    write_start_event!(writer, b"Relationships", "xmlns", SCHEMA_RELATIONSHIPS);
     for (i, (schema, target)) in self.relationships.iter().enumerate() {
-      events.push_back(Event::Empty(
-        BytesStart::borrowed(b"Relationship", b"Relationship".len()).with_attributes(vec![
-          ("Id", format!("rId{}", i).as_str()),
-          ("Target", target),
-          ("Type", schema),
-        ]),
-      ));
+      write_empty_event!(
+        writer,
+        b"Relationship",
+        "Id",
+        format!("rId{}", i).as_str(),
+        "Target",
+        *target,
+        "Type",
+        *schema
+      );
     }
-
-    events.warp_attrs_tag("Relationships", RELATIONSHIPS_NAMESPACES.to_vec());
-
-    events
+    write_end_event!(writer, b"Relationships");
+    Ok(())
   }
 }

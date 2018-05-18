@@ -1,13 +1,13 @@
-use quick_xml::events::Event;
-use std::collections::LinkedList;
+use quick_xml::events::*;
+use quick_xml::Result;
+use quick_xml::Writer;
 use std::default::Default;
+use std::io::{Seek, Write};
+use zip::ZipWriter;
 
 use body::Para;
-use events_list::EventListExt;
 use schema::SCHEMA_MAIN;
 use xml::Xml;
-
-static DOCUMENT_NAMESPACES: [(&str, &str); 1] = [("xmlns:w", SCHEMA_MAIN)];
 
 #[derive(Debug)]
 pub struct DocumentXml<'a> {
@@ -27,17 +27,14 @@ impl<'a> Default for DocumentXml<'a> {
 }
 
 impl<'a> Xml<'a> for DocumentXml<'a> {
-  fn events(&self) -> LinkedList<Event<'a>> {
-    let mut events = LinkedList::new();
-
+  fn write<T: Write + Seek>(&self, writer: &mut Writer<ZipWriter<T>>) -> Result<()> {
+    write_start_event!(writer, b"w:document", "xmlns:w", SCHEMA_MAIN);
+    write_start_event!(writer, b"w:body");
     for para in &self.body {
-      events.append(&mut para.events());
+      para.write(writer);
     }
-
-    events
-      .warp_tag("w:body")
-      .warp_attrs_tag("w:document", DOCUMENT_NAMESPACES.to_vec());
-
-    events
+    write_end_event!(writer, b"w:body");
+    write_end_event!(writer, b"w:document");
+    Ok(())
   }
 }

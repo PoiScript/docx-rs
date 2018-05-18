@@ -1,3 +1,4 @@
+use quick_xml::events::*;
 use quick_xml::Writer;
 use std::default::Default;
 use std::io::{Seek, Write};
@@ -55,6 +56,7 @@ impl<'a> Docx<'a> {
       ($xml:expr, $name:ident) => {{
         zip.start_file($name, opt)?;
         let mut writer = Writer::new(zip);
+        writer.write_event(Event::Decl(BytesDecl::new(b"1.0", Some(b"utf-8"), None)));
         $xml.write(&mut writer);
         zip = writer.into_inner();
       }};
