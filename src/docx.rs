@@ -1,3 +1,4 @@
+use quick_xml::Writer;
 use std::default::Default;
 use std::io::{Seek, Write};
 use zip::result::ZipResult;
@@ -50,31 +51,34 @@ impl<'a> Docx<'a> {
       .compression_method(CompressionMethod::Deflated)
       .unix_permissions(0o755);
 
+    macro_rules! write {
+      ($xml:expr, $name:ident) => {{
+        zip.start_file($name, opt)?;
+        let mut writer = Writer::new(zip);
+        $xml.write(&mut writer);
+        zip = writer.into_inner();
+      }};
+    }
+
     if let Some(app_xml) = &self.app_xml {
-      zip.start_file(APP_XML, opt)?;
-      zip.write_all(&app_xml.generate())?;
+      write!(app_xml, APP_XML);
       self.rels.add_rel((SCHEMA_REL_EXTENDED, APP_XML));
     }
 
     if let Some(core_xml) = &self.core_xml {
-      zip.start_file(CORE_XML, opt)?;
-      zip.write_all(&core_xml.generate())?;
+      write!(core_xml, CORE_XML);
       self.rels.add_rel((SCHEMA_CORE, CORE_XML));
     }
 
-    zip.start_file(CONTENT_TYPES_XML, opt)?;
-    zip.write_all(&self.content_types_xml.generate())?;
+    write!(self.content_types_xml, CONTENT_TYPES_XML);
 
-    zip.start_file(DOCUMENT_XML, opt)?;
-    zip.write_all(&self.document_xml.generate())?;
+    write!(self.document_xml, DOCUMENT_XML);
 
     if let Some(font_table_xml) = &self.font_table_xml {
-      zip.start_file(FONT_TABLE_XML, opt)?;
-      zip.write_all(&font_table_xml.generate())?;
+      write!(font_table_xml, FONT_TABLE_XML);
     }
 
-    zip.start_file(RELS, opt)?;
-    zip.write_all(&self.rels.generate())?;
+    write!(self.rels, RELS);
 
     zip.finish()?;
 
