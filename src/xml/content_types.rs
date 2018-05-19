@@ -40,28 +40,32 @@ impl<'a> Default for ContentTypesXml<'a> {
 
 impl<'a> Xml<'a> for ContentTypesXml<'a> {
   fn write<T: Write + Seek>(&self, writer: &mut Writer<ZipWriter<T>>) -> Result<()> {
-    write_start_event!(writer, b"Types", "xmlns", SCHEMA_CONTENT_TYPES);
-    for &(extension, content_type) in &self.defaults {
-      write_empty_event!(
-        writer,
-        b"Default",
-        "Extension",
-        extension,
-        "ContentType",
-        content_type
-      );
-    }
-    for &(part_name, content_type) in &self.overrides {
-      write_empty_event!(
-        writer,
-        b"Override",
-        "PartName",
-        part_name,
-        "ContentType",
-        content_type
-      );
-    }
-    write_end_event!(writer, b"Types");
+    write_events!(writer, (b"Types", "xmlns", SCHEMA_CONTENT_TYPES) {
+      [
+        for &(extension, content_type) in &self.defaults {
+          write_empty_event!(
+            writer,
+            b"Default",
+            "Extension",
+            extension,
+            "ContentType",
+            content_type
+          );
+        }
+      ]
+      [
+        for &(part_name, content_type) in &self.overrides {
+          write_empty_event!(
+            writer,
+            b"Override",
+            "PartName",
+            part_name,
+            "ContentType",
+            content_type
+          );
+        }
+      ]
+    });
     Ok(())
   }
 }

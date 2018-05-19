@@ -44,20 +44,20 @@ impl<'a> Default for RelsXml<'a> {
 
 impl<'a> Xml<'a> for RelsXml<'a> {
   fn write<T: Write + Seek>(&self, writer: &mut Writer<ZipWriter<T>>) -> Result<()> {
-    write_start_event!(writer, b"Relationships", "xmlns", SCHEMA_RELATIONSHIPS);
-    for (i, (schema, target)) in self.relationships.iter().enumerate() {
-      write_empty_event!(
-        writer,
-        b"Relationship",
-        "Id",
-        format!("rId{}", i).as_str(),
-        "Target",
-        *target,
-        "Type",
-        *schema
-      );
-    }
-    write_end_event!(writer, b"Relationships");
+    write_events!(writer, (b"Relationships", "xmlns", SCHEMA_RELATIONSHIPS) {[
+      for (i, (schema, target)) in self.relationships.iter().enumerate() {
+        write_empty_event!(
+          writer,
+          b"Relationship",
+          "Id",
+          format!("rId{}", i).as_str(),
+          "Target",
+          *target,
+          "Type",
+          *schema
+        );
+      }
+    ]});
     Ok(())
   }
 }

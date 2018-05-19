@@ -34,9 +34,9 @@ impl<'a> Default for Run<'a> {
 
 impl<'a> Xml<'a> for Run<'a> {
   fn write<T: Write + Seek>(&self, writer: &mut Writer<ZipWriter<T>>) -> Result<()> {
-    write_start_event!(writer, b"w:r");
-    write_events!(writer, b"w:t"{self.text});
-    write_end_event!(writer, b"w:r");
+    write_events!(writer, b"w:r"{
+      b"w:t"{self.text}
+    });
     Ok(())
   }
 }
@@ -71,11 +71,11 @@ impl<'a> Default for Para<'a> {
 
 impl<'a> Xml<'a> for Para<'a> {
   fn write<T: Write + Seek>(&self, writer: &mut Writer<ZipWriter<T>>) -> Result<()> {
-    write_start_event!(writer, b"w:p");
-    for run in &self.runs {
-      run.write(writer)?;
-    }
-    write_end_event!(writer, b"w:p");
+    write_events!(writer, b"w:p" {[
+      for run in &self.runs {
+        run.write(writer)?;
+      }
+    ]});
     Ok(())
   }
 }

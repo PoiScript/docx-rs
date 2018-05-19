@@ -48,6 +48,11 @@ macro_rules! write_end_event {
 macro_rules! write_events {
   ($writer:ident,) => (());
 
+  ($writer:ident, [ $expr:expr ] $($rest:tt)*) => {{
+    $expr;
+    write_events!($writer, $($rest)*);
+  }};
+
   ($writer:ident, ( $tag:tt, $($attrs:tt)* ) { $($inner:tt)* } $($rest:tt)*) => {{
     write_start_event!($writer, $tag, $($attrs)*);
     write_events!($writer, $($inner)*);

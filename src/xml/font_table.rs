@@ -53,18 +53,11 @@ impl<'a> Default for FontTableXml<'a> {
 
 impl<'a> Xml<'a> for FontTableXml<'a> {
   fn write<T: Write + Seek>(&self, writer: &mut Writer<ZipWriter<T>>) -> Result<()> {
-    write_start_event!(
-      writer,
-      b"w:fonts",
-      "xmlns:w",
-      SCHEMA_MAIN,
-      "xmlns:r",
-      SCHEMA_RELATIONSHIPS
-    );
-    for font in &self.fonts {
-      font.write(writer)?;
-    }
-    write_end_event!(writer, b"w:fonts");
+    write_events!(writer, (b"w:fonts", "xmlns:w", SCHEMA_MAIN, "xmlns:r", SCHEMA_RELATIONSHIPS) {[
+      for font in &self.fonts {
+        font.write(writer)?;
+      }
+    ]});
     Ok(())
   }
 }
