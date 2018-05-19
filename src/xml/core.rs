@@ -1,9 +1,9 @@
 use quick_xml::events::*;
-use quick_xml::Result;
 use quick_xml::Writer;
 use std::io::{Seek, Write};
 use zip::ZipWriter;
 
+use errors::Result;
 use schema::SCHEMA_CORE;
 use xml::Xml;
 

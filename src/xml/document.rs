@@ -1,11 +1,11 @@
 use quick_xml::events::*;
-use quick_xml::Result;
 use quick_xml::Writer;
 use std::default::Default;
 use std::io::{Seek, Write};
 use zip::ZipWriter;
 
 use body::Para;
+use errors::Result;
 use schema::SCHEMA_MAIN;
 use xml::Xml;
 
@@ -31,7 +31,7 @@ impl<'a> Xml<'a> for DocumentXml<'a> {
     write_start_event!(writer, b"w:document", "xmlns:w", SCHEMA_MAIN);
     write_start_event!(writer, b"w:body");
     for para in &self.body {
-      para.write(writer);
+      para.write(writer)?;
     }
     write_end_event!(writer, b"w:body");
     write_end_event!(writer, b"w:document");

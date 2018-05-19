@@ -1,10 +1,10 @@
 use quick_xml::events::*;
-use quick_xml::Result;
 use quick_xml::Writer;
 use std::default::Default;
 use std::io::{Seek, Write};
 use zip::ZipWriter;
 
+use errors::Result;
 use schema::{
   SCHEMA_CORE, SCHEMA_FONT_TABLE, SCHEMA_OFFICE_DOCUMENT, SCHEMA_RELATIONSHIPS,
   SCHEMA_REL_EXTENDED, SCHEMA_SETTINGS, SCHEMA_STYLES,

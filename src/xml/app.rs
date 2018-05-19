@@ -1,10 +1,10 @@
 use quick_xml::events::*;
-use quick_xml::Result;
 use quick_xml::Writer;
 use std::default::Default;
 use std::io::{Seek, Write};
 use zip::ZipWriter;
 
+use errors::Result;
 use schema::{SCHEMAS_EXTENDED, SCHEMA_DOC_PROPS_V_TYPES};
 use xml::Xml;
 

@@ -1,5 +1,4 @@
 use quick_xml::events::*;
-use quick_xml::Result;
 use quick_xml::Writer;
 use std::default::Default;
 use std::io::{Seek, Write};
@@ -9,6 +8,7 @@ use content_type::{
   CONTENT_TYPE_CORE, CONTENT_TYPE_DOCUMENT, CONTENT_TYPE_EXTENDED, CONTENT_TYPE_RELATIONSHIP,
   CONTENT_TYPE_XML,
 };
+use errors::Result;
 use schema::SCHEMA_CONTENT_TYPES;
 use xml::Xml;
 

@@ -1,10 +1,10 @@
 use quick_xml::events::*;
-use quick_xml::Result;
 use quick_xml::Writer;
 use std::default::Default;
 use std::io::{Seek, Write};
 use zip::ZipWriter;
 
+use errors::Result;
 use xml::Xml;
 
 // Specifies a run of content within the paragraph.
@@ -73,7 +73,7 @@ impl<'a> Xml<'a> for Para<'a> {
   fn write<T: Write + Seek>(&self, writer: &mut Writer<ZipWriter<T>>) -> Result<()> {
     write_start_event!(writer, b"w:p");
     for run in &self.runs {
-      run.write(writer);
+      run.write(writer)?;
     }
     write_end_event!(writer, b"w:p");
     Ok(())

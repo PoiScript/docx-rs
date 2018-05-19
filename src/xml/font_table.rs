@@ -1,10 +1,10 @@
 use quick_xml::events::*;
-use quick_xml::Result;
 use quick_xml::Writer;
 use std::default::Default;
 use std::io::{Seek, Write};
 use zip::ZipWriter;
 
+use errors::Result;
 use schema::{SCHEMA_MAIN, SCHEMA_RELATIONSHIPS};
 use xml::Xml;
 
@@ -62,7 +62,7 @@ impl<'a> Xml<'a> for FontTableXml<'a> {
       SCHEMA_RELATIONSHIPS
     );
     for font in &self.fonts {
-      font.write(writer);
+      font.write(writer)?;
     }
     write_end_event!(writer, b"w:fonts");
     Ok(())

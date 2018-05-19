@@ -2,12 +2,12 @@ use quick_xml::events::*;
 use quick_xml::Writer;
 use std::default::Default;
 use std::io::{Seek, Write};
-use zip::result::ZipResult;
 use zip::write::FileOptions;
 use zip::CompressionMethod;
 use zip::ZipWriter;
 
 use body::Para;
+use errors::Result;
 use schema::{SCHEMA_CORE, SCHEMA_REL_EXTENDED};
 use xml::{AppXml, ContentTypesXml, CoreXml, DocumentXml, FontTableXml, RelsXml, Xml};
 
@@ -46,7 +46,7 @@ impl<'a> Docx<'a> {
     self.document_xml.add_para(para);
   }
 
-  pub fn generate<T: Write + Seek>(&mut self, writer: T) -> ZipResult<()> {
+  pub fn generate<T: Write + Seek>(&mut self, writer: T) -> Result<()> {
     let mut zip = ZipWriter::new(writer);
     let opt = FileOptions::default()
       .compression_method(CompressionMethod::Deflated)
@@ -56,8 +56,8 @@ impl<'a> Docx<'a> {
       ($xml:expr, $name:ident) => {{
         zip.start_file($name, opt)?;
         let mut writer = Writer::new(zip);
-        writer.write_event(Event::Decl(BytesDecl::new(b"1.0", Some(b"utf-8"), None)));
-        $xml.write(&mut writer);
+        writer.write_event(Event::Decl(BytesDecl::new(b"1.0", Some(b"utf-8"), None)))?;
+        $xml.write(&mut writer)?;
         zip = writer.into_inner();
       }};
     }
@@ -84,6 +84,6 @@ impl<'a> Docx<'a> {
 
     zip.finish()?;
 
-    Result::Ok(())
+    Ok(())
   }
 }
