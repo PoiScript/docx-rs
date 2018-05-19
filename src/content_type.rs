@@ -6,3 +6,5 @@ pub const CONTENT_TYPE_EXTENDED: &str =
   "application/vnd.openxmlformats-officedocument.extended-properties+xml";
 pub const CONTENT_TYPE_DOCUMENT: &str =
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml";
+pub const CONTENT_TYPE_STYLES: &str =
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml";

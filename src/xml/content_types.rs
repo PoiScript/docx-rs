@@ -6,7 +6,7 @@ use zip::ZipWriter;
 
 use content_type::{
   CONTENT_TYPE_CORE, CONTENT_TYPE_DOCUMENT, CONTENT_TYPE_EXTENDED, CONTENT_TYPE_RELATIONSHIP,
-  CONTENT_TYPE_XML,
+  CONTENT_TYPE_STYLES, CONTENT_TYPE_XML,
 };
 use errors::Result;
 use schema::SCHEMA_CONTENT_TYPES;
@@ -17,10 +17,11 @@ static DEFAULTS_CT: [(&str, &str); 2] = [
   ("xml", CONTENT_TYPE_XML),
 ];
 
-static OVERRIDES_CT: [(&str, &str); 3] = [
+static OVERRIDES_CT: [(&str, &str); 4] = [
   ("/docProps/app.xml", CONTENT_TYPE_EXTENDED),
   ("/docProps/core.xml", CONTENT_TYPE_CORE),
   ("/word/document.xml", CONTENT_TYPE_DOCUMENT),
+  ("/word/styles.xml", CONTENT_TYPE_STYLES),
 ];
 
 #[derive(Debug)]

@@ -5,10 +5,7 @@ use std::io::{Seek, Write};
 use zip::ZipWriter;
 
 use errors::Result;
-use schema::{
-  SCHEMA_CORE, SCHEMA_FONT_TABLE, SCHEMA_OFFICE_DOCUMENT, SCHEMA_RELATIONSHIPS,
-  SCHEMA_REL_EXTENDED, SCHEMA_SETTINGS, SCHEMA_STYLES,
-};
+use schema::SCHEMA_RELATIONSHIPS;
 use xml::Xml;
 
 #[derive(Debug)]
@@ -17,27 +14,15 @@ pub struct RelsXml<'a> {
 }
 
 impl<'a> RelsXml<'a> {
-  /// Return default relationships for document.xml
-  pub fn document() -> RelsXml<'a> {
-    RelsXml {
-      relationships: vec![
-        (SCHEMA_STYLES, "styles.xml"),
-        (SCHEMA_FONT_TABLE, "fontTable.xml"),
-        (SCHEMA_SETTINGS, "settings.xml"),
-      ],
-    }
-  }
-
-  pub fn add_rel(&mut self, rel: (&'a str, &'a str)) {
-    self.relationships.push(rel);
+  pub fn add_rel(&mut self, schema: &'a str, target: &'a str) {
+    self.relationships.push((schema, target));
   }
 }
 
 impl<'a> Default for RelsXml<'a> {
-  /// Return default relationships for the whole package
   fn default() -> RelsXml<'a> {
     RelsXml {
-      relationships: vec![(SCHEMA_OFFICE_DOCUMENT, "word/document.xml")],
+      relationships: Vec::new(),
     }
   }
 }

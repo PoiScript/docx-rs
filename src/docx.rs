@@ -8,17 +8,11 @@ use zip::ZipWriter;
 
 use body::Para;
 use errors::Result;
-use schema::{SCHEMA_CORE, SCHEMA_REL_EXTENDED};
-use xml::{AppXml, ContentTypesXml, CoreXml, DocumentXml, FontTableXml, RelsXml, Xml};
-
-static APP_XML: &'static str = "docProps/app.xml";
-static CONTENT_TYPES_XML: &'static str = "[Content_Types].xml";
-static CORE_XML: &'static str = "docProps/core.xml";
-static DOCUMENT_XML: &'static str = "word/document.xml";
-static FONT_TABLE_XML: &'static str = "word/fontTable.xml";
-
-static RELS: &'static str = "_rels/.rels";
-//static DOCUMENT_RELS: &'static str = "word/_rels/document.xml.rels";
+use schema::{
+  SCHEMA_CORE, SCHEMA_FONT_TABLE, SCHEMA_OFFICE_DOCUMENT, SCHEMA_REL_EXTENDED, SCHEMA_STYLES,
+};
+use style::Style;
+use xml::{AppXml, ContentTypesXml, CoreXml, DocumentXml, FontTableXml, RelsXml, StylesXml, Xml};
 
 #[derive(Debug, Default)]
 pub struct Docx<'a> {
@@ -27,7 +21,9 @@ pub struct Docx<'a> {
   content_types_xml: ContentTypesXml<'a>,
   document_xml: DocumentXml<'a>,
   font_table_xml: Option<FontTableXml<'a>>,
+  styles_xml: Option<StylesXml<'a>>,
   rels: RelsXml<'a>,
+  document_rels: Option<RelsXml<'a>>,
 }
 
 impl<'a> Docx<'a> {
@@ -38,12 +34,26 @@ impl<'a> Docx<'a> {
       content_types_xml: ContentTypesXml::default(),
       document_xml: DocumentXml::default(),
       font_table_xml: None,
+      styles_xml: None,
       rels: RelsXml::default(),
+      document_rels: None,
     }
   }
 
-  pub fn append_para(&mut self, para: Para<'a>) {
-    self.document_xml.add_para(para);
+  pub fn append_para<S>(&mut self, para: Para<'a>, style: S)
+  where
+    S: Into<Option<&'a Style<'a>>>,
+  {
+    match style.into() {
+      Some(s) => {
+        self
+          .styles_xml
+          .get_or_insert(StylesXml::default())
+          .append_style(&s);
+        self.document_xml.add_para(para.with_style_name(&s));
+      }
+      None => self.document_xml.add_para(para),
+    }
   }
 
   pub fn generate<T: Write + Seek>(&mut self, writer: T) -> Result<()> {
@@ -53,34 +63,71 @@ impl<'a> Docx<'a> {
       .unix_permissions(0o755);
 
     macro_rules! write {
-      ($xml:expr, $name:ident) => {{
+      ($xml:expr, $name:tt) => {{
         zip.start_file($name, opt)?;
         let mut writer = Writer::new(zip);
         writer.write_event(Event::Decl(BytesDecl::new(b"1.0", Some(b"utf-8"), None)))?;
         $xml.write(&mut writer)?;
         zip = writer.into_inner();
       }};
+
+      ($xml:expr, $name:tt, $rel:expr, $schema:expr, $target:tt) => {{
+        write!($xml, $name);
+        $rel.add_rel($schema, $target);
+      }};
     }
 
-    if let Some(app_xml) = &self.app_xml {
-      write!(app_xml, APP_XML);
-      self.rels.add_rel((SCHEMA_REL_EXTENDED, APP_XML));
+    macro_rules! option_write {
+      ($xml:expr, $($rest:tt)*) => {{
+        if let Some(ref xml) = $xml {
+          write!(xml, $($rest)*);
+        }
+      }};
     }
 
-    if let Some(core_xml) = &self.core_xml {
-      write!(core_xml, CORE_XML);
-      self.rels.add_rel((SCHEMA_CORE, CORE_XML));
-    }
+    // content types
+    write!(self.content_types_xml, "[Content_Types].xml");
 
-    write!(self.content_types_xml, CONTENT_TYPES_XML);
+    // document properties
+    option_write!(
+      self.app_xml,
+      "docProps/app.xml",
+      self.rels,
+      SCHEMA_REL_EXTENDED,
+      "docProps/app.xml"
+    );
+    option_write!(
+      self.core_xml,
+      "docProps/core.xml",
+      self.rels,
+      SCHEMA_CORE,
+      "docProps/core.xml"
+    );
 
-    write!(self.document_xml, DOCUMENT_XML);
+    // documents specific parts
+    write!(
+      self.document_xml,
+      "word/document.xml",
+      self.rels, SCHEMA_OFFICE_DOCUMENT, "word/document.xml"
+    );
+    option_write!(
+      self.styles_xml,
+      "word/styles.xml",
+      self.document_rels.get_or_insert(RelsXml::default()),
+      SCHEMA_STYLES,
+      "styles.xml"
+    );
+    option_write!(
+      self.font_table_xml,
+      "word/fontTable.xml",
+      self.document_rels.get_or_insert(RelsXml::default()),
+      SCHEMA_FONT_TABLE,
+      "fontTable.xml"
+    );
 
-    if let Some(font_table_xml) = &self.font_table_xml {
-      write!(font_table_xml, FONT_TABLE_XML);
-    }
-
-    write!(self.rels, RELS);
+    // relationships
+    write!(self.rels, "_rels/.rels");
+    option_write!(self.document_rels, "word/_rels/document.xml.rels");
 
     zip.finish()?;
 
