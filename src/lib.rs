@@ -1,4 +1,3 @@
-#![feature(trace_macros)]
 extern crate quick_xml;
 extern crate zip;
 
