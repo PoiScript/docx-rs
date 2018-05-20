@@ -14,7 +14,7 @@ use schema::{
 use style::Style;
 use xml::{AppXml, ContentTypesXml, CoreXml, DocumentXml, FontTableXml, RelsXml, StylesXml, Xml};
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct Docx<'a> {
   app_xml: Option<AppXml<'a>>,
   core_xml: Option<CoreXml<'a>>,
@@ -40,20 +40,15 @@ impl<'a> Docx<'a> {
     }
   }
 
-  pub fn append_para<S>(&mut self, para: Para<'a>, style: S)
-  where
-    S: Into<Option<&'a Style<'a>>>,
-  {
-    match style.into() {
-      Some(s) => {
-        self
-          .styles_xml
-          .get_or_insert(StylesXml::default())
-          .append_style(&s);
-        self.document_xml.add_para(para.with_style_name(&s));
-      }
-      None => self.document_xml.add_para(para),
-    }
+  pub fn create_para(&mut self) -> &mut Para<'a> {
+    self.document_xml.create_para()
+  }
+
+  pub fn create_style(&mut self) -> &mut Style<'a> {
+    self
+      .styles_xml
+      .get_or_insert(StylesXml::default())
+      .create_style()
   }
 
   pub fn generate<T: Write + Seek>(&mut self, writer: T) -> Result<()> {
@@ -132,5 +127,11 @@ impl<'a> Docx<'a> {
     zip.finish()?;
 
     Ok(())
+  }
+}
+
+impl<'a> Default for Docx<'a> {
+  fn default() -> Docx<'a> {
+    Docx::new()
   }
 }

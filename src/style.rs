@@ -22,22 +22,22 @@ macro_rules! push_empty_event {
 }
 
 impl<'a> Style<'a> {
-  pub fn with_name(mut self, name: &'a str) -> Self {
+  pub fn with_name(&mut self, name: &'a str) -> &mut Self {
     self.name = name;
     self
   }
 
-  pub fn with_jc(mut self, justification: &Justification) -> Self {
+  pub fn with_jc(&mut self, justification: &Justification) -> &mut Self {
     push_empty_event!(self.p_pr, b"w:jc", justification.as_str());
     self
   }
 
-  pub fn with_sz(mut self, size: usize) -> Self {
+  pub fn with_sz(&mut self, size: usize) -> &mut Self {
     push_empty_event!(self.r_pr, b"w:sz", size.to_string().as_str());
     self
   }
 
-  pub fn with_color(mut self, color: &'a str) -> Self {
+  pub fn with_color(&mut self, color: &'a str) -> &mut Self {
     push_empty_event!(self.r_pr, b"w:color", color);
     self
   }

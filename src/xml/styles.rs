@@ -11,14 +11,13 @@ use xml::Xml;
 
 #[derive(Debug)]
 pub struct StylesXml<'a> {
-  styles: Vec<&'a Style<'a>>,
+  styles: Vec<Style<'a>>,
 }
 
 impl<'a> StylesXml<'a> {
-  pub fn append_style(&mut self, style: &'a Style<'a>) {
-    if !self.styles.iter().any(|&x| x.name == style.name) {
-      self.styles.push(style);
-    }
+  pub fn create_style(&mut self) -> &mut Style<'a> {
+    self.styles.push(Style::default());
+    self.styles.last_mut().unwrap()
   }
 }
 

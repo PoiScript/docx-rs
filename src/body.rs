@@ -43,16 +43,13 @@ pub struct Para<'a> {
 }
 
 impl<'a> Para<'a> {
-  pub fn new(text: &'a str) -> Para<'a> {
-    Para {
-      runs: vec![Run::new(text)],
-      style: None,
-      extend: None,
-    }
+  pub fn with_style_name(&mut self, name: &'a str) -> &mut Self {
+    self.style = Some(name);
+    self
   }
 
-  pub fn with_style_name(mut self, style: &'a Style) -> Self {
-    self.style = Some(style.name);
+  pub fn add_text(&mut self, text: &'a str) -> &mut Self {
+    self.runs.push(Run::new(text));
     self
   }
 }

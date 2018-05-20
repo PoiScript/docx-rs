@@ -15,8 +15,9 @@ pub struct DocumentXml<'a> {
 }
 
 impl<'a> DocumentXml<'a> {
-  pub fn add_para(&mut self, para: Para<'a>) {
-    self.body.push(para);
+  pub fn create_para(&mut self) -> &mut Para<'a> {
+    self.body.push(Para::default());
+    self.body.last_mut().unwrap()
   }
 }
 
