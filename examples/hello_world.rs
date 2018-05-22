@@ -1,6 +1,6 @@
 extern crate docx_rs;
 
-use docx_rs::{Docx, Justification, StyleExt};
+use docx_rs::prelude::*;
 
 fn main() {
   let path = std::path::Path::new("hello_world.docx");
