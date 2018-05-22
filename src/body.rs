@@ -5,7 +5,7 @@ use std::io::{Seek, Write};
 use zip::ZipWriter;
 
 use errors::Result;
-use style::Style;
+use style::{Justification, Style, StyleExt};
 use xml::Xml;
 
 // Specifies a run of content within the paragraph.
@@ -38,13 +38,13 @@ impl<'a> Xml<'a> for Run<'a> {
 #[derive(Debug)]
 pub struct Para<'a> {
   runs: Vec<Run<'a>>,
-  style: Option<&'a str>,
-  extend: Option<&'a Style<'a>>,
+  style: Option<Style<'a>>,
+  style_name: Option<&'a str>,
 }
 
 impl<'a> Para<'a> {
   pub fn with_style_name(&mut self, name: &'a str) -> &mut Self {
-    self.style = Some(name);
+    self.style_name = Some(name);
     self
   }
 
@@ -54,12 +54,32 @@ impl<'a> Para<'a> {
   }
 }
 
+impl<'a> StyleExt<'a> for Para<'a> {
+  fn with_jc(&mut self, justification: &Justification) -> &mut Self {
+    self
+      .style
+      .get_or_insert(Style::default())
+      .with_jc(justification);
+    self
+  }
+
+  fn with_sz(&mut self, size: usize) -> &mut Self {
+    self.style.get_or_insert(Style::default()).with_sz(size);
+    self
+  }
+
+  fn with_color(&mut self, color: &'a str) -> &mut Self {
+    self.style.get_or_insert(Style::default()).with_color(color);
+    self
+  }
+}
+
 impl<'a> Default for Para<'a> {
   fn default() -> Para<'a> {
     Para {
       runs: Vec::new(),
       style: None,
-      extend: None,
+      style_name: None,
     }
   }
 }
@@ -68,8 +88,12 @@ impl<'a> Xml<'a> for Para<'a> {
   fn write<T: Write + Seek>(&self, writer: &mut Writer<ZipWriter<T>>) -> Result<()> {
     write_events!(writer, b"w:p"{
       b"w:pPr"{[
-        if let Some(style_name) = self.style {
+        if let Some(style_name) = self.style_name {
           write_empty_event!(writer, b"w:pStyle", "w:val", style_name);
+        }
+      ] [
+        if let Some(ref style) = self.style {
+          style.write_p_pr(writer)?;
         }
       ]}
       [

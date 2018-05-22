@@ -13,4 +13,4 @@ mod style;
 mod xml;
 
 pub use docx::Docx;
-pub use style::Justification;
+pub use style::{Justification, Style, StyleExt};
