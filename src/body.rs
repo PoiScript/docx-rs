@@ -10,27 +10,23 @@ use xml::Xml;
 
 // Specifies a run of content within the paragraph.
 #[derive(Debug)]
-pub struct Run<'a> {
-  text: &'a str,
-}
-
-impl<'a> Run<'a> {
-  fn new(text: &'a str) -> Run<'a> {
-    Run { text }
-  }
+pub enum Run<'a> {
+  Text(&'a str),
+  Break,
 }
 
 impl<'a> Default for Run<'a> {
   fn default() -> Run<'a> {
-    Run { text: "" }
+    Run::Break
   }
 }
 
 impl<'a> Xml<'a> for Run<'a> {
   fn write<T: Write + Seek>(&self, writer: &mut Writer<ZipWriter<T>>) -> Result<()> {
-    write_events!(writer, b"w:r"{
-      b"w:t"{self.text}
-    });
+    match *self {
+      Run::Text(text) => write_events!(writer, b"w:t"{text}),
+      Run::Break => write_empty_event!(writer, b"w:br"),
+    }
     Ok(())
   }
 }
@@ -48,28 +44,34 @@ impl<'a> Para<'a> {
     self
   }
 
-  pub fn add_text(&mut self, text: &'a str) -> &mut Self {
-    self.runs.push(Run::new(text));
+  pub fn add_break(&mut self) -> &mut Self {
+    self.runs.push(Run::Break);
     self
+  }
+
+  pub fn add_text(&mut self, text: &'a str) -> &mut Self {
+    self.runs.push(Run::Text(text));
+    self
+  }
+
+  pub fn get_style(&mut self) -> &mut Style<'a> {
+    self.style.get_or_insert(Style::default())
   }
 }
 
 impl<'a> StyleExt<'a> for Para<'a> {
   fn with_jc(&mut self, justification: &Justification) -> &mut Self {
-    self
-      .style
-      .get_or_insert(Style::default())
-      .with_jc(justification);
+    self.get_style().with_jc(justification);
     self
   }
 
   fn with_sz(&mut self, size: usize) -> &mut Self {
-    self.style.get_or_insert(Style::default()).with_sz(size);
+    self.get_style().with_sz(size);
     self
   }
 
   fn with_color(&mut self, color: &'a str) -> &mut Self {
-    self.style.get_or_insert(Style::default()).with_color(color);
+    self.get_style().with_color(color);
     self
   }
 }
@@ -96,11 +98,11 @@ impl<'a> Xml<'a> for Para<'a> {
           style.write_p_pr(writer)?;
         }
       ]}
-      [
+      b"w:r"{[
         for run in &self.runs {
           run.write(writer)?;
         }
-      ]
+      ]}
     });
     Ok(())
   }
