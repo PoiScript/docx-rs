@@ -1,5 +1,6 @@
 use quick_xml::events::*;
 use quick_xml::Writer;
+use std::borrow::Cow;
 use std::default::Default;
 use std::io::{Seek, Write};
 use zip::ZipWriter;
@@ -60,7 +61,10 @@ impl<'a> Para<'a> {
 }
 
 impl<'a> StyleExt<'a> for Para<'a> {
-  fn with_jc(&mut self, justification: &Justification) -> &mut Self {
+  fn with_jc<J>(&mut self, justification: J) -> &mut Self
+  where
+    J: Into<Cow<'a, Justification>>,
+  {
     self.get_style().with_jc(justification);
     self
   }
@@ -70,7 +74,10 @@ impl<'a> StyleExt<'a> for Para<'a> {
     self
   }
 
-  fn with_color(&mut self, color: &'a str) -> &mut Self {
+  fn with_color<S>(&mut self, color: S) -> &mut Self
+  where
+    S: Into<Cow<'a, str>>,
+  {
     self.get_style().with_color(color);
     self
   }

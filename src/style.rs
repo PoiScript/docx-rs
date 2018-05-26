@@ -1,5 +1,6 @@
 use quick_xml::events::*;
 use quick_xml::Writer;
+use std::borrow::Cow;
 use std::io::{Seek, Write};
 use zip::ZipWriter;
 
@@ -8,38 +9,41 @@ use xml::Xml;
 
 #[derive(Debug, Default)]
 pub struct Style<'a> {
-  pub name: &'a str,
-  p_pr: Vec<Event<'a>>,
-  r_pr: Vec<Event<'a>>,
-}
-
-macro_rules! push_empty_event {
-  ($vec:expr, $tag:tt, $val:expr) => {{
-    let mut bytes_start = BytesStart::borrowed($tag, $tag.len());
-    bytes_start.push_attribute(("w:val", $val));
-    $vec.push(Event::Empty(bytes_start));
-  }};
+  name: &'a str,
+  size: Option<usize>,
+  color: Option<Cow<'a, str>>,
+  justify: Option<Cow<'a, Justification>>,
 }
 
 pub trait StyleExt<'a> {
-  fn with_jc(&mut self, justification: &Justification) -> &mut Self;
+  fn with_jc<J>(&mut self, justification: J) -> &mut Self
+  where
+    J: Into<Cow<'a, Justification>>;
   fn with_sz(&mut self, size: usize) -> &mut Self;
-  fn with_color(&mut self, color: &'a str) -> &mut Self;
+  fn with_color<S>(&mut self, color: S) -> &mut Self
+  where
+    S: Into<Cow<'a, str>>;
 }
 
 impl<'a> StyleExt<'a> for Style<'a> {
-  fn with_jc(&mut self, justification: &Justification) -> &mut Self {
-    push_empty_event!(self.p_pr, b"w:jc", justification.as_str());
+  fn with_jc<J>(&mut self, justification: J) -> &mut Self
+  where
+    J: Into<Cow<'a, Justification>>,
+  {
+    self.justify = Some(justification.into());
     self
   }
 
   fn with_sz(&mut self, size: usize) -> &mut Self {
-    push_empty_event!(self.r_pr, b"w:sz", size.to_string().as_str());
+    self.size = Some(size);
     self
   }
 
-  fn with_color(&mut self, color: &'a str) -> &mut Self {
-    push_empty_event!(self.r_pr, b"w:color", color);
+  fn with_color<S>(&mut self, color: S) -> &mut Self
+  where
+    S: Into<Cow<'a, str>>,
+  {
+    self.color = Some(color.into());
     self
   }
 }
@@ -51,15 +55,18 @@ impl<'a> Style<'a> {
   }
 
   pub fn write_p_pr<T: Write + Seek>(&self, writer: &mut Writer<ZipWriter<T>>) -> Result<()> {
-    for event in &self.p_pr {
-      writer.write_event(event)?;
+    if let Some(ref jc) = self.justify {
+      write_events!(writer, (b"w:jc", "w:val", jc.as_str()));
     }
     Ok(())
   }
 
   pub fn write_r_pr<T: Write + Seek>(&self, writer: &mut Writer<ZipWriter<T>>) -> Result<()> {
-    for event in &self.r_pr {
-      writer.write_event(event)?;
+    if let Some(ref size) = self.size {
+      write_events!(writer, (b"w:jc", "w:val", size.to_string().as_str()));
+    }
+    if let Some(ref color) = self.color {
+      write_events!(writer, (b"w:color", "w:val", color.as_ref()));
     }
     Ok(())
   }
@@ -80,7 +87,7 @@ impl<'a> Xml<'a> for Style<'a> {
   }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum Justification {
   Start,
   End,
