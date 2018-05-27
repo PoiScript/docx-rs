@@ -28,12 +28,12 @@ impl<'a> Default for StylesXml<'a> {
 }
 
 impl<'a> Xml<'a> for StylesXml<'a> {
-  fn write<T: Write + Seek>(&self, writer: &mut Writer<ZipWriter<T>>) -> Result<()> {
-    write_events!(writer, (b"w:styles", "xmlns:w", SCHEMA_MAIN) {[
+  fn write<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()> {
+    tag!(w, b"w:styles"["xmlns:w", SCHEMA_MAIN] {{
       for style in &self.styles {
-        style.write(writer)?;
+        style.write(w)?;
       }
-    ]});
+    }});
     Ok(())
   }
 }

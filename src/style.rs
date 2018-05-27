@@ -54,35 +54,35 @@ impl<'a> Style<'a> {
     self
   }
 
-  pub fn write_p_pr<T: Write + Seek>(&self, writer: &mut Writer<ZipWriter<T>>) -> Result<()> {
+  pub fn write_p_pr<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()> {
     if let Some(ref jc) = self.justify {
-      write_events!(writer, (b"w:jc", "w:val", jc.as_str()));
+      tag!(w, b"w:jc"["w:val", jc.as_str()]);
     }
     Ok(())
   }
 
-  pub fn write_r_pr<T: Write + Seek>(&self, writer: &mut Writer<ZipWriter<T>>) -> Result<()> {
+  pub fn write_r_pr<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()> {
     if let Some(ref size) = self.size {
-      write_events!(writer, (b"w:jc", "w:val", size.to_string().as_str()));
+      tag!(w, b"w:jc"["w:val", size.to_string().as_str()]);
     }
     if let Some(ref color) = self.color {
-      write_events!(writer, (b"w:color", "w:val", color.as_ref()));
+      tag!(w, b"w:color"["w:val", color.as_ref()]);
     }
     Ok(())
   }
 }
 
 impl<'a> Xml<'a> for Style<'a> {
-  fn write<T: Write + Seek>(&self, writer: &mut Writer<ZipWriter<T>>) -> Result<()> {
-    write_events!(writer, (b"w:style", "w:type", "paragraph", "w:styleId", self.name) {
-      (b"w:name", "w:val", self.name)
-      b"w:pPr" {[
-        self.write_p_pr(writer)?
-      ]}
-      b"w:rPr" {[
-        self.write_r_pr(writer)?
-      ]}
-    });
+  fn write<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()> {
+    tag!(w, b"w:style"["w:type", "paragraph", "w:styleId", self.name] {{
+      tag!(w, b"w:name"["w:val", self.name]);
+      tag!(w, b"w:pPr" {{
+        self.write_p_pr(w)?;
+      }});
+      tag!(w, b"w:rPr" {{
+        self.write_r_pr(w)?;
+      }});
+    }});
     Ok(())
   }
 }

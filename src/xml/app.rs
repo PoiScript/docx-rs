@@ -52,32 +52,26 @@ impl<'a> Default for AppXml<'a> {
 }
 
 impl<'a> Xml<'a> for AppXml<'a> {
-  fn write<T: Write + Seek>(&self, writer: &mut Writer<ZipWriter<T>>) -> Result<()> {
-    write_events!(writer, (
-      b"Properties",
-      "xmlns",
-      SCHEMAS_EXTENDED,
-      "xmlns:vt",
-      SCHEMA_DOC_PROPS_V_TYPES
-    ) {
-      b"SharedDoc"{self.shared_doc}
-      b"Template"{self.template}
-      b"TotalTime"{self.total_time}
-      b"Pages"{self.pages}
-      b"Words"{self.words}
-      b"Characters"{self.characters}
-      b"Application"{self.applications}
-      b"DocSecurity"{self.doc_security}
-      b"Lines"{self.lines}
-      b"Paragraphs"{self.paragraphs}
-      b"ScaleCrop"{self.scale_crop}
-      b"Company"{self.company}
-      b"LinksUpToDate"{self.links_up_to_date}
-      b"CharactersWithSpaces"{self.characters_with_spaces}
-      b"SharedDoc"{self.shared_doc}
-      b"HyperlinksChanged"{self.hyperlinks_changed}
-      b"AppVersion"{self.app_version}
-    });
+  fn write<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()> {
+    tag!(w, b"Properties" ["xmlns",SCHEMAS_EXTENDED,"xmlns:vt",SCHEMA_DOC_PROPS_V_TYPES] {{
+      tag!(w, b"SharedDoc"{self.shared_doc});
+      tag!(w, b"Template"{self.template});
+      tag!(w, b"TotalTime"{self.total_time});
+      tag!(w, b"Pages"{self.pages});
+      tag!(w, b"Words"{self.words});
+      tag!(w, b"Characters"{self.characters});
+      tag!(w, b"Application"{self.applications});
+      tag!(w, b"DocSecurity"{self.doc_security});
+      tag!(w, b"Lines"{self.lines});
+      tag!(w, b"Paragraphs"{self.paragraphs});
+      tag!(w, b"ScaleCrop"{self.scale_crop});
+      tag!(w, b"Company"{self.company});
+      tag!(w, b"LinksUpToDate"{self.links_up_to_date});
+      tag!(w, b"CharactersWithSpaces"{self.characters_with_spaces});
+      tag!(w, b"SharedDoc"{self.shared_doc});
+      tag!(w, b"HyperlinksChanged"{self.hyperlinks_changed});
+      tag!(w, b"AppVersion"{self.app_version});
+    }});
     Ok(())
   }
 }

@@ -23,10 +23,10 @@ impl<'a> Default for Run<'a> {
 }
 
 impl<'a> Xml<'a> for Run<'a> {
-  fn write<T: Write + Seek>(&self, writer: &mut Writer<ZipWriter<T>>) -> Result<()> {
+  fn write<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()> {
     match *self {
-      Run::Text(text) => write_events!(writer, b"w:t"{text}),
-      Run::Break => write_empty_event!(writer, b"w:br"),
+      Run::Text(text) => tag!(w, b"w:t"{text}),
+      Run::Break => tag!(w, b"w:br"),
     }
     Ok(())
   }
@@ -94,23 +94,22 @@ impl<'a> Default for Para<'a> {
 }
 
 impl<'a> Xml<'a> for Para<'a> {
-  fn write<T: Write + Seek>(&self, writer: &mut Writer<ZipWriter<T>>) -> Result<()> {
-    write_events!(writer, b"w:p"{
-      b"w:pPr"{[
+  fn write<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()> {
+    tag!(w, b"w:p" {{
+      tag!(w, b"w:pPr" {{
         if let Some(style_name) = self.style_name {
-          write_empty_event!(writer, b"w:pStyle", "w:val", style_name);
+          tag!(w, b"w:pStyle"["w:val", style_name]);
         }
-      ] [
         if let Some(ref style) = self.style {
-          style.write_p_pr(writer)?;
+          style.write_p_pr(w)?;
         }
-      ]}
-      b"w:r"{[
+      }});
+      tag!(w, b"w:r" {{
         for run in &self.runs {
-          run.write(writer)?;
+          run.write(w)?;
         }
-      ]}
-    });
+      }});
+    }});
     Ok(())
   }
 }

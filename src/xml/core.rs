@@ -33,17 +33,17 @@ impl<'a> Default for CoreXml<'a> {
 }
 
 impl<'a> Xml<'a> for CoreXml<'a> {
-  fn write<T: Write + Seek>(&self, writer: &mut Writer<ZipWriter<T>>) -> Result<()> {
-    write_events!(writer, (b"cp:coreProperties", "xmlns:cp", SCHEMA_CORE) {
-      b"dc:title"{self.title}
-      b"dc:subject"{self.subject}
-      b"dc:creator"{self.creator}
-      b"cp:keywords"{self.keywords}
-      b"dc:description"{self.description}
-      b"cp:lastModifiedBy"{self.last_modified_by}
-      b"cp:revision"{self.revision}
+  fn write<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()> {
+    tag!(w, b"cp:coreProperties"["xmlns:cp", SCHEMA_CORE] {{
+      tag!(w, b"dc:title"{self.title});
+      tag!(w, b"dc:subject"{self.subject});
+      tag!(w, b"dc:creator"{self.creator});
+      tag!(w, b"cp:keywords"{self.keywords});
+      tag!(w, b"dc:description"{self.description});
+      tag!(w, b"cp:lastModifiedBy"{self.last_modified_by});
+      tag!(w, b"cp:revision"{self.revision});
       // TODO: <dcterms:created> and <dcterms:modified>
-    });
+    }});
     Ok(())
   }
 }

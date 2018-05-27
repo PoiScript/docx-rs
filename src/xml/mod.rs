@@ -22,5 +22,5 @@ use zip::ZipWriter;
 use errors::Result;
 
 pub trait Xml<'a>: Default {
-  fn write<T: Write + Seek>(&self, writer: &mut Writer<ZipWriter<T>>) -> Result<()>;
+  fn write<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()>;
 }

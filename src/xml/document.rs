@@ -28,14 +28,14 @@ impl<'a> Default for DocumentXml<'a> {
 }
 
 impl<'a> Xml<'a> for DocumentXml<'a> {
-  fn write<T: Write + Seek>(&self, writer: &mut Writer<ZipWriter<T>>) -> Result<()> {
-    write_events!(writer, (b"w:document", "xmlns:w", SCHEMA_MAIN) {
-      b"w:body" {[
+  fn write<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()> {
+    tag!(w, b"w:document"["xmlns:w", SCHEMA_MAIN] {{
+      tag!(w, b"w:body" {{
         for para in &self.body {
-          para.write(writer)?;
+          para.write(w)?;
         }
-      ]}
-    });
+      }});
+    }});
     Ok(())
   }
 }

@@ -28,12 +28,12 @@ impl<'a> Default for Font<'a> {
 }
 
 impl<'a> Xml<'a> for Font<'a> {
-  fn write<T: Write + Seek>(&self, writer: &mut Writer<ZipWriter<T>>) -> Result<()> {
-    write_events!(writer, (b"w:font", "w:name", self.name) {
-      (b"w:charset", "w:val", self.charset)
-      (b"w:family", "w:val", self.family)
-      (b"w:pitch", "w:val", self.pitch)
-    });
+  fn write<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()> {
+    tag!(w, b"w:font"["w:name", self.name] {{
+      tag!(w, b"w:charset"["w:val", self.charset]);
+      tag!(w, b"w:family"["w:val", self.family]);
+      tag!(w, b"w:pitch"["w:val", self.pitch]);
+    }});
     Ok(())
   }
 }
@@ -52,12 +52,12 @@ impl<'a> Default for FontTableXml<'a> {
 }
 
 impl<'a> Xml<'a> for FontTableXml<'a> {
-  fn write<T: Write + Seek>(&self, writer: &mut Writer<ZipWriter<T>>) -> Result<()> {
-    write_events!(writer, (b"w:fonts", "xmlns:w", SCHEMA_MAIN, "xmlns:r", SCHEMA_RELATIONSHIPS) {[
+  fn write<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()> {
+    tag!(w, b"w:fonts"["xmlns:w", SCHEMA_MAIN, "xmlns:r", SCHEMA_RELATIONSHIPS] {{
       for font in &self.fonts {
-        font.write(writer)?;
+        font.write(w)?;
       }
-    ]});
+    }});
     Ok(())
   }
 }
