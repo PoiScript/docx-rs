@@ -61,10 +61,7 @@ impl<'a> Para<'a> {
 }
 
 impl<'a> StyleExt<'a> for Para<'a> {
-  fn with_jc<J>(&mut self, justification: J) -> &mut Self
-  where
-    J: Into<Cow<'a, Justification>>,
-  {
+  fn with_jc(&mut self, justification: &'a Justification) -> &mut Self {
     self.get_style().with_jc(justification);
     self
   }

@@ -12,13 +12,11 @@ pub struct Style<'a> {
   name: &'a str,
   size: Option<usize>,
   color: Option<Cow<'a, str>>,
-  justify: Option<Cow<'a, Justification>>,
+  justify: Option<&'a Justification>,
 }
 
 pub trait StyleExt<'a> {
-  fn with_jc<J>(&mut self, justification: J) -> &mut Self
-  where
-    J: Into<Cow<'a, Justification>>;
+  fn with_jc(&mut self, justification: &'a Justification) -> &mut Self;
   fn with_sz(&mut self, size: usize) -> &mut Self;
   fn with_color<S>(&mut self, color: S) -> &mut Self
   where
@@ -26,11 +24,8 @@ pub trait StyleExt<'a> {
 }
 
 impl<'a> StyleExt<'a> for Style<'a> {
-  fn with_jc<J>(&mut self, justification: J) -> &mut Self
-  where
-    J: Into<Cow<'a, Justification>>,
-  {
-    self.justify = Some(justification.into());
+  fn with_jc(&mut self, justification: &'a Justification) -> &mut Self {
+    self.justify = Some(justification);
     self
   }
 
