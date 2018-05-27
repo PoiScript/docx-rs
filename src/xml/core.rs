@@ -7,7 +7,7 @@ use errors::Result;
 use schema::SCHEMA_CORE;
 use xml::Xml;
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct CoreXml<'a> {
   title: &'a str,
   subject: &'a str,
@@ -16,20 +16,6 @@ pub struct CoreXml<'a> {
   description: &'a str,
   last_modified_by: &'a str,
   revision: &'a str,
-}
-
-impl<'a> Default for CoreXml<'a> {
-  fn default() -> CoreXml<'a> {
-    CoreXml {
-      title: "",
-      subject: "",
-      creator: "",
-      keywords: "",
-      description: "",
-      last_modified_by: "",
-      revision: "",
-    }
-  }
 }
 
 impl<'a> Xml<'a> for CoreXml<'a> {

@@ -32,7 +32,7 @@ impl<'a> Xml<'a> for Run<'a> {
   }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Para<'a> {
   runs: Vec<Run<'a>>,
   style: Option<Style<'a>>,
@@ -80,16 +80,6 @@ impl<'a> StyleExt<'a> for Para<'a> {
   {
     self.get_style().with_color(color);
     self
-  }
-}
-
-impl<'a> Default for Para<'a> {
-  fn default() -> Para<'a> {
-    Para {
-      runs: Vec::new(),
-      style: None,
-      style_name: None,
-    }
   }
 }
 

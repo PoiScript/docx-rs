@@ -6,7 +6,7 @@ fn main() {
   let path = std::path::Path::new("hello_world.docx");
   let file = std::fs::File::create(&path).unwrap();
 
-  let mut docx = Docx::new();
+  let mut docx = Docx::default();
 
   docx
     .create_style()

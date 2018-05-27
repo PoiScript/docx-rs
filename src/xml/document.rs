@@ -1,6 +1,5 @@
 use quick_xml::events::*;
 use quick_xml::Writer;
-use std::default::Default;
 use std::io::{Seek, Write};
 use zip::ZipWriter;
 
@@ -9,7 +8,7 @@ use errors::Result;
 use schema::SCHEMA_MAIN;
 use xml::Xml;
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct DocumentXml<'a> {
   body: Vec<Para<'a>>,
 }
@@ -18,12 +17,6 @@ impl<'a> DocumentXml<'a> {
   pub fn create_para(&mut self) -> &mut Para<'a> {
     self.body.push(Para::default());
     self.body.last_mut().unwrap()
-  }
-}
-
-impl<'a> Default for DocumentXml<'a> {
-  fn default() -> DocumentXml<'a> {
-    DocumentXml { body: Vec::new() }
   }
 }
 

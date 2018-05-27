@@ -1,6 +1,5 @@
 use quick_xml::events::*;
 use quick_xml::Writer;
-use std::default::Default;
 use std::io::{Seek, Write};
 use zip::ZipWriter;
 
@@ -8,7 +7,7 @@ use errors::Result;
 use schema::SCHEMA_RELATIONSHIPS;
 use xml::Xml;
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct RelsXml<'a> {
   relationships: Vec<(&'a str, &'a str)>,
 }
@@ -16,14 +15,6 @@ pub struct RelsXml<'a> {
 impl<'a> RelsXml<'a> {
   pub fn add_rel(&mut self, schema: &'a str, target: &'a str) {
     self.relationships.push((schema, target));
-  }
-}
-
-impl<'a> Default for RelsXml<'a> {
-  fn default() -> RelsXml<'a> {
-    RelsXml {
-      relationships: Vec::new(),
-    }
   }
 }
 

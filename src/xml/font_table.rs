@@ -1,6 +1,5 @@
 use quick_xml::events::*;
 use quick_xml::Writer;
-use std::default::Default;
 use std::io::{Seek, Write};
 use zip::ZipWriter;
 
@@ -8,23 +7,12 @@ use errors::Result;
 use schema::{SCHEMA_MAIN, SCHEMA_RELATIONSHIPS};
 use xml::Xml;
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Font<'a> {
   name: &'a str,
   charset: &'a str,
   family: &'a str,
   pitch: &'a str,
-}
-
-impl<'a> Default for Font<'a> {
-  fn default() -> Font<'a> {
-    Font {
-      name: "Times New Roman",
-      charset: "00",
-      family: "roman",
-      pitch: "variable",
-    }
-  }
 }
 
 impl<'a> Xml<'a> for Font<'a> {
@@ -38,17 +26,9 @@ impl<'a> Xml<'a> for Font<'a> {
   }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct FontTableXml<'a> {
   fonts: Vec<Font<'a>>,
-}
-
-impl<'a> Default for FontTableXml<'a> {
-  fn default() -> FontTableXml<'a> {
-    FontTableXml {
-      fonts: vec![Font::default()],
-    }
-  }
 }
 
 impl<'a> Xml<'a> for FontTableXml<'a> {

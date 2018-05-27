@@ -14,7 +14,7 @@ use schema::{
 use style::Style;
 use xml::{AppXml, ContentTypesXml, CoreXml, DocumentXml, FontTableXml, RelsXml, StylesXml, Xml};
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Docx<'a> {
   app_xml: Option<AppXml<'a>>,
   core_xml: Option<CoreXml<'a>>,
@@ -27,19 +27,6 @@ pub struct Docx<'a> {
 }
 
 impl<'a> Docx<'a> {
-  pub fn new() -> Docx<'a> {
-    Docx {
-      app_xml: None,
-      core_xml: None,
-      content_types_xml: ContentTypesXml::default(),
-      document_xml: DocumentXml::default(),
-      font_table_xml: None,
-      styles_xml: None,
-      rels: RelsXml::default(),
-      document_rels: None,
-    }
-  }
-
   pub fn create_para(&mut self) -> &mut Para<'a> {
     self.document_xml.create_para()
   }
@@ -127,11 +114,5 @@ impl<'a> Docx<'a> {
     zip.finish()?;
 
     Ok(())
-  }
-}
-
-impl<'a> Default for Docx<'a> {
-  fn default() -> Docx<'a> {
-    Docx::new()
   }
 }
