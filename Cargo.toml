@@ -1,7 +1,16 @@
 [package]
-name = "docx-rs"
+name = "docx"
 version = "0.1.0"
 authors = ["PoiScript <poiscript@gmail.com>"]
+exclude = ["validator/*"]
+license = "MIT"
+repository = "https://github.com/PoiScript/docx-rs"
+description = """
+A Rust library for generating docx files.
+"""
+
+[badges]
+travis-ci = { repository = "PoiScript/docx-rs" }
 
 [dependencies]
 quick-xml = "0.12.0"
