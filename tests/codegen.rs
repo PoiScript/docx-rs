@@ -4,6 +4,7 @@ extern crate docx;
 extern crate quick_xml;
 
 use docx::errors::Result;
+use docx::xml::{XmlEnum, XmlStruct};
 use quick_xml::{Reader, Writer};
 use std::io::Cursor;
 
@@ -169,5 +170,23 @@ fn test_read() {
       ],
       tag2: None,
     }
+  );
+
+  assert_read_eq!(
+    Tag,
+    r#"<tag1 att1="att1">content</tag1>"#,
+    Tag::Tag1(Tag1 {
+      att1: Some(String::from("att1")),
+      content: String::from("content"),
+    })
+  );
+
+  assert_read_eq!(
+    Tag,
+    r#"<tag2 att2="att2" att1="att1"/>"#,
+    Tag::Tag2(Tag2 {
+      att1: String::from("att1"),
+      att2: String::from("att2"),
+    })
   );
 }
