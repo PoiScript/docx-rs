@@ -7,7 +7,7 @@ use docx::errors::Result;
 use quick_xml::{Reader, Writer};
 use std::io::Cursor;
 
-#[derive(Xml, PartialEq, Debug)]
+#[derive(XmlStruct, PartialEq, Debug)]
 #[xml(text = "tag1")]
 struct Tag1 {
   #[xml(attr = "att1")]
@@ -16,7 +16,7 @@ struct Tag1 {
   pub content: String,
 }
 
-#[derive(Xml, PartialEq, Debug)]
+#[derive(XmlStruct, PartialEq, Debug)]
 #[xml(empty = "tag2")]
 struct Tag2 {
   #[xml(attr = "att1")]
@@ -25,7 +25,7 @@ struct Tag2 {
   pub att2: String,
 }
 
-#[derive(Xml, PartialEq, Debug)]
+#[derive(XmlStruct, PartialEq, Debug)]
 #[xml(parent = "tag3")]
 struct Tag3 {
   #[xml(attr = "att1")]
@@ -34,6 +34,16 @@ struct Tag3 {
   pub tag1: Vec<Tag1>,
   #[xml(child = "tag2")]
   pub tag2: Option<Tag2>,
+}
+
+#[derive(XmlEnum, PartialEq, Debug)]
+enum Tag {
+  #[xml(text = "tag1")]
+  Tag1(Tag1),
+  #[xml(empty = "tag2")]
+  Tag2(Tag2),
+  #[xml(parent = "tag3")]
+  Tag3(Tag3),
 }
 
 macro_rules! assert_write_eq {
@@ -100,6 +110,14 @@ fn test_write() {
       ],
       tag2: None,
     }
+  );
+
+  assert_write_eq!(
+    r#"<tag1>tag1_content</tag1>"#,
+    Tag::Tag1(Tag1 {
+      att1: None,
+      content: String::from("tag1_content"),
+    })
   );
 }
 

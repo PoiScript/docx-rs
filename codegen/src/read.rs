@@ -1,6 +1,6 @@
-use types::Structure;
+use types::{Enum, Struct};
 
-pub(crate) fn impl_read(s: &Structure) -> String {
+pub(crate) fn impl_read_struct(s: &Struct) -> String {
   let mut result = String::with_capacity(1000);
 
   result.push_str(
@@ -52,7 +52,7 @@ unreachable!();",
   result
 }
 
-pub(crate) fn impl_read_with_attrs(s: &Structure) -> String {
+pub(crate) fn impl_read_with_attrs_struct(s: &Struct) -> String {
   let mut result = String::with_capacity(1000);
 
   for f in s.filter_field("attr") {
@@ -181,6 +181,24 @@ loop {
   }
 
   result.push_str("}");
+
+  result
+}
+
+pub(crate) fn impl_read_enum(e: &Enum) -> String {
+  let mut result = String::with_capacity(100);
+
+  result.push_str(r#"match std::str::from_utf8(tag).unwrap() {"#);
+
+  for f in &e.fields {
+    result.push_str(&format!(
+      r#""{}" => {}::{}({}::read_with_attrs(attrs, reader)),"#,
+      f.attrs.value, e.name, f.name, f.ty
+    ));
+  }
+
+  result.push_str(r#"_ => panic!("bla")  // TODO throws an error
+}"#);
 
   result
 }

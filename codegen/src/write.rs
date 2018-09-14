@@ -1,25 +1,25 @@
-use types::{FieldType, Structure};
+use types::{Enum, FieldType, Struct};
 
-pub(crate) fn impl_write(structure: &Structure) -> String {
+pub(crate) fn impl_write_struct(s: &Struct) -> String {
   let mut result = String::with_capacity(1000);
 
-  let event = match structure.attrs.key.as_ref() {
+  let event = match s.attrs.key.as_ref() {
     "parent" | "text" => "Start",
     "empty" => "Empty",
     _ => unreachable!("element should be one of the following types: parent, text or empty."),
   };
 
   result.push_str(&format!(
-    r#"let mut start= BytesStart::borrowed(b"{0}", b"{0}".len());
+    r#"let mut start= BytesStart::borrowed(b"{}", {});
 "#,
-    structure.attrs.value,
+    s.attrs.value,
+    s.attrs.value.len()
   ));
 
-  for f in structure.filter_field("attr") {
+  for f in s.filter_field("attr") {
     if f.is_option {
       result.push_str(&format!("if let Some(ref {0}) = self.{0} {{\n", f.name));
     }
-    // TODO more types
     match f.get_ty() {
       FieldType::String => result.push_str(&format!(
         "start.push_attribute((\"{}\", {}));\n",
@@ -34,7 +34,10 @@ pub(crate) fn impl_write(structure: &Structure) -> String {
         "start.push_attribute((\"{}\", self.{}));\n",
         f.attrs.value, f.name
       )),
-      _ => (),
+      FieldType::Others(_) => result.push_str(&format!(
+        "start.push_attribute((\"{}\", self.{}.as_str()));\n",
+        f.attrs.value, f.name
+      )),
     }
 
     if f.is_option {
@@ -44,8 +47,8 @@ pub(crate) fn impl_write(structure: &Structure) -> String {
 
   result.push_str(&format!("writer.write_event(Event::{}(start))?;\n", event));
 
-  if structure.attrs.key == "parent" {
-    for f in structure.filter_field("child") {
+  if s.attrs.key == "parent" {
+    for f in s.filter_field("child") {
       if f.is_option {
         result.push_str(&format!(
           "if let Some(ref __{0}) = self.{0} {{ __{0}.write(writer); }}",
@@ -63,18 +66,32 @@ pub(crate) fn impl_write(structure: &Structure) -> String {
 
     result.push_str(&format!(
       "writer.write_event(Event::End(BytesEnd::borrowed(b\"{}\")))?;\n",
-      structure.attrs.value,
+      s.attrs.value,
     ));
-  } else if structure.attrs.key == "text" {
+  } else if s.attrs.key == "text" {
     result.push_str(&format!(
       r#"writer.write_event(Event::Text(BytesText::from_plain_str(self.{}.as_ref())))?;
          writer.write_event(Event::End(BytesEnd::borrowed(b"{}")))?;"#,
-      structure.find_field("text").name,
-      structure.attrs.value,
+      s.find_field("text").name,
+      s.attrs.value,
     ));
   }
 
   result.push_str("Ok(())");
+
+  result
+}
+
+pub(crate) fn impl_write_enum(e: &Enum) -> String {
+  let mut result = String::with_capacity(1000);
+
+  result.push_str(r#"match self {"#);
+
+  for f in &e.fields {
+    result.push_str(&format!("{}::{}(__p) => __p.write(writer),", e.name, f.name));
+  }
+
+  result.push_str("}");
 
   result
 }

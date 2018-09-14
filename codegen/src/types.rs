@@ -40,13 +40,19 @@ impl Field {
 }
 
 #[derive(Debug)]
-pub(crate) struct Structure {
+pub(crate) struct Struct {
   pub name: String,
   pub fields: Vec<Field>,
   pub attrs: Attribute,
 }
 
-impl Structure {
+#[derive(Debug)]
+pub(crate) struct Enum {
+  pub name: String,
+  pub fields: Vec<Field>,
+}
+
+impl Struct {
   pub fn find_field(&self, key: &'static str) -> &Field {
     self.fields.iter().find(|f| f.attrs.key == key).unwrap()
   }
@@ -60,7 +66,35 @@ impl Structure {
   }
 }
 
-pub(crate) fn parse_struct(struct_str: String) -> Structure {
+pub(crate) fn parse_enum(enum_str: String) -> Enum {
+  let enum_re = Regex::new(r#"(:?pub )?enum (?P<name>.+) \{"#).unwrap();
+
+  let filed_re = Regex::new(
+    r#"#\[xml\((?P<key>[:\w]+) = "(?P<value>.+)"\)\]\n\s+(?P<name>.+)\s?\((?P<ty>.+)\),"#,
+  ).unwrap();
+
+  let fields: Vec<_> = filed_re
+    .captures_iter(&enum_str)
+    .map(|caps| Field {
+      is_vec: false,
+      is_option: false,
+      ty: caps["ty"].to_string(),
+      name: caps["name"].to_string(),
+      attrs: Attribute {
+        key: caps["key"].to_string(),
+        value: caps["value"].to_string(),
+      },
+    }).collect();
+
+  let caps = enum_re.captures(&enum_str).unwrap();
+
+  Enum {
+    name: caps["name"].to_string(),
+    fields,
+  }
+}
+
+pub(crate) fn parse_struct(struct_str: String) -> Struct {
   let struct_re =
     Regex::new(r#"#\[xml\((?P<key>.+) = "(?P<value>.+)"\)\]\n(:?pub )?struct (?P<name>.+) \{"#)
       .unwrap();
@@ -107,7 +141,7 @@ pub(crate) fn parse_struct(struct_str: String) -> Structure {
 
   let caps = struct_re.captures(&struct_str).unwrap();
 
-  Structure {
+  Struct {
     name: caps["name"].to_string(),
     fields,
     attrs: Attribute {
