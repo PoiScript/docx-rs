@@ -11,36 +11,30 @@ pub(crate) struct Field {
   pub name: String,
   pub ty: String,
   pub attrs: Attribute,
+  pub is_vec: bool,
+  pub is_option: bool,
 }
 
 pub(crate) enum FieldType {
   String,
   Cow,
-  Str,
-  Option { ty: String },
-  Others { ty: String },
+  Slices,
+  Others(String),
 }
 
 impl Field {
   pub fn get_ty(&self) -> FieldType {
     let cow_re = Regex::new(r"Cow<'(\w+), str>").unwrap();
-    let option_re = Regex::new(r"Option<(.+)>").unwrap();
     let str_re = Regex::new(r"&'(\w) str").unwrap();
 
     if self.ty == "String" {
       FieldType::String
-    } else if let Some(caps) = cow_re.captures(&self.ty) {
+    } else if cow_re.is_match(&self.ty) {
       FieldType::Cow
-    } else if let Some(caps) = option_re.captures(&self.ty) {
-      FieldType::Option {
-        ty: caps[1].to_string(),
-      }
-    } else if let Some(caps) = str_re.captures(&self.ty) {
-      FieldType::Str
+    } else if str_re.is_match(&self.ty) {
+      FieldType::Slices
     } else {
-      FieldType::Others {
-        ty: self.ty.clone(),
-      }
+      FieldType::Others(self.ty.clone())
     }
   }
 }
@@ -75,18 +69,40 @@ pub(crate) fn parse_struct(struct_str: String) -> Structure {
     Regex::new(r#"#\[xml\((?P<key>[:\w]+)(:? = )?(:?"(?P<value>.+)")?\)\]\n\s+(:?pub )(?P<name>.+): (?P<ty>.+),"#)
       .unwrap();
 
+  let option_re = Regex::new(r#"Option<(?P<ty>.+)>"#).unwrap();
+
+  let vec_re = Regex::new(r#"Vec<(?P<ty>.+)>"#).unwrap();
+
   let fields: Vec<_> = filed_re
     .captures_iter(&struct_str)
-    .map(|caps| Field {
-      name: caps["name"].to_string(),
-      ty: caps["ty"].to_string(),
-      attrs: Attribute {
-        key: caps["key"].to_string(),
-        value: caps
-          .name("value")
-          .map(|m| m.as_str().to_string())
-          .unwrap_or("".to_string()),
-      },
+    .map(|caps| {
+      let mut is_vec = false;
+      let mut is_option = false;
+      let mut ty = caps["ty"].to_string();
+
+      if let Some(caps) = option_re.captures(&ty.clone()) {
+        is_option = true;
+        ty = caps["ty"].to_string();
+      }
+
+      if let Some(caps) = vec_re.captures(&ty.clone()) {
+        is_vec = true;
+        ty = caps["ty"].to_string();
+      }
+
+      Field {
+        ty,
+        is_vec,
+        is_option,
+        name: caps["name"].to_string(),
+        attrs: Attribute {
+          key: caps["key"].to_string(),
+          value: caps
+            .name("value")
+            .map(|m| m.as_str().to_string())
+            .unwrap_or("".to_string()),
+        },
+      }
     }).collect();
 
   let caps = struct_re.captures(&struct_str).unwrap();

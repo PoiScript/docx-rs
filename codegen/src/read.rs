@@ -1,7 +1,7 @@
 use types::{Field, FieldType, Structure};
 
 pub(crate) fn impl_read(s: &Structure) -> String {
-  let mut result = String::with_capacity(100);
+  let mut result = String::with_capacity(1000);
 
   result.push_str(
     r#"let mut buf = Vec::new();
@@ -53,7 +53,7 @@ unreachable!();",
 }
 
 pub(crate) fn impl_read_with_attrs(s: &Structure) -> String {
-  let mut result = String::with_capacity(100);
+  let mut result = String::with_capacity(1000);
   let attrs = s.filter_field("attr");
 
   for f in s.filter_field("attr") {
@@ -67,8 +67,7 @@ pub(crate) fn impl_read_with_attrs(s: &Structure) -> String {
 
   for f in s.filter_field("attr") {
     result.push_str(&format!(
-      r#"b"{}" => {} = Some(String::from_utf8(attr.value.into_owned().to_vec()).unwrap()),
-"#,
+      r#"b"{}" => {} = Some(String::from_utf8(attr.value.into_owned().to_vec()).unwrap()),"#,
       f.attrs.value, f.name
     ));
   }
@@ -149,27 +148,26 @@ loop {
   result.push_str(&format!("{} {{\n", s.name));
 
   for f in attrs {
-    result.push_str(&format!(
-      r#"{0}: {0}.expect("bla"),
-"#,
-      f.name
-    ));
+    if f.is_option {
+      result.push_str(&format!(r#"{0}: {0},"#, f.name));
+    } else {
+      result.push_str(&format!(r#"{0}: {0}.expect("bla"),"#, f.name));
+    }
   }
 
   if s.attrs.key == "parent" {
     let children = s.filter_field("child");
 
     for f in children {
-      result.push_str(&format!(
-        r#"{0}: {0}.expect("bla"),
-"#,
-        f.name
-      ));
+      if f.is_option {
+        result.push_str(&format!(r#"{0}: {0},"#, f.name));
+      } else {
+        result.push_str(&format!(r#"{0}: {0}.expect("bla"),"#, f.name));
+      }
     }
   } else if s.attrs.key == "text" {
     result.push_str(&format!(
-      r#"{}: text.expect("bla"),
-"#,
+      r#"{}: text.expect("bla"),"#,
       s.find_field("text").name
     ));
   }

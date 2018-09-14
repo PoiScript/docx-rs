@@ -1,7 +1,7 @@
 use types::{FieldType, Structure};
 
 pub(crate) fn impl_write(structure: &Structure) -> String {
-  let mut result = String::with_capacity(100);
+  let mut result = String::with_capacity(1000);
 
   let event = match structure.attrs.key.as_ref() {
     "parent" | "text" => "Start",
@@ -16,17 +16,29 @@ pub(crate) fn impl_write(structure: &Structure) -> String {
   ));
 
   for f in structure.filter_field("attr") {
+    if f.is_option {
+      result.push_str(&format!("if let Some(ref {0}) = self.{0} {{\n", f.name));
+    }
     // TODO more types
     match f.get_ty() {
       FieldType::String => result.push_str(&format!(
-        "start.push_attribute((\"{}\", self.{}.as_ref()));\n",
-        f.attrs.value, f.name
+        "start.push_attribute((\"{}\", {}));\n",
+        f.attrs.value,
+        if f.is_option {
+          format!("{} as &str", f.name)
+        } else {
+          format!("self.{}.as_ref()", f.name)
+        }
       )),
-      FieldType::Str | FieldType::Cow => result.push_str(&format!(
+      FieldType::Slices | FieldType::Cow => result.push_str(&format!(
         "start.push_attribute((\"{}\", self.{}));\n",
         f.attrs.value, f.name
       )),
       _ => (),
+    }
+
+    if f.is_option {
+      result.push_str("}\n");
     }
   }
 
@@ -34,7 +46,14 @@ pub(crate) fn impl_write(structure: &Structure) -> String {
 
   if structure.attrs.key == "parent" {
     for f in structure.filter_field("child") {
-      result.push_str(&format!("self.{}.write(writer);\n", f.name));
+      if f.is_option {
+        result.push_str(&format!(
+          "if let Some(ref {0}) = self.{0} {{ {0}.write(writer); }}",
+          f.name
+        ));
+      } else {
+        result.push_str(&format!("self.{}.write(writer);\n", f.name));
+      }
     }
 
     result.push_str(&format!(
