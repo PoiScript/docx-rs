@@ -1,5 +1,4 @@
 mod app;
-mod comments;
 mod content_types;
 mod core;
 mod document;

@@ -197,8 +197,10 @@ pub(crate) fn impl_read_enum(e: &Enum) -> String {
     ));
   }
 
-  result.push_str(r#"_ => panic!("bla")  // TODO throws an error
-}"#);
+  result.push_str(
+    r#"_ => panic!("bla")  // TODO throws an error
+}"#,
+  );
 
   result
 }

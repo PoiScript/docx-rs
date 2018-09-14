@@ -88,7 +88,10 @@ pub(crate) fn impl_write_enum(e: &Enum) -> String {
   result.push_str(r#"match self {"#);
 
   for f in &e.fields {
-    result.push_str(&format!("{}::{}(__p) => __p.write(writer),", e.name, f.name));
+    result.push_str(&format!(
+      "{}::{}(__p) => __p.write(writer),",
+      e.name, f.name
+    ));
   }
 
   result.push_str("}");
