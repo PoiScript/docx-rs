@@ -13,7 +13,12 @@ before_install:
   - sudo apt-get -qq update
   - sudo apt-get install -y dotnet-sdk-2.1.200
 
+before_script:
+  - rustup component add rustfmt-preview
+
 script:
+  - cargo fmt --all -- --check
+  - cargo test
   - cargo run --example hello_world
   - dotnet run --project validator/ hello_world.docx
 
