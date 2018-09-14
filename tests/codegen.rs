@@ -31,88 +31,125 @@ struct Tag3 {
   #[xml(attr = "att1")]
   pub att1: String,
   #[xml(child = "tag1")]
-  pub tag1: Tag1,
+  pub tag1: Vec<Tag1>,
   #[xml(child = "tag2")]
   pub tag2: Option<Tag2>,
 }
 
+macro_rules! assert_write_eq {
+  ($l:tt, $r:expr) => {
+    let mut writer = Writer::new(Cursor::new(Vec::new()));
+    $r.write(&mut writer).unwrap();
+    let result = writer.into_inner().into_inner();
+
+    assert_eq!($l, String::from_utf8(result).unwrap());
+  };
+}
+
+macro_rules! assert_read_eq {
+  ($t:tt, $l:tt, $r:expr) => {
+    let mut reader = Reader::from_str($l);
+    reader.trim_text(true);
+
+    assert_eq!($t::read(&mut reader), $r);
+  };
+}
+
 #[test]
 fn test_write() {
-  let elem = Tag3 {
-    att1: String::from("att1"),
-    tag1: Tag1 {
-      att1: Some(String::from("tag1_att1")),
-      content: String::from("tag1_content"),
-    },
-    tag2: Some(Tag2 {
-      att1: String::from("tag2_att1"),
-      att2: String::from("tag2_att2"),
-    }),
-  };
-
-  let mut writer = Writer::new(Cursor::new(Vec::new()));
-  elem.write(&mut writer).unwrap();
-  let result = writer.into_inner().into_inner();
-
-  assert_eq!(
+  assert_write_eq!(
     r#"<tag3 att1="att1"><tag1 att1="tag1_att1">tag1_content</tag1><tag2 att1="tag2_att1" att2="tag2_att2"/></tag3>"#,
-    String::from_utf8(result).unwrap()
+    Tag3 {
+      att1: String::from("att1"),
+      tag1: vec![Tag1 {
+        att1: Some(String::from("tag1_att1")),
+        content: String::from("tag1_content"),
+      }],
+      tag2: Some(Tag2 {
+        att1: String::from("tag2_att1"),
+        att2: String::from("tag2_att2"),
+      })
+    }
   );
 
-  let elem = Tag3 {
-    att1: String::from("att1"),
-    tag1: Tag1 {
-      att1: None,
-      content: String::from("tag1_content"),
-    },
-    tag2: None,
-  };
-
-  let mut writer = Writer::new(Cursor::new(Vec::new()));
-  elem.write(&mut writer).unwrap();
-  let result = writer.into_inner().into_inner();
-
-  assert_eq!(
+  assert_write_eq!(
     r#"<tag3 att1="att1"><tag1>tag1_content</tag1></tag3>"#,
-    String::from_utf8(result).unwrap()
+    Tag3 {
+      att1: String::from("att1"),
+      tag1: vec![Tag1 {
+        att1: None,
+        content: String::from("tag1_content"),
+      }],
+      tag2: None,
+    }
+  );
+
+  assert_write_eq!(
+    r#"<tag3 att1="att1"><tag1>content</tag1><tag1>tag1</tag1></tag3>"#,
+    Tag3 {
+      att1: String::from("att1"),
+      tag1: vec![
+        Tag1 {
+          att1: None,
+          content: String::from("content"),
+        },
+        Tag1 {
+          att1: None,
+          content: String::from("tag1"),
+        },
+      ],
+      tag2: None,
+    }
   );
 }
 
 #[test]
 fn test_read() {
-  let xml =
-    r#"<tag3 att1="att1"><tag2 att2="att2" att1="att1"/><tag1 att1="att1">content</tag1></tag3>"#;
-  let mut reader = Reader::from_str(xml);
-  reader.trim_text(true);
-
-  assert_eq!(
+  assert_read_eq!(
+    Tag3,
+    r#"<tag3 att1="att1"><tag2 att2="att2" att1="att1"/><tag1 att1="att1">content</tag1></tag3>"#,
     Tag3 {
       att1: String::from("att1"),
-      tag1: Tag1 {
+      tag1: vec![Tag1 {
         att1: Some(String::from("att1")),
         content: String::from("content"),
-      },
+      }],
       tag2: Some(Tag2 {
         att1: String::from("att1"),
         att2: String::from("att2"),
       }),
-    },
-    Tag3::read(&mut reader)
+    }
   );
 
-  let xml = r#"<tag3 att1="att1"><tag1>content</tag1></tag3>"#;
-  let mut reader = Reader::from_str(xml);
-  reader.trim_text(true);
-
-  assert_eq!(
+  assert_read_eq!(
+    Tag3,
+    r#"<tag3 att1="att1"><tag1>content</tag1></tag3>"#,
     Tag3 {
       att1: String::from("att1"),
-      tag1: Tag1 {
+      tag1: vec![Tag1 {
         att1: None,
         content: String::from("content"),
-      },
+      }],
       tag2: None,
-    },
-    Tag3::read(&mut reader)
+    }
+  );
+
+  assert_read_eq!(
+    Tag3,
+    r#"<tag3 att1="att1"><tag1 att1="att11">content1</tag1><tag1 att1="att12">content2</tag1></tag3>"#,
+    Tag3 {
+      att1: String::from("att1"),
+      tag1: vec![
+        Tag1 {
+          att1: Some(String::from("att11")),
+          content: String::from("content1"),
+        },
+        Tag1 {
+          att1: Some(String::from("att12")),
+          content: String::from("content2"),
+        },
+      ],
+      tag2: None,
+    }
   );
 }

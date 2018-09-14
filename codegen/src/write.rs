@@ -48,7 +48,12 @@ pub(crate) fn impl_write(structure: &Structure) -> String {
     for f in structure.filter_field("child") {
       if f.is_option {
         result.push_str(&format!(
-          "if let Some(ref {0}) = self.{0} {{ {0}.write(writer); }}",
+          "if let Some(ref __{0}) = self.{0} {{ __{0}.write(writer); }}",
+          f.name
+        ));
+      } else if f.is_vec {
+        result.push_str(&format!(
+          "for __{0} in &self.{0} {{ __{0}.write(writer); }}",
           f.name
         ));
       } else {

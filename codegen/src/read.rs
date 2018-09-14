@@ -1,4 +1,4 @@
-use types::{Field, FieldType, Structure};
+use types::Structure;
 
 pub(crate) fn impl_read(s: &Structure) -> String {
   let mut result = String::with_capacity(1000);
@@ -54,10 +54,13 @@ unreachable!();",
 
 pub(crate) fn impl_read_with_attrs(s: &Structure) -> String {
   let mut result = String::with_capacity(1000);
-  let attrs = s.filter_field("attr");
 
   for f in s.filter_field("attr") {
-    result.push_str(&format!("let mut {} = None;\n", f.name));
+    if f.is_vec {
+      panic!("attributes can't be vector");
+    }
+
+    result.push_str(&format!("let mut __{} = None;", f.name));
   }
 
   result.push_str(
@@ -67,20 +70,20 @@ pub(crate) fn impl_read_with_attrs(s: &Structure) -> String {
 
   for f in s.filter_field("attr") {
     result.push_str(&format!(
-      r#"b"{}" => {} = Some(String::from_utf8(attr.value.into_owned().to_vec()).unwrap()),"#,
+      r#"b"{}" => __{} = Some(String::from_utf8(attr.value.into_owned().to_vec()).unwrap()),"#,
       f.attrs.value, f.name
     ));
   }
 
-  result.push_str(
-    "_ => (),
-    }
-  }",
-  );
+  result.push_str("_ => (), } }");
 
   if s.attrs.key == "parent" {
     for f in s.filter_field("child") {
-      result.push_str(&format!("let mut {} = None;\n", f.name));
+      result.push_str(&format!(
+        "let mut __{} = {};",
+        f.name,
+        if f.is_vec { "Vec::new()" } else { "None" }
+      ));
     }
 
     result.push_str(
@@ -92,11 +95,17 @@ loop {
     );
 
     for f in s.filter_field("child") {
-      result.push_str(&format!(
-        r#"b"{}" => {} = Some({}::read_with_attrs(e.attributes(), reader)),
-"#,
-        f.attrs.value, f.name, f.ty
-      ));
+      if f.is_vec {
+        result.push_str(&format!(
+          r#"b"{}" => __{}.push({}::read_with_attrs(e.attributes(), reader)),"#,
+          f.attrs.value, f.name, f.ty
+        ));
+      } else {
+        result.push_str(&format!(
+          r#"b"{}" => __{} = Some({}::read_with_attrs(e.attributes(), reader)),"#,
+          f.attrs.value, f.name, f.ty
+        ));
+      }
     }
 
     result.push_str(&format!(
@@ -121,14 +130,14 @@ loop {
       s.attrs.value
     ));
   } else if s.attrs.key == "text" {
-    result.push_str(
-      r#"let mut text = None;
+    result.push_str(&format!(
+      r#"let mut __text = None;
   let mut buf = Vec::new();
-  loop {
-    match reader.read_event(&mut buf) {
-      Ok(Event::Text(e)) => {
-        text = Some(String::from_utf8(e.escaped().to_vec()).unwrap());
-      }
+  loop {{
+    match reader.read_event(&mut buf) {{
+      Ok(Event::Text(e)) => {{
+        __text = Some(String::from_utf8(e.escaped().to_vec()).unwrap());
+      }}
       Ok(Event::Eof) => break,
       Ok(Event::End(ref e)) => {{
         if e.name() == b"{}" {{
@@ -137,41 +146,41 @@ loop {
           // TODO: throws an error
         }}
       }}
-    _ => (),
-    };
+      _ => (),
+    }};
 
     buf.clear();
-  }"#,
-    );
+  }}"#,
+      s.attrs.value
+    ));
   }
 
-  result.push_str(&format!("{} {{\n", s.name));
+  result.push_str(&format!("{} {{", s.name));
 
-  for f in attrs {
+  for f in s.filter_field("attr") {
     if f.is_option {
-      result.push_str(&format!(r#"{0}: {0},"#, f.name));
+      result.push_str(&format!(r#"{0}: __{0},"#, f.name));
     } else {
-      result.push_str(&format!(r#"{0}: {0}.expect("bla"),"#, f.name));
+      result.push_str(&format!(r#"{0}: __{0}.expect("bla"),"#, f.name));
     }
   }
 
   if s.attrs.key == "parent" {
-    let children = s.filter_field("child");
-
-    for f in children {
-      if f.is_option {
-        result.push_str(&format!(r#"{0}: {0},"#, f.name));
+    for f in s.filter_field("child") {
+      if f.is_option || f.is_vec {
+        result.push_str(&format!(r#"{0}: __{0},"#, f.name));
       } else {
-        result.push_str(&format!(r#"{0}: {0}.expect("bla"),"#, f.name));
+        result.push_str(&format!(r#"{0}: __{0}.expect("bla"),"#, f.name));
       }
     }
   } else if s.attrs.key == "text" {
     result.push_str(&format!(
-      r#"{}: text.expect("bla"),"#,
+      r#"{}: __text.expect("bla"),"#,
       s.find_field("text").name
     ));
   }
 
   result.push_str("}");
+
   result
 }
