@@ -16,7 +16,7 @@ pub fn xml_struct(input: TokenStream) -> TokenStream {
   let s = parse_struct(input.to_string());
 
   let xml_impl = format!(
-    r#"impl {0} {{
+    r#"impl XmlStruct for {0} {{
   fn write<W>(&self, writer: &mut quick_xml::Writer<W>) -> Result<()>
   where
     W: std::io::Write + std::io::Seek,
@@ -53,7 +53,7 @@ pub fn xml_enum(input: TokenStream) -> TokenStream {
   let e = parse_enum(input.to_string());
 
   let xml_impl = format!(
-    r#"impl {0} {{
+    r#"impl XmlEnum for {0} {{
   fn write<W>(&self, writer: &mut quick_xml::Writer<W>) -> Result<()>
   where
     W: std::io::Write + std::io::Seek,
@@ -63,7 +63,7 @@ pub fn xml_enum(input: TokenStream) -> TokenStream {
     {1}
   }}
 
-  fn read(
+  fn read_with_attrs(
      attrs: quick_xml::events::attributes::Attributes,
      tag: &[u8],
      reader: &mut quick_xml::Reader<&[u8]>

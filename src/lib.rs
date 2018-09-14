@@ -11,4 +11,4 @@ pub mod errors;
 pub mod prelude;
 mod schema;
 mod style;
-mod xml;
+pub mod xml;
