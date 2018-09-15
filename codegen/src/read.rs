@@ -6,14 +6,14 @@ pub(crate) fn impl_read_struct(s: &Struct) -> String {
   result.push_str(
     r#"let mut buf = Vec::new();
 loop {
-  match reader.read_event(&mut buf) {"#,
+  match r.read_event(&mut buf) {"#,
   );
 
   if s.attrs.key == "parent" || s.attrs.key == "text" {
     result.push_str(&format!(
       r#"Ok(Event::Start(ref e)) => {{
            if e.name() == b"{}" {{
-             return {}::read_with_attrs(e.attributes(), reader);
+             return {}::read_with_bytes_start(e, r);
            }} else {{
              // TODO: throws an error
            }}
@@ -27,7 +27,7 @@ loop {
     result.push_str(&format!(
       r#"Ok(Event::Empty(ref e)) => {{
            if e.name() == b"{}" {{
-             return {}::read_with_attrs(e.attributes(), reader);
+             return {}::read_with_bytes_start(e, r);
            }} else {{
              // TODO: throws an error
            }}
@@ -52,7 +52,7 @@ unreachable!();",
   result
 }
 
-pub(crate) fn impl_read_with_attrs_struct(s: &Struct) -> String {
+pub(crate) fn impl_read_with_bytes_start_struct(s: &Struct) -> String {
   let mut result = String::with_capacity(1000);
 
   for f in s.filter_field("attr") {
@@ -64,7 +64,7 @@ pub(crate) fn impl_read_with_attrs_struct(s: &Struct) -> String {
   }
 
   result.push_str(
-    r#"for attr in attrs.filter_map(|a| a.ok()) {
+    r#"for attr in bs.attributes().filter_map(|a| a.ok()) {
   match attr.key {"#,
   );
 
@@ -89,7 +89,7 @@ pub(crate) fn impl_read_with_attrs_struct(s: &Struct) -> String {
     result.push_str(
       r#"let mut buf = Vec::new();
 loop {
-  match reader.read_event(&mut buf) {
+  match r.read_event(&mut buf) {
     Ok(Event::Start(ref e)) | Ok(Event::Empty(ref e)) => {
       match e.name() {"#,
     );
@@ -97,12 +97,12 @@ loop {
     for f in s.filter_field("child") {
       if f.is_vec {
         result.push_str(&format!(
-          r#"b"{}" => __{}.push({}::read_with_attrs(e.attributes(), reader)),"#,
+          r#"b"{}" => __{}.push({}::read_with_bytes_start(e, r)),"#,
           f.attrs.value, f.name, f.ty
         ));
       } else {
         result.push_str(&format!(
-          r#"b"{}" => __{} = Some({}::read_with_attrs(e.attributes(), reader)),"#,
+          r#"b"{}" => __{} = Some({}::read_with_bytes_start(e, r)),"#,
           f.attrs.value, f.name, f.ty
         ));
       }
@@ -134,7 +134,7 @@ loop {
       r#"let mut __text = None;
   let mut buf = Vec::new();
   loop {{
-    match reader.read_event(&mut buf) {{
+    match r.read_event(&mut buf) {{
       Ok(Event::Text(e)) => {{
         __text = Some(String::from_utf8(e.escaped().to_vec()).unwrap());
       }}
@@ -188,11 +188,11 @@ loop {
 pub(crate) fn impl_read_enum(e: &Enum) -> String {
   let mut result = String::with_capacity(100);
 
-  result.push_str(r#"match std::str::from_utf8(tag).unwrap() {"#);
+  result.push_str(r#"match std::str::from_utf8(bs.name()).unwrap() {"#);
 
   for f in &e.fields {
     result.push_str(&format!(
-      r#""{}" => {}::{}({}::read_with_attrs(attrs, reader)),"#,
+      r#""{}" => {}::{}({}::read_with_bytes_start(bs, r)),"#,
       f.attrs.value, e.name, f.name, f.ty
     ));
   }
@@ -200,6 +200,59 @@ pub(crate) fn impl_read_enum(e: &Enum) -> String {
   result.push_str(
     r#"_ => panic!("bla")  // TODO throws an error
 }"#,
+  );
+
+  result
+}
+
+pub(crate) fn impl_read_with_bytes_start_enum(e: &Enum) -> String {
+  let mut result = String::with_capacity(100);
+
+  result.push_str(
+    r#"let mut buf = Vec::new();
+loop {
+  match r.read_event(&mut buf) {
+    Ok(Event::Start(ref e)) => {
+      match e.name() {"#,
+  );
+
+  for f in e.filter_field("text") {
+    result.push_str(&format!(
+      r#"b"{}" => return Self::read_with_bytes_start(e, r),"#,
+      f.attrs.value
+    ));
+  }
+
+  for f in e.filter_field("child") {
+    result.push_str(&format!(
+      r#"b"{}" => return Self::read_with_bytes_start(e, r),"#,
+      f.attrs.value
+    ));
+  }
+
+  result.push_str(
+    "_ => unreachable!(), // TODO: throws an error
+  }
+},
+Ok(Event::Empty(ref e)) => {
+      match e.name() {",
+  );
+
+  for f in e.filter_field("empty") {
+    result.push_str(&format!(
+      r#"b"{}" => return Self::read_with_bytes_start(e, r),"#,
+      f.attrs.value
+    ));
+  }
+
+  result.push_str(
+    "_ => unreachable!(), // TODO: throws an error
+      }
+    },
+    _ => unreachable!(), // TODO: throws an error
+  }
+}
+unreachable!();",
   );
 
   result

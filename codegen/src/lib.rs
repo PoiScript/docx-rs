@@ -6,7 +6,10 @@ pub(crate) mod types;
 mod write;
 
 use proc_macro::TokenStream;
-use read::{impl_read_enum, impl_read_struct, impl_read_with_attrs_struct};
+use read::{
+  impl_read_enum, impl_read_struct, impl_read_with_bytes_start_enum,
+  impl_read_with_bytes_start_struct,
+};
 use std::str::FromStr;
 use types::{parse_enum, parse_struct};
 use write::{impl_write_enum, impl_write_struct};
@@ -17,7 +20,7 @@ pub fn xml_struct(input: TokenStream) -> TokenStream {
 
   let xml_impl = format!(
     r#"impl XmlStruct for {0} {{
-  fn write<W>(&self, writer: &mut quick_xml::Writer<W>) -> Result<()>
+  fn write<W>(&self, w: &mut quick_xml::Writer<W>) -> Result<()>
   where
     W: std::io::Write + std::io::Seek,
   {{
@@ -25,15 +28,15 @@ pub fn xml_struct(input: TokenStream) -> TokenStream {
 
     {1}
   }}
-  fn read_with_attrs(
-     attrs: quick_xml::events::attributes::Attributes,
-     reader: &mut quick_xml::Reader<&[u8]>
+  fn read_with_bytes_start(
+     bs: &quick_xml::events::BytesStart,
+     r: &mut quick_xml::Reader<&[u8]>
   ) -> {0} {{
     use quick_xml::events::*;
 
     {2}
   }}
-  fn read(reader: &mut quick_xml::Reader<&[u8]>) -> {0} {{
+  fn read(r: &mut quick_xml::Reader<&[u8]>) -> {0} {{
     use quick_xml::events::*;
 
     {3}
@@ -41,7 +44,7 @@ pub fn xml_struct(input: TokenStream) -> TokenStream {
 }}"#,
     s.name,
     impl_write_struct(&s),
-    impl_read_with_attrs_struct(&s),
+    impl_read_with_bytes_start_struct(&s),
     impl_read_struct(&s)
   );
 
@@ -54,7 +57,7 @@ pub fn xml_enum(input: TokenStream) -> TokenStream {
 
   let xml_impl = format!(
     r#"impl XmlEnum for {0} {{
-  fn write<W>(&self, writer: &mut quick_xml::Writer<W>) -> Result<()>
+  fn write<W>(&self, w: &mut quick_xml::Writer<W>) -> Result<()>
   where
     W: std::io::Write + std::io::Seek,
   {{
@@ -63,19 +66,25 @@ pub fn xml_enum(input: TokenStream) -> TokenStream {
     {1}
   }}
 
-  fn read_with_attrs(
-     attrs: quick_xml::events::attributes::Attributes,
-     tag: &[u8],
-     reader: &mut quick_xml::Reader<&[u8]>
+  fn read_with_bytes_start(
+     bs: &quick_xml::events::BytesStart,
+     r: &mut quick_xml::Reader<&[u8]>
   ) -> {0} {{
     use quick_xml::events::*;
 
     {2}
   }}
+
+  fn read(r: &mut quick_xml::Reader<&[u8]>) -> {0} {{
+    use quick_xml::events::*;
+
+    {3}
+  }}
 }}"#,
     e.name,
     impl_write_enum(&e),
-    impl_read_enum(&e)
+    impl_read_enum(&e),
+    impl_read_with_bytes_start_enum(&e),
   );
 
   TokenStream::from_str(&xml_impl).unwrap()

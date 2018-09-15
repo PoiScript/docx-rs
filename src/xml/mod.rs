@@ -14,8 +14,7 @@ pub use self::font_table::FontTableXml;
 pub use self::rels::RelsXml;
 pub use self::styles::StylesXml;
 
-use quick_xml::events::attributes::Attributes;
-use quick_xml::events::Event;
+use quick_xml::events::BytesStart;
 use quick_xml::{Reader, Writer};
 use std::default::Default;
 use std::io::{Seek, Write};
@@ -28,32 +27,17 @@ pub trait Xml<'a>: Default {
 }
 
 pub trait XmlStruct {
-  fn write<W>(&self, writer: &mut Writer<W>) -> Result<()>
+  fn write<W>(&self, w: &mut Writer<W>) -> Result<()>
   where
     W: Write + Seek;
-  fn read_with_attrs(attrs: Attributes, reader: &mut Reader<&[u8]>) -> Self;
-  fn read(reader: &mut Reader<&[u8]>) -> Self;
+  fn read_with_bytes_start(bs: &BytesStart, r: &mut Reader<&[u8]>) -> Self;
+  fn read(r: &mut Reader<&[u8]>) -> Self;
 }
 
 pub trait XmlEnum {
-  fn write<W>(&self, writer: &mut Writer<W>) -> Result<()>
+  fn write<W>(&self, w: &mut Writer<W>) -> Result<()>
   where
     W: Write + Seek;
-  fn read_with_attrs(attrs: Attributes, tag: &[u8], reader: &mut Reader<&[u8]>) -> Self;
-  fn read(reader: &mut Reader<&[u8]>) -> Self
-  where
-    Self: Sized,
-  {
-    let mut buf = Vec::new();
-    loop {
-      match reader.read_event(&mut buf) {
-        Ok(Event::Start(ref e)) | Ok(Event::Empty(ref e)) => {
-          return Self::read_with_attrs(e.attributes(), e.name(), reader);
-        }
-        _ => break,
-      }
-    }
-    // TODO throws an error
-    unreachable!();
-  }
+  fn read_with_bytes_start(bs: &BytesStart, r: &mut Reader<&[u8]>) -> Self;
+  fn read(r: &mut Reader<&[u8]>) -> Self;
 }

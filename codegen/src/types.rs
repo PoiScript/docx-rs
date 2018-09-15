@@ -66,6 +66,16 @@ impl Struct {
   }
 }
 
+impl Enum {
+  pub fn filter_field(&self, key: &'static str) -> Vec<&Field> {
+    self
+      .fields
+      .iter()
+      .filter(|f| f.attrs.key == key)
+      .collect::<Vec<_>>()
+  }
+}
+
 pub(crate) fn parse_enum(enum_str: String) -> Enum {
   let enum_re = Regex::new(r#"(:?pub )?enum (?P<name>.+) \{"#).unwrap();
 
