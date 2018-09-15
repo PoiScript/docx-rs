@@ -1,97 +1,135 @@
+use proc_macro2::Ident;
+use proc_macro2::Span;
+use proc_macro2::TokenStream;
+use std::iter;
 use types::{Enum, FieldType, Struct};
 
-pub(crate) fn impl_write_struct(s: &Struct) -> String {
-  let mut result = String::with_capacity(1000);
+pub(crate) fn impl_write_struct(s: &Struct) -> TokenStream {
+  let tag = &s.attrs.value;
 
-  let event = match s.attrs.key.as_ref() {
-    "parent" | "text" => "Start",
-    "empty" => "Empty",
-    _ => unreachable!("element should be one of the following types: parent, text or empty."),
-  };
+  let attrs = write_attrs(&s);
+  let start_event = write_start_event(&s);
+  let chidren = write_children(&s);
+  let end_event = write_end_event(&s, &tag);
 
-  result.push_str(&format!(
-    r#"let mut start= BytesStart::borrowed(b"{}", {});
-"#,
-    s.attrs.value,
-    s.attrs.value.len()
-  ));
+  quote! {
+    let mut start= BytesStart::borrowed(#tag.as_bytes(), #tag.len());
+
+    #( #attrs )*
+
+    #start_event
+
+    #( #chidren )*
+
+    #end_event
+
+    Ok(())
+  }
+}
+
+fn write_attrs(s: &Struct) -> Vec<TokenStream> {
+  let mut result = Vec::new();
 
   for f in s.filter_field("attr") {
-    if f.is_option {
-      result.push_str(&format!("if let Some(ref {0}) = self.{0} {{\n", f.name));
-    }
-    match f.get_ty() {
-      FieldType::String => result.push_str(&format!(
-        "start.push_attribute((\"{}\", {}));\n",
-        f.attrs.value,
-        if f.is_option {
-          format!("{} as &str", f.name)
-        } else {
-          format!("self.{}.as_ref()", f.name)
-        }
-      )),
-      FieldType::Slices | FieldType::Cow => result.push_str(&format!(
-        "start.push_attribute((\"{}\", self.{}));\n",
-        f.attrs.value, f.name
-      )),
-      FieldType::Others(_) => result.push_str(&format!(
-        "start.push_attribute((\"{}\", self.{}.as_str()));\n",
-        f.attrs.value, f.name
-      )),
-    }
+    let tag = &f.attrs.value;
+    let name = Ident::new(&f.name, Span::call_site());
 
-    if f.is_option {
-      result.push_str("}\n");
-    }
-  }
-
-  result.push_str(&format!("w.write_event(Event::{}(start))?;\n", event));
-
-  if s.attrs.key == "parent" {
-    for f in s.filter_field("child") {
-      if f.is_option {
-        result.push_str(&format!(
-          "if let Some(ref __{0}) = self.{0} {{ __{0}.write(w); }}",
-          f.name
-        ));
-      } else if f.is_vec {
-        result.push_str(&format!(
-          "for __{0} in &self.{0} {{ __{0}.write(w); }}",
-          f.name
-        ));
+    let ident = match f.get_ty() {
+      FieldType::String => if f.is_option {
+        quote!{ #name as &str }
       } else {
-        result.push_str(&format!("self.{}.write(w);\n", f.name));
+        quote!{ self.#name.as_ref() }
+      },
+      FieldType::Slices | FieldType::Cow => quote!{ self.#name },
+      FieldType::Others(_) => quote!{ self.#name.as_str() },
+    };
+
+    result.push(if f.is_option {
+      quote!{
+        if let Some(ref #name) = self.#name {
+          start.push_attribute((#tag, #ident));
+        }
       }
-    }
-
-    result.push_str(&format!(
-      "w.write_event(Event::End(BytesEnd::borrowed(b\"{}\")))?;\n",
-      s.attrs.value,
-    ));
-  } else if s.attrs.key == "text" {
-    result.push_str(&format!(
-      r#"w.write_event(Event::Text(BytesText::from_plain_str(self.{}.as_ref())))?;
-         w.write_event(Event::End(BytesEnd::borrowed(b"{}")))?;"#,
-      s.find_field("text").name,
-      s.attrs.value,
-    ));
+    } else {
+      quote!{  start.push_attribute((#tag, #ident)); }
+    });
   }
-
-  result.push_str("Ok(())");
 
   result
 }
 
-pub(crate) fn impl_write_enum(e: &Enum) -> String {
-  let mut result = String::with_capacity(1000);
+fn write_start_event(s: &Struct) -> TokenStream {
+  if s.attrs.key == "parent" || s.attrs.key == "text" {
+    quote!{
+      w.write_event(Event::Start(start))?;
+    }
+  } else {
+    quote!{
+      w.write_event(Event::Empty(start))?;
+    }
+  }
+}
 
-  result.push_str(r#"match self {"#);
+fn write_children(s: &Struct) -> Vec<TokenStream> {
+  let mut result = Vec::new();
 
-  for f in &e.fields {
-    result.push_str(&format!("{}::{}(__p) => __p.write(w),", e.name, f.name));
+  if s.attrs.key == "parent" {
+    for f in s.filter_field("child") {
+      let name = Ident::new(&f.name, Span::call_site());
+
+      if f.is_option {
+        result.push(quote! {
+          if let Some(ref #name) = self.#name {
+            #name.write(w)?;
+          }
+        });
+      } else if f.is_vec {
+        result.push(quote! {
+          for #name in &self.#name {
+            #name.write(w)?;
+          }
+        });
+      } else {
+        result.push(quote! {
+          self.#name.write(w)?;
+        });
+      }
+    }
+  } else if s.attrs.key == "text" {
+    let text = Ident::new(&s.find_field("text").name, Span::call_site());
+
+    result.push(quote! {
+      w.write_event(Event::Text(BytesText::from_plain_str(self.#text.as_ref())))?;
+    });
   }
 
-  result.push_str("}");
-
   result
+}
+
+fn write_end_event(s: &Struct, tag: &String) -> TokenStream {
+  if s.attrs.key == "parent" || s.attrs.key == "text" {
+    quote!{
+      w.write_event(Event::End(BytesEnd::borrowed(#tag.as_bytes())))?;
+    }
+  } else {
+    quote!()
+  }
+}
+
+pub(crate) fn impl_write_enum(e: &Enum) -> TokenStream {
+  let fields: &Vec<_> = &e
+    .fields
+    .iter()
+    .map(|f| Ident::new(&f.name, Span::call_site()))
+    .collect();
+
+  let names: Vec<_> = iter::repeat(Ident::new(&e.name, Span::call_site()))
+    .take(fields.len())
+    .collect();
+
+  quote!{
+    match self {
+      #( #names::#fields(s) => s.write(w), )*
+    }
+  }
 }

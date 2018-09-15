@@ -9,3 +9,5 @@ proc-macro = true
 
 [dependencies]
 regex = "1"
+quote = "0.6"
+proc-macro2 = "0.4"
