@@ -21,18 +21,16 @@ pub(crate) fn impl_read_with_bytes_start_struct(s: &Struct) -> TokenStream {
 
     #match_value
 
-    Ok(#name {
-      #return_value
-    })
+    Ok(#name { #( #return_value, )* })
   }
 }
 
 fn initialize_value(s: &Struct) -> TokenStream {
-  let names: &Vec<_> = &s.filter_field("attr").iter().map(|f| &f.name).collect();
+  let names: &Vec<_> = &s.attrs().iter().map(|f| &f.name).collect();
 
   if s.attrs.key == "parent" {
     let init_children: &Vec<_> = &s
-      .filter_field("child")
+      .texts_and_children()
       .iter()
       .map(|f| {
         let name = &f.name;
@@ -60,13 +58,9 @@ fn initialize_value(s: &Struct) -> TokenStream {
 }
 
 fn match_attr(s: &Struct) -> TokenStream {
-  let names: &Vec<_> = &s.filter_field("attr").iter().map(|f| &f.name).collect();
+  let names: &Vec<_> = &s.attrs().iter().map(|f| &f.name).collect();
 
-  let tags: &Vec<_> = &s
-    .filter_field("attr")
-    .iter()
-    .map(|f| &f.attrs.value)
-    .collect();
+  let tags: &Vec<_> = &s.attrs().iter().map(|f| &f.attrs.value).collect();
 
   quote! {
     #( #tags => #names = Some(String::from_utf8(attr.value.into_owned().to_vec())?), )*
@@ -75,8 +69,8 @@ fn match_attr(s: &Struct) -> TokenStream {
 
 fn match_value(s: &Struct) -> TokenStream {
   if s.attrs.key == "parent" {
-    let matches: &Vec<_> = &s
-      .filter_field("child")
+    let children_matches: &Vec<_> = &s
+      .children()
       .iter()
       .map(|f| {
         let tag = &f.attrs.value;
@@ -94,13 +88,19 @@ fn match_value(s: &Struct) -> TokenStream {
         }
       }).collect();
 
+    let text_names: &Vec<_> = &s.texts().iter().map(|f| &f.name).collect();
+
+    let text_tags: &Vec<_> = &s.texts().iter().map(|f| &f.attrs.value).collect();
+    let text_tags1 = text_tags.clone();
+
     quote! {
       let mut buf = Vec::new();
       loop {
         match r.read_event(&mut buf)? {
           Event::Start(ref e) | Event::Empty(ref e) => {
             match std::str::from_utf8(e.name())? {
-              #( #matches )*
+              #( #children_matches )*
+              #( #text_tags => #text_names = Some(r.read_text(#text_tags1, &mut Vec::new())?), )*
               _ => (),
             }
           },
@@ -116,46 +116,33 @@ fn match_value(s: &Struct) -> TokenStream {
   }
 }
 
-fn return_value(s: &Struct) -> TokenStream {
-  let attrs: &Vec<_> = &s
-    .filter_field("attr")
-    .iter()
-    .map(|f| {
-      let name = &f.name;
-      if f.is_option {
-        quote!{ #name, }
-      } else {
-        quote!{ #name: #name.expect("bla"), }
-      }
-    }).collect();
+fn return_value(s: &Struct) -> Vec<TokenStream> {
+  let mut result = Vec::new();
+
+  for f in &s.attrs() {
+    let name = &f.name;
+    result.push(if f.is_option {
+      quote!{ #name }
+    } else {
+      quote!{ #name: #name.expect("bla") }
+    })
+  }
 
   if s.attrs.key == "parent" {
-    let children: &Vec<_> = &s
-      .filter_field("child")
-      .iter()
-      .map(|f| {
-        let name = &f.name;
-        if f.is_option || f.is_vec {
-          quote!{ #name, }
-        } else {
-          quote!{ #name: #name.expect("bla"), }
-        }
-      }).collect();
-    quote! {
-      #( #attrs )*
-      #( #children )*
+    for f in &s.texts_and_children() {
+      let name = &f.name;
+      result.push(if f.is_option || f.is_vec {
+        quote!{ #name }
+      } else {
+        quote!{ #name: #name.expect("bla") }
+      })
     }
   } else if s.attrs.key == "text" {
-    let name = &s.find_field("text").name;
-    quote! {
-      #( #attrs )*
-      #name: text,
-    }
-  } else {
-    quote! {
-      #( #attrs )*
-    }
+    let name = &s.texts().first().unwrap().name;
+    result.push(quote! { #name: text });
   }
+
+  result
 }
 
 pub(crate) fn impl_read_with_bytes_start_enum(e: &Enum) -> TokenStream {

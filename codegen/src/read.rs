@@ -77,30 +77,15 @@ fn match_read(s: &Struct) -> TokenStream {
 }
 
 pub(crate) fn impl_read_enum(e: &Enum) -> TokenStream {
-  let text_tags: &Vec<_> = &e
-    .filter_field("text")
+  let start_tags: &Vec<_> = &e
+    .texts_and_children()
     .iter()
     .map(|f| &f.attrs.value as &str)
     .collect();
 
-  let child_tags: &Vec<_> = &e
-    .filter_field("child")
-    .iter()
-    .map(|f| &f.attrs.value as &str)
-    .collect();
+  let start_tag_names = start_tags.join(", ");
 
-  let start_tag_names = [
-    text_tags.join(", "),
-    ", ".to_string(),
-    child_tags.join(", "),
-  ]
-    .concat();
-
-  let empty_tags: &Vec<_> = &e
-    .filter_field("empty")
-    .iter()
-    .map(|f| &f.attrs.value as &str)
-    .collect();
+  let empty_tags: &Vec<_> = &e.empties().iter().map(|f| &f.attrs.value as &str).collect();
 
   let empty_tag_names = empty_tags.join(", ");
 
@@ -111,8 +96,7 @@ pub(crate) fn impl_read_enum(e: &Enum) -> TokenStream {
         Event::Start(ref e) => {
           let tag = std::str::from_utf8(e.name())?;
           match tag {
-            #( #text_tags => return Self::read_with_bytes_start(e, r), )*
-            #( #child_tags => return Self::read_with_bytes_start(e, r), )*
+            #( #start_tags => return Self::read_with_bytes_start(e, r), )*
             _ => return Err(Error::UnexpectedTag {
               expected: String::from(#start_tag_names),
               found: String::from(tag),

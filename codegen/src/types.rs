@@ -53,27 +53,41 @@ pub(crate) struct Enum {
   pub fields: Vec<Field>,
 }
 
-impl Struct {
-  pub fn find_field(&self, key: &'static str) -> &Field {
-    self.fields.iter().find(|f| f.attrs.key == key).unwrap()
-  }
-
-  pub fn filter_field(&self, key: &'static str) -> Vec<&Field> {
-    self
+macro_rules! filter_fields {
+  ( $t:tt, $( $x:expr ),* ) => {
+    $t
       .fields
       .iter()
-      .filter(|f| f.attrs.key == key)
-      .collect::<Vec<_>>()
+      .filter(|f| $( f.attrs.key == $x ) || * )
+      .collect()
+  };
+}
+
+impl Struct {
+  pub fn children(&self) -> Vec<&Field> {
+    filter_fields!(self, "child")
+  }
+
+  pub fn texts(&self) -> Vec<&Field> {
+    filter_fields!(self, "text")
+  }
+
+  pub fn texts_and_children(&self) -> Vec<&Field> {
+    filter_fields!(self, "text", "child")
+  }
+
+  pub fn attrs(&self) -> Vec<&Field> {
+    filter_fields!(self, "attr")
   }
 }
 
 impl Enum {
-  pub fn filter_field(&self, key: &'static str) -> Vec<&Field> {
-    self
-      .fields
-      .iter()
-      .filter(|f| f.attrs.key == key)
-      .collect::<Vec<_>>()
+  pub fn texts_and_children(&self) -> Vec<&Field> {
+    filter_fields!(self, "text", "child")
+  }
+
+  pub fn empties(&self) -> Vec<&Field> {
+    filter_fields!(self, "empty")
   }
 }
 

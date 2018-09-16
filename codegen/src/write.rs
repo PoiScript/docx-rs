@@ -27,7 +27,7 @@ pub(crate) fn impl_write_struct(s: &Struct) -> TokenStream {
 fn write_attrs(s: &Struct) -> Vec<TokenStream> {
   let mut result = Vec::new();
 
-  for f in s.filter_field("attr") {
+  for f in s.attrs() {
     let tag = &f.attrs.value;
     let name = &f.name;
 
@@ -71,7 +71,7 @@ fn write_children(s: &Struct) -> Vec<TokenStream> {
   let mut result = Vec::new();
 
   if s.attrs.key == "parent" {
-    for f in s.filter_field("child") {
+    for f in s.children() {
       let name = &f.name;
 
       if f.is_option {
@@ -92,8 +92,28 @@ fn write_children(s: &Struct) -> Vec<TokenStream> {
         });
       }
     }
+    for f in s.texts() {
+      let name = &f.name;
+      let tag = &f.attrs.value;
+
+      if f.is_option {
+        result.push(quote! {
+          if let Some(ref #name) = self.#name {
+            w.write_event(Event::Start(BytesStart::borrowed(#tag.as_bytes(), #tag.len())))?;
+            w.write_event(Event::Text(BytesText::from_plain_str(#name.as_ref())))?;
+            w.write_event(Event::End(BytesEnd::borrowed(#tag.as_bytes())))?;
+          }
+        });
+      } else {
+        result.push(quote! {
+          w.write_event(Event::Start(BytesStart::borrowed(#tag.as_bytes(), #tag.len())))?;
+          w.write_event(Event::Text(BytesText::from_plain_str(self.#name.as_ref())))?;
+          w.write_event(Event::End(BytesEnd::borrowed(#tag.as_bytes())))?;
+        });
+      }
+    }
   } else if s.attrs.key == "text" {
-    let text = &s.find_field("text").name;
+    let text = &s.texts().first().unwrap().name;
 
     result.push(quote! {
       w.write_event(Event::Text(BytesText::from_plain_str(self.#text.as_ref())))?;

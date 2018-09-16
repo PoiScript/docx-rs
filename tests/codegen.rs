@@ -35,6 +35,8 @@ struct Tag3 {
   pub tag1: Vec<Tag1>,
   #[xml(child = "tag2")]
   pub tag2: Option<Tag2>,
+  #[xml(text = "text")]
+  pub text: Option<String>,
 }
 
 #[derive(XmlEnum, PartialEq, Debug)]
@@ -79,12 +81,13 @@ fn test_write() {
       tag2: Some(Tag2 {
         att1: String::from("tag2_att1"),
         att2: String::from("tag2_att2"),
-      })
+      }),
+      text: None,
     }
   );
 
   assert_write_eq!(
-    r#"<tag3 att1="att1"><tag1>tag1_content</tag1></tag3>"#,
+    r#"<tag3 att1="att1"><tag1>tag1_content</tag1><text>tag3_content</text></tag3>"#,
     Tag3 {
       att1: String::from("att1"),
       tag1: vec![Tag1 {
@@ -92,11 +95,12 @@ fn test_write() {
         content: String::from("tag1_content"),
       }],
       tag2: None,
+      text: Some(String::from("tag3_content")),
     }
   );
 
   assert_write_eq!(
-    r#"<tag3 att1="att1"><tag1>content</tag1><tag1>tag1</tag1></tag3>"#,
+    r#"<tag3 att1="att1"><tag1>content</tag1><tag1>tag1</tag1><text>tag3_content</text></tag3>"#,
     Tag3 {
       att1: String::from("att1"),
       tag1: vec![
@@ -110,6 +114,7 @@ fn test_write() {
         },
       ],
       tag2: None,
+      text: Some(String::from("tag3_content")),
     }
   );
 
@@ -126,7 +131,7 @@ fn test_write() {
 fn test_read() {
   assert_read_eq!(
     Tag3,
-    r#"<tag3 att1="att1"><tag2 att2="att2" att1="att1"/><tag1 att1="att1">content</tag1></tag3>"#,
+    r#"<tag3 att1="att1"><text>tag3_content</text><tag2 att2="att2" att1="att1"/><tag1 att1="att1">content</tag1></tag3>"#,
     Tag3 {
       att1: String::from("att1"),
       tag1: vec![Tag1 {
@@ -137,12 +142,13 @@ fn test_read() {
         att1: String::from("att1"),
         att2: String::from("att2"),
       }),
+      text: Some(String::from("tag3_content")),
     }
   );
 
   assert_read_eq!(
     Tag3,
-    r#"<tag3 att1="att1"><tag1>content</tag1></tag3>"#,
+    r#"<tag3 att1="att1"><tag1>content</tag1><text>tag3_content</text></tag3>"#,
     Tag3 {
       att1: String::from("att1"),
       tag1: vec![Tag1 {
@@ -150,6 +156,7 @@ fn test_read() {
         content: String::from("content"),
       }],
       tag2: None,
+      text: Some(String::from("tag3_content")),
     }
   );
 
@@ -169,6 +176,7 @@ fn test_read() {
         },
       ],
       tag2: None,
+      text: None,
     }
   );
 
