@@ -105,7 +105,7 @@ fn match_value(s: &Struct) -> TokenStream {
             }
           },
           Event::End(_) => break,
-          Event::Eof => break,
+          Event::Eof => return Err(Error::UnexpectedEof),
           _ => (),
         };
         buf.clear();
@@ -172,11 +172,12 @@ pub(crate) fn impl_read_with_bytes_start_enum(e: &Enum) -> TokenStream {
   let e_names = repeat(&e.name);
 
   quote! {
-    match std::str::from_utf8(bs.name())? {
+    let tag = std::str::from_utf8(bs.name())?;
+    match tag {
       #( #tags => Ok(#e_names::#names(#types::read_with_bytes_start(bs, r)?)), )*
       _ => Err(Error::UnexpectedTag {
         expected: String::from(#tag_names),
-        found: String::from(std::str::from_utf8(bs.name())?),
+        found: String::from(tag),
       })
     }
   }

@@ -11,6 +11,7 @@ pub enum Error {
   Xml(XmlError),
   Zip(ZipError),
   Utf8(Utf8Error),
+  UnexpectedEof,
   UnexpectedTag { expected: String, found: String },
   UnexpectedEvent { expected: String, found: String },
 }
@@ -21,6 +22,7 @@ impl fmt::Display for Error {
       Error::Xml(ref err) => write!(f, "{}", err),
       Error::Zip(ref err) => write!(f, "{}", err),
       Error::Utf8(ref err) => write!(f, "{}", err),
+      Error::UnexpectedEof => write!(f, "Unexpected Eof"),
       Error::UnexpectedTag {
         ref expected,
         ref found,
@@ -39,6 +41,7 @@ impl error::Error for Error {
       Error::Xml(_) => "Xml Error",
       Error::Zip(ref err) => err.description(),
       Error::Utf8(ref err) => err.description(),
+      Error::UnexpectedEof => "Unexpected Eof",
       Error::UnexpectedTag { .. } => "Unexpted Tag",
       Error::UnexpectedEvent { .. } => "Unexpted Event",
     }
@@ -53,6 +56,7 @@ impl error::Error for Error {
       },
       Error::Utf8(ref err) => Some(err as &error::Error),
       Error::Zip(ref err) => Some(err),
+      Error::UnexpectedEof => None,
       Error::UnexpectedTag { .. } => None,
       Error::UnexpectedEvent { .. } => None,
     }
