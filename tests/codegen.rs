@@ -8,7 +8,7 @@ use docx::xml::{XmlEnum, XmlStruct};
 use quick_xml::{Reader, Writer};
 use std::io::Cursor;
 
-#[derive(XmlStruct, PartialEq, Debug)]
+#[derive(XmlStruct, PartialEq, Debug, Default)]
 #[xml(text = "tag1")]
 struct Tag1 {
   #[xml(attr = "att1")]
@@ -17,7 +17,7 @@ struct Tag1 {
   pub content: String,
 }
 
-#[derive(XmlStruct, PartialEq, Debug)]
+#[derive(XmlStruct, PartialEq, Debug, Default)]
 #[xml(empty = "tag2")]
 struct Tag2 {
   #[xml(attr = "att1")]
@@ -26,7 +26,7 @@ struct Tag2 {
   pub att2: String,
 }
 
-#[derive(XmlStruct, PartialEq, Debug)]
+#[derive(XmlStruct, PartialEq, Debug, Default)]
 #[xml(parent = "tag3")]
 struct Tag3 {
   #[xml(attr = "att1")]
@@ -47,6 +47,12 @@ enum Tag {
   Tag2(Tag2),
   #[xml(parent = "tag3")]
   Tag3(Tag3),
+}
+
+impl std::default::Default for Tag {
+  fn default() -> Tag {
+    Tag::Tag1(Tag1::default())
+  }
 }
 
 macro_rules! assert_write_eq {

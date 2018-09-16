@@ -26,7 +26,7 @@ pub trait Xml<'a>: Default {
   fn write<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()>;
 }
 
-pub trait XmlStruct {
+pub trait XmlStruct: Default {
   fn write<W>(&self, w: &mut Writer<W>) -> Result<()>
   where
     W: Write + Seek;
@@ -38,7 +38,7 @@ pub trait XmlStruct {
     Self: Sized;
 }
 
-pub trait XmlEnum {
+pub trait XmlEnum: Default {
   fn write<W>(&self, w: &mut Writer<W>) -> Result<()>
   where
     W: Write + Seek;
