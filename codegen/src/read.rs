@@ -1,5 +1,3 @@
-use proc_macro2::Ident;
-use proc_macro2::Span;
 use proc_macro2::TokenStream;
 use types::{Enum, Struct};
 
@@ -21,7 +19,7 @@ pub(crate) fn impl_read_struct(s: &Struct) -> TokenStream {
 }
 
 fn match_read(s: &Struct) -> TokenStream {
-  let name = Ident::new(&s.name, Span::call_site());
+  let name = &s.name;
   let tag = &s.attrs.value;
 
   if s.attrs.key == "parent" || s.attrs.key == "text" {

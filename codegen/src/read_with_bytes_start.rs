@@ -1,11 +1,8 @@
-use proc_macro2::Ident;
-use proc_macro2::Span;
 use proc_macro2::TokenStream;
-use std::iter;
 use types::{Enum, Struct};
 
 pub(crate) fn impl_read_with_bytes_start_struct(s: &Struct) -> TokenStream {
-  let name = Ident::new(&s.name, Span::call_site());
+  let name = &s.name;
 
   let init = initialize_value(&s);
   let match_attr = match_attr(&s);
@@ -31,18 +28,14 @@ pub(crate) fn impl_read_with_bytes_start_struct(s: &Struct) -> TokenStream {
 }
 
 fn initialize_value(s: &Struct) -> TokenStream {
-  let names: &Vec<_> = &s
-    .filter_field("attr")
-    .iter()
-    .map(|f| Ident::new(&f.name, Span::call_site()))
-    .collect();
+  let names: &Vec<_> = &s.filter_field("attr").iter().map(|f| &f.name).collect();
 
   if s.attrs.key == "parent" {
     let init_children: &Vec<_> = &s
       .filter_field("child")
       .iter()
       .map(|f| {
-        let name = Ident::new(&f.name, Span::call_site());
+        let name = &f.name;
         if f.is_vec {
           quote!{ let mut #name = Vec::new(); }
         } else {
@@ -57,7 +50,8 @@ fn initialize_value(s: &Struct) -> TokenStream {
   } else if s.attrs.key == "text" {
     quote! {
       #( let mut #names = None; )*
-      let mut text = None;
+      // TODO: throws an error
+      let text = r.read_text(bs.name(), &mut Vec::new()).unwrap();
     }
   } else {
     quote! {
@@ -67,11 +61,7 @@ fn initialize_value(s: &Struct) -> TokenStream {
 }
 
 fn match_attr(s: &Struct) -> TokenStream {
-  let names: &Vec<_> = &s
-    .filter_field("attr")
-    .iter()
-    .map(|f| Ident::new(&f.name, Span::call_site()))
-    .collect();
+  let names: &Vec<_> = &s.filter_field("attr").iter().map(|f| &f.name).collect();
 
   let tags: &Vec<_> = &s
     .filter_field("attr")
@@ -91,8 +81,8 @@ fn match_value(s: &Struct) -> TokenStream {
       .iter()
       .map(|f| {
         let tag = &f.attrs.value;
-        let name = Ident::new(&f.name, Span::call_site());
-        let ty = Ident::new(&f.ty, Span::call_site());
+        let name = &f.name;
+        let ty = &f.ty;
 
         if f.is_vec {
           quote! {
@@ -122,21 +112,6 @@ fn match_value(s: &Struct) -> TokenStream {
         buf.clear();
       }
     }
-  } else if s.attrs.key == "text" {
-    quote!{
-      let mut buf = Vec::new();
-      loop {
-        match r.read_event(&mut buf) {
-          Ok(Event::Text(e)) => {
-            text = Some(String::from_utf8(e.escaped().to_vec()).unwrap());
-          },
-          Ok(Event::End(_)) => break,
-          Ok(Event::Eof) => break,
-          _ => (),
-        };
-        buf.clear();
-      }
-    }
   } else {
     quote!()
   }
@@ -147,7 +122,7 @@ fn return_value(s: &Struct) -> TokenStream {
     .filter_field("attr")
     .iter()
     .map(|f| {
-      let name = Ident::new(&f.name, Span::call_site());
+      let name = &f.name;
       if f.is_option {
         quote!{ #name, }
       } else {
@@ -160,7 +135,7 @@ fn return_value(s: &Struct) -> TokenStream {
       .filter_field("child")
       .iter()
       .map(|f| {
-        let name = Ident::new(&f.name, Span::call_site());
+        let name = &f.name;
         if f.is_option || f.is_vec {
           quote!{ #name, }
         } else {
@@ -172,10 +147,10 @@ fn return_value(s: &Struct) -> TokenStream {
       #( #children )*
     }
   } else if s.attrs.key == "text" {
-    let name = Ident::new(&s.find_field("text").name, Span::call_site());
+    let name = &s.find_field("text").name;
     quote! {
       #( #attrs )*
-      #name: text.expect("bla"),
+      #name: text,
     }
   } else {
     quote! {
@@ -185,23 +160,15 @@ fn return_value(s: &Struct) -> TokenStream {
 }
 
 pub(crate) fn impl_read_with_bytes_start_enum(e: &Enum) -> TokenStream {
-  let names: &Vec<_> = &e
-    .fields
-    .iter()
-    .map(|f| Ident::new(&f.name, Span::call_site()))
-    .collect();
+  use std::iter::repeat;
+
+  let names: &Vec<_> = &e.fields.iter().map(|f| &f.name).collect();
 
   let tags: &Vec<_> = &e.fields.iter().map(|f| &f.attrs.value).collect();
 
-  let types: &Vec<_> = &e
-    .fields
-    .iter()
-    .map(|f| Ident::new(&f.ty, Span::call_site()))
-    .collect();
+  let types: &Vec<_> = &e.fields.iter().map(|f| &f.ty).collect();
 
-  let e_names: Vec<_> = iter::repeat(Ident::new(&e.name, Span::call_site()))
-    .take(tags.len())
-    .collect();
+  let e_names = repeat(&e.name);
 
   quote! {
     match std::str::from_utf8(bs.name()).unwrap() {

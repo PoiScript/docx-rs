@@ -1,7 +1,4 @@
-use proc_macro2::Ident;
-use proc_macro2::Span;
 use proc_macro2::TokenStream;
-use std::iter;
 use types::{Enum, FieldType, Struct};
 
 pub(crate) fn impl_write_struct(s: &Struct) -> TokenStream {
@@ -32,7 +29,7 @@ fn write_attrs(s: &Struct) -> Vec<TokenStream> {
 
   for f in s.filter_field("attr") {
     let tag = &f.attrs.value;
-    let name = Ident::new(&f.name, Span::call_site());
+    let name = &f.name;
 
     let ident = match f.get_ty() {
       FieldType::String => if f.is_option {
@@ -75,7 +72,7 @@ fn write_children(s: &Struct) -> Vec<TokenStream> {
 
   if s.attrs.key == "parent" {
     for f in s.filter_field("child") {
-      let name = Ident::new(&f.name, Span::call_site());
+      let name = &f.name;
 
       if f.is_option {
         result.push(quote! {
@@ -96,7 +93,7 @@ fn write_children(s: &Struct) -> Vec<TokenStream> {
       }
     }
   } else if s.attrs.key == "text" {
-    let text = Ident::new(&s.find_field("text").name, Span::call_site());
+    let text = &s.find_field("text").name;
 
     result.push(quote! {
       w.write_event(Event::Text(BytesText::from_plain_str(self.#text.as_ref())))?;
@@ -117,15 +114,11 @@ fn write_end_event(s: &Struct, tag: &String) -> TokenStream {
 }
 
 pub(crate) fn impl_write_enum(e: &Enum) -> TokenStream {
-  let fields: &Vec<_> = &e
-    .fields
-    .iter()
-    .map(|f| Ident::new(&f.name, Span::call_site()))
-    .collect();
+  use std::iter::repeat;
 
-  let names: Vec<_> = iter::repeat(Ident::new(&e.name, Span::call_site()))
-    .take(fields.len())
-    .collect();
+  let fields: &Vec<_> = &e.fields.iter().map(|f| &f.name).collect();
+
+  let names = repeat(&e.name);
 
   quote!{
     match self {

@@ -1,3 +1,4 @@
+use proc_macro2::{Ident, Span};
 use regex::Regex;
 
 #[derive(Debug)]
@@ -8,8 +9,8 @@ pub(crate) struct Attribute {
 
 #[derive(Debug)]
 pub(crate) struct Field {
-  pub name: String,
-  pub ty: String,
+  pub name: Ident,
+  pub ty: Ident,
   pub attrs: Attribute,
   pub is_vec: bool,
   pub is_option: bool,
@@ -19,7 +20,7 @@ pub(crate) enum FieldType {
   String,
   Cow,
   Slices,
-  Others(String),
+  Others(Ident),
 }
 
 impl Field {
@@ -29,9 +30,9 @@ impl Field {
 
     if self.ty == "String" {
       FieldType::String
-    } else if cow_re.is_match(&self.ty) {
+    } else if cow_re.is_match(&format!("{}", self.ty)) {
       FieldType::Cow
-    } else if str_re.is_match(&self.ty) {
+    } else if str_re.is_match(&format!("{}", self.ty)) {
       FieldType::Slices
     } else {
       FieldType::Others(self.ty.clone())
@@ -41,14 +42,14 @@ impl Field {
 
 #[derive(Debug)]
 pub(crate) struct Struct {
-  pub name: String,
+  pub name: Ident,
   pub fields: Vec<Field>,
   pub attrs: Attribute,
 }
 
 #[derive(Debug)]
 pub(crate) struct Enum {
-  pub name: String,
+  pub name: Ident,
   pub fields: Vec<Field>,
 }
 
@@ -88,8 +89,8 @@ pub(crate) fn parse_enum(enum_str: String) -> Enum {
     .map(|caps| Field {
       is_vec: false,
       is_option: false,
-      ty: caps["ty"].to_string(),
-      name: caps["name"].to_string(),
+      ty: Ident::new(&caps["ty"], Span::call_site()),
+      name: Ident::new(&caps["name"], Span::call_site()),
       attrs: Attribute {
         key: caps["key"].to_string(),
         value: caps["value"].to_string(),
@@ -99,7 +100,7 @@ pub(crate) fn parse_enum(enum_str: String) -> Enum {
   let caps = enum_re.captures(&enum_str).unwrap();
 
   Enum {
-    name: caps["name"].to_string(),
+    name: Ident::new(&caps["name"], Span::call_site()),
     fields,
   }
 }
@@ -135,10 +136,10 @@ pub(crate) fn parse_struct(struct_str: String) -> Struct {
       }
 
       Field {
-        ty,
         is_vec,
         is_option,
-        name: caps["name"].to_string(),
+        ty: Ident::new(&ty, Span::call_site()),
+        name: Ident::new(&caps["name"], Span::call_site()),
         attrs: Attribute {
           key: caps["key"].to_string(),
           value: caps
@@ -152,7 +153,7 @@ pub(crate) fn parse_struct(struct_str: String) -> Struct {
   let caps = struct_re.captures(&struct_str).unwrap();
 
   Struct {
-    name: caps["name"].to_string(),
+    name: Ident::new(&caps["name"], Span::call_site()),
     fields,
     attrs: Attribute {
       key: caps["key"].to_string(),

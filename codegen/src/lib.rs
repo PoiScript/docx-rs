@@ -10,8 +10,6 @@ pub(crate) mod types;
 mod write;
 
 use proc_macro::TokenStream;
-use proc_macro2::Ident;
-use proc_macro2::Span;
 use read::{impl_read_enum, impl_read_struct};
 use read_with_bytes_start::{impl_read_with_bytes_start_enum, impl_read_with_bytes_start_struct};
 use types::{parse_enum, parse_struct};
@@ -21,7 +19,7 @@ use write::{impl_write_enum, impl_write_struct};
 pub fn xml_struct(input: TokenStream) -> TokenStream {
   let s = parse_struct(input.to_string());
 
-  let name = Ident::new(&s.name, Span::call_site());
+  let name = &s.name;
   let write = impl_write_struct(&s);
   let read_with_bytes_start = impl_read_with_bytes_start_struct(&s);
   let read = impl_read_struct(&s);
@@ -59,7 +57,7 @@ pub fn xml_struct(input: TokenStream) -> TokenStream {
 pub fn xml_enum(input: TokenStream) -> TokenStream {
   let e = parse_enum(input.to_string());
 
-  let name = Ident::new(&e.name, Span::call_site());
+  let name = &e.name;
   let write = impl_write_enum(&e);
   let read_with_bytes_start = impl_read_with_bytes_start_enum(&e);
   let read = impl_read_enum(&e);
