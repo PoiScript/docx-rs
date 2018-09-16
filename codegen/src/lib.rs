@@ -1,3 +1,5 @@
+#![recursion_limit="128"]
+
 extern crate proc_macro;
 extern crate proc_macro2;
 extern crate regex;
@@ -37,13 +39,15 @@ pub fn xml_struct(input: TokenStream) -> TokenStream {
       fn read_with_bytes_start(
         bs: &quick_xml::events::BytesStart,
         r: &mut quick_xml::Reader<&[u8]>
-      ) -> #name {
+      ) -> Result<#name> {
         use quick_xml::events::*;
+        use docx::errors::Error;
 
         #read_with_bytes_start
       }
-      fn read(r: &mut quick_xml::Reader<&[u8]>) -> #name {
+      fn read(r: &mut quick_xml::Reader<&[u8]>) -> Result<#name> {
         use quick_xml::events::*;
+        use docx::errors::Error;
 
         #read
       }
@@ -75,13 +79,15 @@ pub fn xml_enum(input: TokenStream) -> TokenStream {
       fn read_with_bytes_start(
         bs: &quick_xml::events::BytesStart,
         r: &mut quick_xml::Reader<&[u8]>
-      ) -> #name {
+      ) -> Result<#name> {
         use quick_xml::events::*;
+        use docx::errors::Error;
 
         #read_with_bytes_start
       }
-      fn read(r: &mut quick_xml::Reader<&[u8]>) -> #name {
+      fn read(r: &mut quick_xml::Reader<&[u8]>) -> Result<#name> {
         use quick_xml::events::*;
+        use docx::errors::Error;
 
         #read
       }

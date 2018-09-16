@@ -7,9 +7,9 @@ pub(crate) fn impl_read_struct(s: &Struct) -> TokenStream {
   quote! {
     let mut buf = Vec::new();
     loop {
-      match r.read_event(&mut buf) {
+      match r.read_event(&mut buf)? {
         #match_read
-        Ok(Event::Eof) | Ok(Event::End(_)) => break,
+        Event::Eof | Event::End(_) => break,
         _ => (),
       };
       buf.clear();
@@ -24,28 +24,40 @@ fn match_read(s: &Struct) -> TokenStream {
 
   if s.attrs.key == "parent" || s.attrs.key == "text" {
     quote! {
-      Ok(Event::Start(ref e)) => {
+      Event::Start(ref e) => {
         if e.name() == #tag.as_bytes() {
             return #name::read_with_bytes_start(e, r);
           } else {
-            // TODO: throws an error
+            return Err(Error::UnexpectedTag {
+              expected: String::from(#tag),
+              found: String::from_utf8(e.name().to_vec())?,
+            });
           }
         },
-      Ok(Event::Empty(_)) => {
-        // TODO: throws an error
+      Event::Empty(_) => {
+        return Err(Error::UnexpectedEvent {
+          expected: String::from("Start"),
+          found: String::from("Empty"),
+        });
       },
     }
   } else if s.attrs.key == "empty" {
     quote! {
-      Ok(Event::Empty(ref e)) => {
+      Event::Empty(ref e) => {
         if e.name() == #tag.as_bytes() {
             return #name::read_with_bytes_start(e, r);
           } else {
-            // TODO: throws an error
+            return Err(Error::UnexpectedTag {
+              expected: String::from(#tag),
+              found: String::from_utf8(e.name().to_vec())?,
+            });
           }
         },
-      Ok(Event::Start(_)) => {
-        // TODO: throws an error
+      Event::Start(_) => {
+        return Err(Error::UnexpectedEvent {
+          expected: String::from("Start"),
+          found: String::from("Empty"),
+        });
       },
     }
   } else {
@@ -75,21 +87,21 @@ pub(crate) fn impl_read_enum(e: &Enum) -> TokenStream {
   quote! {
     let mut buf = Vec::new();
     loop {
-      match r.read_event(&mut buf) {
-        Ok(Event::Start(ref e)) => {
-          match std::str::from_utf8(e.name()).unwrap() {
+      match r.read_event(&mut buf)? {
+        Event::Start(ref e) => {
+          match std::str::from_utf8(e.name())? {
             #( #text_tags => return Self::read_with_bytes_start(e, r), )*
             #( #child_tags => return Self::read_with_bytes_start(e, r), )*
             _ => unreachable!(), // TODO: throws an error
           }
         },
-        Ok(Event::Empty(ref e)) => {
-          match std::str::from_utf8(e.name()).unwrap() {
+        Event::Empty(ref e) => {
+          match std::str::from_utf8(e.name())? {
             #( #empty_tags => return Self::read_with_bytes_start(e, r), )*
             _ => unreachable!(), // TODO: throws an error
           }
         },
-        _ => unreachable!(), // TODO: throws an error
+        _ => (),
       }
     }
   }

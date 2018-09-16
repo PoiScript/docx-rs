@@ -30,14 +30,22 @@ pub trait XmlStruct {
   fn write<W>(&self, w: &mut Writer<W>) -> Result<()>
   where
     W: Write + Seek;
-  fn read_with_bytes_start(bs: &BytesStart, r: &mut Reader<&[u8]>) -> Self;
-  fn read(r: &mut Reader<&[u8]>) -> Self;
+  fn read_with_bytes_start(bs: &BytesStart, r: &mut Reader<&[u8]>) -> Result<Self>
+  where
+    Self: Sized;
+  fn read(r: &mut Reader<&[u8]>) -> Result<Self>
+  where
+    Self: Sized;
 }
 
 pub trait XmlEnum {
   fn write<W>(&self, w: &mut Writer<W>) -> Result<()>
   where
     W: Write + Seek;
-  fn read_with_bytes_start(bs: &BytesStart, r: &mut Reader<&[u8]>) -> Self;
-  fn read(r: &mut Reader<&[u8]>) -> Self;
+  fn read_with_bytes_start(bs: &BytesStart, r: &mut Reader<&[u8]>) -> Result<Self>
+  where
+    Self: Sized;
+  fn read(r: &mut Reader<&[u8]>) -> Result<Self>
+  where
+    Self: Sized;
 }

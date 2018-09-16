@@ -62,7 +62,7 @@ macro_rules! assert_read_eq {
     let mut reader = Reader::from_str($l);
     reader.trim_text(true);
 
-    assert_eq!($t::read(&mut reader), $r);
+    assert_eq!($t::read(&mut reader).unwrap(), $r);
   };
 }
 

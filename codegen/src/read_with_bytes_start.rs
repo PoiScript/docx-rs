@@ -13,7 +13,7 @@ pub(crate) fn impl_read_with_bytes_start_struct(s: &Struct) -> TokenStream {
     #init
 
     for attr in bs.attributes().filter_map(|a| a.ok()) {
-      match std::str::from_utf8(attr.key).unwrap() {
+      match std::str::from_utf8(attr.key)? {
         #match_attr
         _ => (),
       }
@@ -21,9 +21,9 @@ pub(crate) fn impl_read_with_bytes_start_struct(s: &Struct) -> TokenStream {
 
     #match_value
 
-    #name {
+    Ok(#name {
       #return_value
-    }
+    })
   }
 }
 
@@ -50,8 +50,7 @@ fn initialize_value(s: &Struct) -> TokenStream {
   } else if s.attrs.key == "text" {
     quote! {
       #( let mut #names = None; )*
-      // TODO: throws an error
-      let text = r.read_text(bs.name(), &mut Vec::new()).unwrap();
+      let text = r.read_text(bs.name(), &mut Vec::new())?;
     }
   } else {
     quote! {
@@ -70,7 +69,7 @@ fn match_attr(s: &Struct) -> TokenStream {
     .collect();
 
   quote! {
-    #( #tags => #names = Some(String::from_utf8(attr.value.into_owned().to_vec()).unwrap()), )*
+    #( #tags => #names = Some(String::from_utf8(attr.value.into_owned().to_vec())?), )*
   }
 }
 
@@ -86,11 +85,11 @@ fn match_value(s: &Struct) -> TokenStream {
 
         if f.is_vec {
           quote! {
-            #tag => #name.push(#ty::read_with_bytes_start(e, r)),
+            #tag => #name.push(#ty::read_with_bytes_start(e, r)?),
           }
         } else {
           quote! {
-            #tag => #name = Some(#ty::read_with_bytes_start(e, r)),
+            #tag => #name = Some(#ty::read_with_bytes_start(e, r)?),
           }
         }
       }).collect();
@@ -98,15 +97,15 @@ fn match_value(s: &Struct) -> TokenStream {
     quote! {
       let mut buf = Vec::new();
       loop {
-        match r.read_event(&mut buf) {
-          Ok(Event::Start(ref e)) | Ok(Event::Empty(ref e)) => {
-            match std::str::from_utf8(e.name()).unwrap() {
+        match r.read_event(&mut buf)? {
+          Event::Start(ref e) | Event::Empty(ref e) => {
+            match std::str::from_utf8(e.name())? {
               #( #matches )*
               _ => (),
             }
           },
-          Ok(Event::End(_)) => break,
-          Ok(Event::Eof) => break,
+          Event::End(_) => break,
+          Event::Eof => break,
           _ => (),
         };
         buf.clear();
@@ -164,16 +163,21 @@ pub(crate) fn impl_read_with_bytes_start_enum(e: &Enum) -> TokenStream {
 
   let names: &Vec<_> = &e.fields.iter().map(|f| &f.name).collect();
 
-  let tags: &Vec<_> = &e.fields.iter().map(|f| &f.attrs.value).collect();
+  let tags: &Vec<_> = &e.fields.iter().map(|f| &f.attrs.value as &str).collect();
+
+  let tag_names = tags.join(", ");
 
   let types: &Vec<_> = &e.fields.iter().map(|f| &f.ty).collect();
 
   let e_names = repeat(&e.name);
 
   quote! {
-    match std::str::from_utf8(bs.name()).unwrap() {
-      #( #tags => #e_names::#names(#types::read_with_bytes_start(bs, r)), )*
-      _ => panic!("bla")  // TODO throws an error
+    match std::str::from_utf8(bs.name())? {
+      #( #tags => Ok(#e_names::#names(#types::read_with_bytes_start(bs, r)?)), )*
+      _ => Err(Error::UnexpectedTag {
+        expected: String::from(#tag_names),
+        found: String::from(std::str::from_utf8(bs.name())?),
+      })
     }
   }
 }
