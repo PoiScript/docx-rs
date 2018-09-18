@@ -7,7 +7,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "codegen"
+name = "docx-codegen"
 version = "0.1.0"
 dependencies = [
  "proc-macro2 0.4.19 (registry+https://github.com/rust-lang/crates.io-index)",
