@@ -18,7 +18,7 @@ impl<'a> RelsXml<'a> {
   }
 }
 
-impl<'a> Xml<'a> for RelsXml<'a> {
+impl<'a> Xml for RelsXml<'a> {
   fn write<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()> {
     tag!(w, b"Relationships"["xmlns", SCHEMA_RELATIONSHIPS] {{
       for (i, (schema, target)) in self.relationships.iter().enumerate() {

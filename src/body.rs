@@ -22,7 +22,7 @@ impl<'a> Default for Run<'a> {
   }
 }
 
-impl<'a> Xml<'a> for Run<'a> {
+impl<'a> Xml for Run<'a> {
   fn write<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()> {
     match *self {
       Run::Text(text) => tag!(w, b"w:t"{text}),
@@ -80,7 +80,7 @@ impl<'a> StyleExt<'a> for Para<'a> {
   }
 }
 
-impl<'a> Xml<'a> for Para<'a> {
+impl<'a> Xml for Para<'a> {
   fn write<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()> {
     tag!(w, b"w:p" {{
       tag!(w, b"w:pPr" {{

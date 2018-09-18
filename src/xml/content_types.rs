@@ -39,7 +39,7 @@ impl<'a> Default for ContentTypesXml<'a> {
   }
 }
 
-impl<'a> Xml<'a> for ContentTypesXml<'a> {
+impl<'a> Xml for ContentTypesXml<'a> {
   fn write<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()> {
     tag!(w, b"Types"["xmlns", SCHEMA_CONTENT_TYPES] {{
       for &(extension, content_type) in &self.defaults {

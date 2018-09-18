@@ -67,7 +67,7 @@ impl<'a> Style<'a> {
   }
 }
 
-impl<'a> Xml<'a> for Style<'a> {
+impl<'a> Xml for Style<'a> {
   fn write<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()> {
     tag!(w, b"w:style"["w:type", "paragraph", "w:styleId", self.name] {{
       tag!(w, b"w:name"["w:val", self.name]);

@@ -20,7 +20,7 @@ impl<'a> StylesXml<'a> {
   }
 }
 
-impl<'a> Xml<'a> for StylesXml<'a> {
+impl<'a> Xml for StylesXml<'a> {
   fn write<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()> {
     tag!(w, b"w:styles"["xmlns:w", SCHEMA_MAIN] {{
       for style in &self.styles {

@@ -20,7 +20,7 @@ impl<'a> DocumentXml<'a> {
   }
 }
 
-impl<'a> Xml<'a> for DocumentXml<'a> {
+impl<'a> Xml for DocumentXml<'a> {
   fn write<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()> {
     tag!(w, b"w:document"["xmlns:w", SCHEMA_MAIN] {{
       tag!(w, b"w:body" {{

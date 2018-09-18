@@ -18,7 +18,7 @@ pub struct CoreXml<'a> {
   revision: &'a str,
 }
 
-impl<'a> Xml<'a> for CoreXml<'a> {
+impl<'a> Xml for CoreXml<'a> {
   fn write<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()> {
     tag!(w, b"cp:coreProperties"["xmlns:cp", SCHEMA_CORE] {{
       tag!(w, b"dc:title"{self.title});

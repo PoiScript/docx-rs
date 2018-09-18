@@ -15,7 +15,7 @@ pub struct Font<'a> {
   pitch: &'a str,
 }
 
-impl<'a> Xml<'a> for Font<'a> {
+impl<'a> Xml for Font<'a> {
   fn write<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()> {
     tag!(w, b"w:font"["w:name", self.name] {{
       tag!(w, b"w:charset"["w:val", self.charset]);
@@ -31,7 +31,7 @@ pub struct FontTableXml<'a> {
   fonts: Vec<Font<'a>>,
 }
 
-impl<'a> Xml<'a> for FontTableXml<'a> {
+impl<'a> Xml for FontTableXml<'a> {
   fn write<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()> {
     tag!(w, b"w:fonts"["xmlns:w", SCHEMA_MAIN, "xmlns:r", SCHEMA_RELATIONSHIPS] {{
       for font in &self.fonts {

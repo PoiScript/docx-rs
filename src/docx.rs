@@ -38,7 +38,7 @@ impl<'a> Docx<'a> {
       .create_style()
   }
 
-  pub fn generate<T: Write + Seek>(&mut self, writer: T) -> Result<()> {
+  pub fn generate<T: Write + Seek>(&mut self, writer: T) -> Result<T> {
     let mut zip = ZipWriter::new(writer);
     let opt = FileOptions::default()
       .compression_method(CompressionMethod::Deflated)
@@ -111,8 +111,6 @@ impl<'a> Docx<'a> {
     write!(self.rels, "_rels/.rels");
     option_write!(self.document_rels, "word/_rels/document.xml.rels");
 
-    zip.finish()?;
-
-    Ok(())
+    Ok(zip.finish()?)
   }
 }

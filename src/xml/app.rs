@@ -51,7 +51,7 @@ impl<'a> Default for AppXml<'a> {
   }
 }
 
-impl<'a> Xml<'a> for AppXml<'a> {
+impl<'a> Xml for AppXml<'a> {
   fn write<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()> {
     tag!(w, b"Properties" ["xmlns",SCHEMAS_EXTENDED,"xmlns:vt",SCHEMA_DOC_PROPS_V_TYPES] {{
       tag!(w, b"SharedDoc"{self.shared_doc});
