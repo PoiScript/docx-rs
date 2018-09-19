@@ -2,94 +2,66 @@
 
 extern crate proc_macro;
 extern crate proc_macro2;
-extern crate regex;
 #[macro_use]
 extern crate quote;
+#[macro_use]
+extern crate syn;
 
 mod read;
-mod read_with_bytes_start;
 pub(crate) mod types;
 mod write;
 
 use proc_macro::TokenStream;
-use read::{impl_read_enum, impl_read_struct};
-use read_with_bytes_start::{impl_read_with_bytes_start_enum, impl_read_with_bytes_start_struct};
-use types::{parse_enum, parse_struct};
-use write::{impl_write_enum, impl_write_struct};
+use read::impl_read;
+use syn::{Data, DeriveInput};
+use types::{Item, ItemEnum, ItemStruct};
+use write::impl_write;
 
-#[proc_macro_derive(XmlStruct, attributes(xml))]
-pub fn xml_struct(input: TokenStream) -> TokenStream {
-  let s = parse_struct(input.to_string());
+#[proc_macro_derive(Xml, attributes(xml))]
+pub fn derive_xml(input: TokenStream) -> TokenStream {
+  let input = parse_macro_input!(input as DeriveInput);
 
-  let name = &s.name;
-  let write = impl_write_struct(&s);
-  let read_with_bytes_start = impl_read_with_bytes_start_struct(&s);
-  let read = impl_read_struct(&s);
-
-  let gen = quote!{
-    impl XmlStruct for #name {
-      fn write<W>(&self, w: &mut quick_xml::Writer<W>) -> Result<()>
-      where
-        W: std::io::Write + std::io::Seek,
-      {
-        use quick_xml::events::*;
-
-        #write
-      }
-      fn read_with_bytes_start(
-        bs: &quick_xml::events::BytesStart,
-        r: &mut quick_xml::Reader<&[u8]>
-      ) -> Result<#name> {
-        use quick_xml::events::*;
-        use docx::errors::Error;
-
-        #read_with_bytes_start
-      }
-      fn read(r: &mut quick_xml::Reader<&[u8]>) -> Result<#name> {
-        use quick_xml::events::*;
-        use docx::errors::Error;
-
-        #read
-      }
-    }
+  let item = match input.data {
+    Data::Enum(ref data) => Item::Enum(ItemEnum::parse(
+      data,
+      &input.attrs,
+      &input.ident,
+      &input.generics,
+    )),
+    Data::Struct(ref data) => Item::Struct(ItemStruct::parse(
+      data,
+      &input.attrs,
+      &input.ident,
+      &input.generics,
+    )),
+    Data::Union(_) => panic!("#[derive(Xml)] doesn't support union."),
   };
 
-  gen.into()
-}
+  let name = &input.ident;
+  let generics = &input.generics;
 
-#[proc_macro_derive(XmlEnum, attributes(xml))]
-pub fn xml_enum(input: TokenStream) -> TokenStream {
-  let e = parse_enum(input.to_string());
-
-  let name = &e.name;
-  let write = impl_write_enum(&e);
-  let read_with_bytes_start = impl_read_with_bytes_start_enum(&e);
-  let read = impl_read_enum(&e);
+  let impl_write = impl_write(&item);
+  let impl_read = impl_read(&item);
 
   let gen = quote!{
-    impl XmlEnum for #name {
+    use quick_xml::events::*;
+
+    impl #generics Xml for #name #generics {
       fn write<W>(&self, w: &mut quick_xml::Writer<W>) -> Result<()>
       where
         W: std::io::Write + std::io::Seek,
       {
-        use quick_xml::events::*;
 
-        #write
+        #impl_write
       }
-      fn read_with_bytes_start(
-        bs: &quick_xml::events::BytesStart,
-        r: &mut quick_xml::Reader<&[u8]>
-      ) -> Result<#name> {
-        use quick_xml::events::*;
+
+      fn read(
+        r: &mut quick_xml::Reader<&[u8]>,
+        bs: Option<&quick_xml::events::BytesStart>,
+      ) -> Result<#name #generics> {
         use docx::errors::Error;
 
-        #read_with_bytes_start
-      }
-      fn read(r: &mut quick_xml::Reader<&[u8]>) -> Result<#name> {
-        use quick_xml::events::*;
-        use docx::errors::Error;
-
-        #read
+        #impl_read
       }
     }
   };

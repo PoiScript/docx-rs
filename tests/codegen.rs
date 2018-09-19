@@ -4,12 +4,13 @@ extern crate docx_codegen;
 extern crate quick_xml;
 
 use docx::errors::Result;
-use docx::xml::{XmlEnum, XmlStruct};
 use quick_xml::{Reader, Writer};
+use std::borrow::Cow;
 use std::io::Cursor;
 
-#[derive(XmlStruct, PartialEq, Debug, Default)]
-#[xml(text = "tag1")]
+#[derive(Xml, PartialEq, Debug)]
+#[xml(event = "Start")]
+#[xml(tag = b"tag1")]
 struct Tag1 {
   #[xml(attr = "att1")]
   pub att1: Option<String>,
@@ -17,8 +18,9 @@ struct Tag1 {
   pub content: String,
 }
 
-#[derive(XmlStruct, PartialEq, Debug, Default)]
-#[xml(empty = "tag2")]
+#[derive(Xml, PartialEq, Debug)]
+#[xml(event = "Empty")]
+#[xml(tag = b"tag2")]
 struct Tag2 {
   #[xml(attr = "att1")]
   pub att1: String,
@@ -26,33 +28,47 @@ struct Tag2 {
   pub att2: String,
 }
 
-#[derive(XmlStruct, PartialEq, Debug, Default)]
-#[xml(parent = "tag3")]
+#[derive(Xml, PartialEq, Debug)]
+#[xml(event = "Start")]
+#[xml(tag = b"tag3")]
 struct Tag3 {
   #[xml(attr = "att1")]
   pub att1: String,
-  #[xml(child = "tag1")]
+  #[xml(child)]
+  #[xml(tag = b"tag1")]
   pub tag1: Vec<Tag1>,
-  #[xml(child = "tag2")]
+  #[xml(child)]
+  #[xml(tag = b"tag2")]
   pub tag2: Option<Tag2>,
-  #[xml(text = "text")]
+  #[xml(flattern_text)]
+  #[xml(tag = b"text")]
   pub text: Option<String>,
 }
 
-#[derive(XmlEnum, PartialEq, Debug)]
+#[derive(Xml, PartialEq, Debug)]
 enum Tag {
-  #[xml(text = "tag1")]
+  #[xml(event = "Start")]
+  #[xml(tag = b"tag1")]
   Tag1(Tag1),
-  #[xml(empty = "tag2")]
+  #[xml(event = "Empty")]
+  #[xml(tag = b"tag2")]
   Tag2(Tag2),
-  #[xml(parent = "tag3")]
+  #[xml(event = "Start")]
+  #[xml(tag = b"tag3")]
   Tag3(Tag3),
 }
 
-impl std::default::Default for Tag {
-  fn default() -> Tag {
-    Tag::Tag1(Tag1::default())
-  }
+trait Xml {
+  fn write<W>(&self, w: &mut quick_xml::Writer<W>) -> Result<()>
+  where
+    W: std::io::Write + std::io::Seek;
+
+  fn read(
+    r: &mut quick_xml::Reader<&[u8]>,
+    bs: Option<&quick_xml::events::BytesStart>,
+  ) -> Result<Self>
+  where
+    Self: Sized;
 }
 
 macro_rules! assert_write_eq {
@@ -70,7 +86,7 @@ macro_rules! assert_read_eq {
     let mut reader = Reader::from_str($l);
     reader.trim_text(true);
 
-    assert_eq!($t::read(&mut reader).unwrap(), $r);
+    assert_eq!($t::read(&mut reader, None).unwrap(), $r);
   };
 }
 
