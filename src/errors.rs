@@ -14,6 +14,7 @@ pub enum Error {
   UnexpectedEof,
   UnexpectedTag { expected: String, found: String },
   UnexpectedEvent { expected: String, found: String },
+  MissingField { name: String, field: String },
 }
 
 impl fmt::Display for Error {
@@ -31,6 +32,10 @@ impl fmt::Display for Error {
         ref expected,
         ref found,
       } => write!(f, "Expecting {} event found {} event", expected, found),
+      Error::MissingField {
+        ref name,
+        ref field,
+      } => write!(f, "Missing field '{}' when parsing {}.", field, name),
     }
   }
 }
@@ -44,6 +49,7 @@ impl error::Error for Error {
       Error::UnexpectedEof => "Unexpected Eof",
       Error::UnexpectedTag { .. } => "Unexpted Tag",
       Error::UnexpectedEvent { .. } => "Unexpted Event",
+      Error::MissingField { .. } => "Missing Field",
     }
   }
 
@@ -59,6 +65,7 @@ impl error::Error for Error {
       Error::UnexpectedEof => None,
       Error::UnexpectedTag { .. } => None,
       Error::UnexpectedEvent { .. } => None,
+      Error::MissingField { .. } => None,
     }
   }
 }

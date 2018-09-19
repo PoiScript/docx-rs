@@ -36,7 +36,7 @@ fn read_struct(s: &ItemStruct) -> TokenStream {
                   break;
                 } else {
                   return Err(Error::UnexpectedTag {
-                    expected: String::from_utf8(#tag.to_vec())?,
+                    expected: String::from(stringify!(#tag)),
                     found: String::from_utf8(bs.name().to_vec())?,
                   });
                 }
@@ -77,7 +77,7 @@ fn read_struct(s: &ItemStruct) -> TokenStream {
                   break;
                 } else {
                   return Err(Error::UnexpectedTag {
-                    expected: String::from_utf8(#tag.to_vec())?,
+                    expected: String::from(stringify!(#tag)),
                     found: String::from_utf8(bs.name().to_vec())?,
                   });
                 }
@@ -206,6 +206,7 @@ fn set_text(s: &ItemStruct) -> TokenStream {
 }
 
 fn return_struct(s: &ItemStruct) -> Vec<TokenStream> {
+  let struct_name = &s.name;
   s.fields
     .iter()
     .map(|f| {
@@ -213,9 +214,15 @@ fn return_struct(s: &ItemStruct) -> Vec<TokenStream> {
       if f.is_option().is_some() || f.is_vec().is_some() {
         quote! { #name, }
       } else if f.is_cow_str() {
-        quote! { #name : Cow::Owned(#name.expect("bla")), }
+        quote! { #name : Cow::Owned(#name.ok_or(Error::MissingField {
+          name: String::from(stringify!(#struct_name)),
+          field: String::from(stringify!(#name)),
+        })?), }
       } else {
-        quote! { #name : #name.expect("bla"), }
+        quote! { #name : #name.ok_or(Error::MissingField {
+          name: String::from(stringify!(#struct_name)),
+          field: String::from(stringify!(#name)),
+        })?, }
       }
     }).collect()
 }

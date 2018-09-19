@@ -62,10 +62,14 @@ fn write_start_event(s: &ItemStruct) -> TokenStream {
   let tag = &s.config.tag;
   let write_attrs = write_attrs(&s);
 
+  let extend_attrs = &s.config.extend_attrs;
+
   quote! {
     let mut start= BytesStart::borrowed(#tag, #tag.len());
 
     #( #write_attrs )*
+
+    #extend_attrs(&self, &mut start);
 
     w.write_event(Event::Start(start))?;
   }

@@ -4,6 +4,7 @@ use syn::Meta::*;
 use syn::NestedMeta::Meta;
 use syn::Type;
 use syn::*;
+use proc_macro2::Span;
 
 #[derive(Debug)]
 pub(crate) enum Item {
@@ -21,6 +22,7 @@ pub(crate) enum Event {
 pub(crate) struct StructConfig {
   pub event: Event,
   pub tag: LitByteStr,
+  pub extend_attrs: Option<Ident>,
 }
 
 #[derive(Debug)]
@@ -49,6 +51,7 @@ impl ItemStruct {
   fn parse_attrs(name: &Ident, attrs: &Vec<syn::Attribute>) -> StructConfig {
     let mut event = None;
     let mut tag = None;
+    let mut extend_attrs = None;
 
     for meta_items in attrs.iter().filter_map(get_xml_meta_items) {
       for meta_item in meta_items {
@@ -67,6 +70,11 @@ impl ItemStruct {
               tag = Some(lit.clone());
             }
           }
+          Meta(NameValue(ref m)) if m.ident == "extend_attrs" => {
+            if let Str(ref lit) = m.lit {
+              extend_attrs = Some(Ident::new(&lit.value(), Span::call_site()));
+            }
+          }
           _ => (),
         }
       }
@@ -75,10 +83,10 @@ impl ItemStruct {
     StructConfig {
       event: event.expect(&format!("No event attribute found for {}", name)),
       tag: tag.expect(&format!("No tag attribute found for {}", name)),
+      extend_attrs,
     }
   }
 }
-
 
 #[derive(Debug)]
 pub(crate) struct ItemEnum {
