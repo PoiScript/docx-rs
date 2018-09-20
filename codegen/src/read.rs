@@ -1,5 +1,5 @@
 use proc_macro2::TokenStream;
-use syn::Ident;
+use syn::{Ident, Type};
 use types::{Event, Item, ItemEnum, ItemStruct, Variant};
 
 pub(crate) fn impl_read(item: &Item) -> TokenStream {
@@ -124,7 +124,7 @@ fn set_attrs(s: &ItemStruct) -> TokenStream {
 
   quote! {
     for attr in bs.attributes().filter_map(|a| a.ok()) {
-      match std::str::from_utf8(attr.key)? {
+      match ::std::str::from_utf8(attr.key)? {
         #( #match_attrs )*
         _ => (),
       }
@@ -140,19 +140,21 @@ fn set_children(s: &ItemStruct) -> TokenStream {
     .map(|f| {
       let tag = &f.config.tag;
       let name = f.name.clone().unwrap();
-      let ty = &f.ty;
 
       if let Some(ty) = f.is_vec() {
+        let ident = get_ty_ident(ty);
         quote! {
-          #tag => #name.push(#ty::read(r, Some(bs))?),
+          #tag => #name.push(#ident::read(r, Some(bs))?),
         }
       } else if let Some(ty) = f.is_option() {
+        let ident = get_ty_ident(ty);
         quote! {
-          #tag => #name = Some(#ty::read(r, Some(bs))?),
+          #tag => #name = Some(#ident::read(r, Some(bs))?),
         }
       } else {
+        let ident = get_ty_ident(&f.ty);
         quote! {
-          #tag => #name = Some(#ty::read(r, Some(bs))?),
+          #tag => #name = Some(#ident::read(r, Some(bs))?),
         }
       }
     }).collect();
@@ -277,7 +279,26 @@ fn read_enum(e: &ItemEnum) -> TokenStream {
 fn match_variant(v: &Variant, enum_name: &Ident) -> TokenStream {
   let tag = &v.config.tag;
   let name = &v.name;
-  let ty = &v.field.ty;
+
+  let ty = get_ty_ident(&v.field.ty);
 
   quote!{ #tag => return #ty::read(r, Some(bs)).map(|p| #enum_name::#name(p)), }
+}
+
+// Some type may consist of a lifetime, e.g. `CharStyle<'a>`,
+// and this function attempts to get their idents.
+fn get_ty_ident(ty: &Type) -> Option<Ident> {
+  let path = match ty {
+    Type::Path(ref ty) => &ty.path,
+    _ => {
+      return None;
+    }
+  };
+  let seg = match path.segments.last() {
+    Some(seg) => seg.into_value(),
+    None => {
+      return None;
+    }
+  };
+  Some(seg.clone().ident)
 }

@@ -34,7 +34,7 @@ pub fn derive_xml(input: TokenStream) -> TokenStream {
       &input.ident,
       &input.generics,
     )),
-    Data::Union(_) => panic!("#[derive(Xml)] doesn't support union."),
+    Data::Union(_) => panic!("#[derive(Xml)] doesn't support Union."),
   };
 
   let name = &input.ident;
@@ -44,22 +44,21 @@ pub fn derive_xml(input: TokenStream) -> TokenStream {
   let impl_read = impl_read(&item);
 
   let gen = quote!{
-    use quick_xml::events::*;
-
     impl #generics Xml for #name #generics {
-      fn write<W>(&self, w: &mut quick_xml::Writer<W>) -> Result<()>
+      fn write<W>(&self, w: &mut ::quick_xml::Writer<W>) -> Result<()>
       where
-        W: std::io::Write + std::io::Seek,
+        W: ::std::io::Write,
       {
+        use quick_xml::events::*;
 
         #impl_write
       }
 
       fn read(
-        r: &mut quick_xml::Reader<&[u8]>,
-        bs: Option<&quick_xml::events::BytesStart>,
+        r: &mut ::quick_xml::Reader<&[u8]>,
+        bs: Option<&::quick_xml::events::BytesStart>,
       ) -> Result<#name #generics> {
-        use docx::errors::Error;
+        use quick_xml::events::*;
 
         #impl_read
       }
