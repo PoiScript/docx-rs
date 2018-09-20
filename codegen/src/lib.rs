@@ -66,7 +66,5 @@ pub fn derive_xml(input: TokenStream) -> TokenStream {
     }
   };
 
-  // println!("{}", gen);
-
   gen.into()
 }

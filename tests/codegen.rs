@@ -10,7 +10,7 @@ use std::io::Cursor;
 
 #[derive(Xml, PartialEq, Debug)]
 #[xml(event = "Start")]
-#[xml(tag = b"tag1")]
+#[xml(tag = "tag1")]
 struct Tag1 {
   #[xml(attr = "att1")]
   pub att1: Option<String>,
@@ -20,7 +20,7 @@ struct Tag1 {
 
 #[derive(Xml, PartialEq, Debug)]
 #[xml(event = "Empty")]
-#[xml(tag = b"tag2")]
+#[xml(tag = "tag2")]
 struct Tag2 {
   #[xml(attr = "att1")]
   pub att1: String,
@@ -30,31 +30,31 @@ struct Tag2 {
 
 #[derive(Xml, PartialEq, Debug)]
 #[xml(event = "Start")]
-#[xml(tag = b"tag3")]
+#[xml(tag = "tag3")]
 struct Tag3 {
   #[xml(attr = "att1")]
   pub att1: String,
   #[xml(child)]
-  #[xml(tag = b"tag1")]
+  #[xml(tag = "tag1")]
   pub tag1: Vec<Tag1>,
   #[xml(child)]
-  #[xml(tag = b"tag2")]
+  #[xml(tag = "tag2")]
   pub tag2: Option<Tag2>,
   #[xml(flattern_text)]
-  #[xml(tag = b"text")]
+  #[xml(tag = "text")]
   pub text: Option<String>,
 }
 
 #[derive(Xml, PartialEq, Debug)]
 enum Tag {
   #[xml(event = "Start")]
-  #[xml(tag = b"tag1")]
+  #[xml(tag = "tag1")]
   Tag1(Tag1),
   #[xml(event = "Empty")]
-  #[xml(tag = b"tag2")]
+  #[xml(tag = "tag2")]
   Tag2(Tag2),
   #[xml(event = "Start")]
-  #[xml(tag = b"tag3")]
+  #[xml(tag = "tag3")]
   Tag3(Tag3),
 }
 

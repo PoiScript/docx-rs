@@ -98,12 +98,9 @@ fn write_empty_event(s: &ItemStruct) -> TokenStream {
 
 fn write_text_event(s: &ItemStruct) -> TokenStream {
   if let Some(f) = s.fields.iter().find(|f| f.config.is_text) {
-    if let Some(ref name) = f.name {
-      quote! {
-        w.write_event(Event::Text(BytesText::from_plain_str(self.#name.as_ref())))?;
-      }
-    } else {
-      quote!()
+    let name = &f.name;
+    quote! {
+      w.write_event(Event::Text(BytesText::from_plain_str(self.#name.as_ref())))?;
     }
   } else {
     quote!()

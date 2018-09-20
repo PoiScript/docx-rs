@@ -279,5 +279,5 @@ fn match_variant(v: &Variant, enum_name: &Ident) -> TokenStream {
   let name = &v.name;
   let ty = &v.field.ty;
 
-  quote!{ #tag => return Ok(#enum_name::#name(#ty::read(r, Some(bs))?)), }
+  quote!{ #tag => return #ty::read(r, Some(bs)).map(|p| #enum_name::#name(p)), }
 }

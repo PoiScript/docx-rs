@@ -1,10 +1,10 @@
+use proc_macro2::Span;
 use syn;
 use syn::Lit::*;
 use syn::Meta::*;
 use syn::NestedMeta::Meta;
 use syn::Type;
 use syn::*;
-use proc_macro2::Span;
 
 #[derive(Debug)]
 pub(crate) enum Item {
@@ -68,6 +68,13 @@ impl ItemStruct {
           Meta(NameValue(ref m)) if m.ident == "tag" => {
             if let ByteStr(ref lit) = m.lit {
               tag = Some(lit.clone());
+            } else if let Str(ref lit) = m.lit {
+              // convert str to byte str here,
+              // 'cause rust stable doesn't support byte str in attribute now
+              tag = Some(LitByteStr::new(
+                &lit.value().as_bytes().to_vec(),
+                Span::call_site(),
+              ));
             }
           }
           Meta(NameValue(ref m)) if m.ident == "extend_attrs" => {
@@ -151,6 +158,13 @@ impl Field {
           Meta(NameValue(ref m)) if m.ident == "tag" => {
             if let ByteStr(ref lit) = m.lit {
               config.tag = Some(lit.clone());
+            } else if let Str(ref lit) = m.lit {
+              // convert str to byte str here,
+              // 'cause rust stable doesn't support byte str in attribute now
+              config.tag = Some(LitByteStr::new(
+                &lit.value().as_bytes().to_vec(),
+                Span::call_site(),
+              ));
             }
           }
           Meta(Word(ref w)) if w == "flattern_text" => {
@@ -302,6 +316,13 @@ impl Variant {
           Meta(NameValue(ref m)) if m.ident == "tag" => {
             if let ByteStr(ref lit) = m.lit {
               tag = Some(lit.clone());
+            } else if let Str(ref lit) = m.lit {
+              // convert str to byte str here,
+              // 'cause rust stable doesn't support byte str in attribute now
+              tag = Some(LitByteStr::new(
+                &lit.value().as_bytes().to_vec(),
+                Span::call_site(),
+              ));
             }
           }
           _ => (),
