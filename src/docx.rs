@@ -2,13 +2,15 @@ use quick_xml::events::*;
 use quick_xml::Writer;
 use std::default::Default;
 
-use std::io::{Seek, Write};
+use quick_xml::Reader;
+use std::io::{BufReader, Read, Seek, Write};
+use zip::result::ZipError;
 use zip::write::FileOptions;
 use zip::CompressionMethod;
-use zip::ZipWriter;
+use zip::{ZipArchive, ZipWriter};
 
 use body::Para;
-use errors::Result;
+use errors::{Error, Result};
 use schema::{
   SCHEMA_CORE, SCHEMA_FONT_TABLE, SCHEMA_OFFICE_DOCUMENT, SCHEMA_REL_EXTENDED, SCHEMA_STYLES,
 };
@@ -113,5 +115,43 @@ impl<'a> Docx<'a> {
     option_write!(self.document_rels, "word/_rels/document.xml.rels");
 
     Ok(zip.finish()?)
+  }
+
+  pub fn parse<T: Read + Seek>(reader: T) -> Result<Docx<'a>> {
+    let mut zip = ZipArchive::new(reader).unwrap();
+
+    macro_rules! read {
+      ($xml:tt, $name:expr) => {{
+        let file = zip.by_name($name)?;
+        let mut reader = Reader::from_reader(BufReader::new(file));
+        reader.trim_text(true);
+        $xml::read(&mut reader, None)?
+      }};
+    }
+
+    macro_rules! option_read {
+      ($xml:tt, $name:expr) => {
+        match zip.by_name($name) {
+          Err(ZipError::FileNotFound) => None,
+          Err(e) => return Err(Error::Zip(e)),
+          Ok(file) => {
+            let mut reader = Reader::from_reader(BufReader::new(file));
+            reader.trim_text(true);
+            Some($xml::read(&mut reader, None)?)
+          }
+        }
+      };
+    }
+
+    Ok(Docx {
+      app_xml: option_read!(AppXml, "docProps/app.xml"),
+      content_types_xml: read!(ContentTypes, "[Content_Types].xml"),
+      core_xml: option_read!(CoreXml, "docProps/core.xml"),
+      document_rels: option_read!(RelsXml, "word/_rels/document.xml.rels"),
+      document_xml: read!(DocumentXml, "word/document.xml"),
+      font_table_xml: option_read!(FontTableXml, "word/fontTable.xml"),
+      rels: read!(RelsXml, "_rels/.rels"),
+      styles_xml: option_read!(StylesXml, "word/styles.xml"),
+    })
   }
 }

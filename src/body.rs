@@ -14,27 +14,27 @@ pub struct Run<'a> {
   prop: CharStyle<'a>,
   #[xml(child)]
   #[xml(tag = "w:t")]
-  content: Vec<RunContent<'a>>,
+  content: Vec<TextRun<'a>>,
 }
 
 impl<'a> Run<'a> {
   pub fn add_text(&mut self, text: &'a str) -> &mut Self {
-    self.content.push(RunContent::Text(TextRun {
+    self.content.push(TextRun {
       text: Cow::Borrowed(text),
-    }));
+    });
     self
   }
 }
 
-#[derive(Debug, Xml)]
-pub enum RunContent<'a> {
-  #[xml(event = "Start")]
-  #[xml(tag = "w:t")]
-  Text(TextRun<'a>),
-  #[xml(event = "Empty")]
-  #[xml(tag = "w:br")]
-  Break(BreakRun),
-}
+// #[derive(Debug, Xml)]
+// pub enum RunContent<'a> {
+//   #[xml(event = "Start")]
+//   #[xml(tag = "w:t")]
+//   Text(TextRun<'a>),
+//   #[xml(event = "Empty")]
+//   #[xml(tag = "w:br")]
+//   Break(BreakRun),
+// }
 
 #[derive(Debug, Xml)]
 #[xml(event = "Start")]
@@ -74,14 +74,14 @@ impl<'a> Para<'a> {
 }
 
 // // Specifies the contents of the body of the document.
-#[derive(Debug, Xml)]
-pub enum BodyContent<'a> {
-  #[xml(event = "Start")]
-  #[xml(tag = "w:p")]
-  Para(Para<'a>),
-  // Table,
-  // SecProp,
-}
+// #[derive(Debug, Xml)]
+// pub enum BodyContent<'a> {
+//   #[xml(event = "Start")]
+//   #[xml(tag = "w:p")]
+//   Para(Para<'a>),
+//   Table,
+//   SecProp,
+// }
 
 #[derive(Debug, Default, Xml)]
 #[xml(event = "Start")]
@@ -89,14 +89,12 @@ pub enum BodyContent<'a> {
 pub struct Body<'a> {
   #[xml(child)]
   #[xml(tag = "w:p")]
-  content: Vec<BodyContent<'a>>,
+  content: Vec<Para<'a>>,
 }
 
 impl<'a> Body<'a> {
   pub fn create_para(&mut self) -> &mut Para<'a> {
-    self.content.push(BodyContent::Para(Para::default()));
-    match self.content.last_mut().unwrap() {
-      BodyContent::Para(p) => p,
-    }
+    self.content.push(Para::default());
+    self.content.last_mut().unwrap()
   }
 }
