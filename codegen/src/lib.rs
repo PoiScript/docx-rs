@@ -54,10 +54,13 @@ pub fn derive_xml(input: TokenStream) -> TokenStream {
         #impl_write
       }
 
-      fn read(
-        r: &mut ::quick_xml::Reader<&[u8]>,
+      fn read<B>(
+        r: &mut ::quick_xml::Reader<B>,
         bs: Option<&::quick_xml::events::BytesStart>,
-      ) -> Result<#name #generics> {
+      ) -> Result<#name #generics>
+      where
+        B: ::std::io::BufRead,
+      {
         use quick_xml::events::*;
 
         #impl_read

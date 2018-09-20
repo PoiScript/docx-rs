@@ -16,7 +16,7 @@ pub use self::styles::StylesXml;
 
 use quick_xml::events::BytesStart;
 use quick_xml::{Reader, Writer};
-use std::io::Write;
+use std::io::{BufRead, Write};
 
 use errors::Result;
 
@@ -25,7 +25,8 @@ pub trait Xml {
   where
     W: Write;
 
-  fn read(r: &mut Reader<&[u8]>, bs: Option<&BytesStart>) -> Result<Self>
+  fn read<B>(r: &mut Reader<B>, bs: Option<&BytesStart>) -> Result<Self>
   where
-    Self: Sized;
+    Self: Sized,
+    B: BufRead;
 }
