@@ -232,6 +232,20 @@ fn return_struct(s: &ItemStruct) -> Vec<TokenStream> {
 fn read_enum(e: &ItemEnum) -> TokenStream {
   let name = &e.name;
 
+  let start_tags: &Vec<_> = &e
+    .variants
+    .iter()
+    .filter(|v| v.config.event == Event::Start)
+    .map(|v| &v.config.tag)
+    .collect();
+
+  let empty_tags: &Vec<_> = &e
+    .variants
+    .iter()
+    .filter(|v| v.config.event == Event::Empty)
+    .map(|v| &v.config.tag)
+    .collect();
+
   let match_start_variants: &Vec<_> = &e
     .variants
     .iter()
@@ -247,32 +261,43 @@ fn read_enum(e: &ItemEnum) -> TokenStream {
     .collect();
 
   quote! {
-    let mut buf = Vec::new();
-    loop {
-      match r.read_event(&mut buf)? {
-        Event::Start(ref bs) => {
-          match bs.name() {
-            #( #match_start_variants )*
-            _ => return Err(Error::UnexpectedTag {
-              expected: String::from(""),
-              found: String::from(""),
-            }),
-          }
-        },
-        Event::Empty(ref bs) => {
-          match bs.name() {
-            #( #match_empty_variants )*
-            _ => return Err(Error::UnexpectedTag {
-              expected: String::from(""),
-              found: String::from(""),
-            }),
-          }
-        },
-        Event::Eof => return Err(Error::UnexpectedEof),
-        _ => (),
+    if let Some(bs) = bs {
+      match bs.name() {
+        #( #match_start_variants )*
+        #( #match_empty_variants )*
+        _ => return Err(Error::UnexpectedTag {
+          expected: String::from(stringify!( #( #empty_tags ),* #( #start_tags ),* )),
+          found: String::from_utf8(bs.name().to_vec())?,
+        }),
+      }
+    } else {
+      let mut buf = Vec::new();
+      loop {
+        match r.read_event(&mut buf)? {
+          Event::Start(ref bs) => {
+            match bs.name() {
+              #( #match_start_variants )*
+              _ => return Err(Error::UnexpectedTag {
+                expected: String::from(stringify!( #( #start_tags ),* )),
+                found: String::from_utf8(bs.name().to_vec())?,
+              }),
+            }
+          },
+          Event::Empty(ref bs) => {
+            match bs.name() {
+              #( #match_empty_variants )*
+              _ => return Err(Error::UnexpectedTag {
+                expected: String::from(stringify!( #( #empty_tags ),* )),
+                found: String::from_utf8(bs.name().to_vec())?,
+              }),
+            }
+          },
+          Event::Eof => return Err(Error::UnexpectedEof),
+          _ => (),
+        }
+        buf.clear();
       }
     }
-    buf.clear();
   }
 }
 
