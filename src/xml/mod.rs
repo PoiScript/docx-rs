@@ -7,7 +7,7 @@ mod rels;
 mod styles;
 
 pub use self::app::AppXml;
-pub use self::content_types::ContentTypesXml;
+pub use self::content_types::ContentTypes;
 pub use self::core::CoreXml;
 pub use self::document::DocumentXml;
 pub use self::font_table::FontTableXml;
@@ -16,36 +16,16 @@ pub use self::styles::StylesXml;
 
 use quick_xml::events::BytesStart;
 use quick_xml::{Reader, Writer};
-use std::default::Default;
-use std::io::{Seek, Write};
-use zip::ZipWriter;
+use std::io::Write;
 
 use errors::Result;
 
-pub trait Xml: Default {
-  fn write<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()>;
-}
-
-pub trait XmlStruct: Default {
+pub trait Xml {
   fn write<W>(&self, w: &mut Writer<W>) -> Result<()>
   where
-    W: Write + Seek;
-  fn read_with_bytes_start(bs: &BytesStart, r: &mut Reader<&[u8]>) -> Result<Self>
-  where
-    Self: Sized;
-  fn read(r: &mut Reader<&[u8]>) -> Result<Self>
-  where
-    Self: Sized;
-}
+    W: Write;
 
-pub trait XmlEnum: Default {
-  fn write<W>(&self, w: &mut Writer<W>) -> Result<()>
-  where
-    W: Write + Seek;
-  fn read_with_bytes_start(bs: &BytesStart, r: &mut Reader<&[u8]>) -> Result<Self>
-  where
-    Self: Sized;
-  fn read(r: &mut Reader<&[u8]>) -> Result<Self>
+  fn read(r: &mut Reader<&[u8]>, bs: Option<&BytesStart>) -> Result<Self>
   where
     Self: Sized;
 }

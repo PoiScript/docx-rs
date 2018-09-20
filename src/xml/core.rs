@@ -1,35 +1,38 @@
-use quick_xml::events::*;
-use quick_xml::Writer;
-use std::io::{Seek, Write};
-use zip::ZipWriter;
+use quick_xml::events::BytesStart;
+use std::borrow::Cow;
 
-use errors::Result;
+use errors::{Error, Result};
 use schema::SCHEMA_CORE;
 use xml::Xml;
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Xml)]
+#[xml(event = "Start")]
+#[xml(tag = "cp:coreProperties")]
+#[xml(extend_attrs = "core_xml_extend_attrs")]
 pub struct CoreXml<'a> {
-  title: &'a str,
-  subject: &'a str,
-  creator: &'a str,
-  keywords: &'a str,
-  description: &'a str,
-  last_modified_by: &'a str,
-  revision: &'a str,
+  #[xml(flattern_text)]
+  #[xml(tag = "dc:title")]
+  title: Cow<'a, str>,
+  #[xml(flattern_text)]
+  #[xml(tag = "dc:subject")]
+  subject: Cow<'a, str>,
+  #[xml(flattern_text)]
+  #[xml(tag = "dc:creator")]
+  creator: Cow<'a, str>,
+  #[xml(flattern_text)]
+  #[xml(tag = "cp:keywords")]
+  keywords: Cow<'a, str>,
+  #[xml(flattern_text)]
+  #[xml(tag = "dc:description")]
+  description: Cow<'a, str>,
+  #[xml(flattern_text)]
+  #[xml(tag = "cp:lastModifiedBy")]
+  last_modified_by: Cow<'a, str>,
+  #[xml(flattern_text)]
+  #[xml(tag = "cp:revision")]
+  revision: Cow<'a, str>,
 }
 
-impl<'a> Xml for CoreXml<'a> {
-  fn write<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()> {
-    tag!(w, b"cp:coreProperties"["xmlns:cp", SCHEMA_CORE] {{
-      tag!(w, b"dc:title"{self.title});
-      tag!(w, b"dc:subject"{self.subject});
-      tag!(w, b"dc:creator"{self.creator});
-      tag!(w, b"cp:keywords"{self.keywords});
-      tag!(w, b"dc:description"{self.description});
-      tag!(w, b"cp:lastModifiedBy"{self.last_modified_by});
-      tag!(w, b"cp:revision"{self.revision});
-      // TODO: <dcterms:created> and <dcterms:modified>
-    }});
-    Ok(())
-  }
+fn core_xml_extend_attrs(_: &CoreXml, start: &mut BytesStart) {
+  start.push_attribute(("xmlns:cp", SCHEMA_CORE));
 }

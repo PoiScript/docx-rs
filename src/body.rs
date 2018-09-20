@@ -1,109 +1,102 @@
-use quick_xml::events::*;
-use quick_xml::Writer;
 use std::borrow::Cow;
-use std::default::Default;
-use std::io::{Seek, Write};
-use zip::ZipWriter;
 
-use errors::Result;
-use style::{Justification, Style, StyleExt};
+use errors::{Error, Result};
+use style::{CharStyle, ParaStyle, ParaStyleName};
 use xml::Xml;
 
 // Specifies a run of content within the paragraph.
-#[derive(Debug)]
-pub enum Run<'a> {
-  Text(&'a str),
-  Break,
+#[derive(Debug, Default, Xml)]
+#[xml(event = "Start")]
+#[xml(tag = "w:r")]
+pub struct Run<'a> {
+  #[xml(child)]
+  #[xml(tag = "w:rPr")]
+  prop: CharStyle<'a>,
+  #[xml(child)]
+  #[xml(tag = "w:t")]
+  content: Vec<RunContent<'a>>,
 }
 
-impl<'a> Default for Run<'a> {
-  fn default() -> Run<'a> {
-    Run::Break
+impl<'a> Run<'a> {
+  pub fn add_text(&mut self, text: &'a str) -> &mut Self {
+    self.content.push(RunContent::Text(TextRun {
+      text: Cow::Borrowed(text),
+    }));
+    self
   }
 }
 
-impl<'a> Xml for Run<'a> {
-  fn write<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()> {
-    match *self {
-      Run::Text(text) => tag!(w, b"w:t"{text}),
-      Run::Break => tag!(w, b"w:br"),
-    }
-    Ok(())
-  }
+#[derive(Debug, Xml)]
+pub enum RunContent<'a> {
+  #[xml(event = "Start")]
+  #[xml(tag = "w:t")]
+  Text(TextRun<'a>),
+  #[xml(event = "Empty")]
+  #[xml(tag = "w:br")]
+  Break(BreakRun),
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Xml)]
+#[xml(event = "Start")]
+#[xml(tag = "w:t")]
+struct TextRun<'a> {
+  #[xml(text)]
+  text: Cow<'a, str>,
+}
+
+#[derive(Debug, Xml)]
+#[xml(event = "Empty")]
+#[xml(tag = "w:br")]
+struct BreakRun;
+
+#[derive(Debug, Default, Xml)]
+#[xml(event = "Start")]
+#[xml(tag = "w:p")]
 pub struct Para<'a> {
+  #[xml(child)]
+  #[xml(tag = "w:pPr")]
+  prop: ParaStyle<'a>,
+  // Each paragraph containes one or more runs.
+  #[xml(child)]
+  #[xml(tag = "w:r")]
   runs: Vec<Run<'a>>,
-  style: Option<Style<'a>>,
-  style_name: Option<&'a str>,
 }
 
 impl<'a> Para<'a> {
-  pub fn with_style_name(&mut self, name: &'a str) -> &mut Self {
-    self.style_name = Some(name);
-    self
+  pub fn new_run(&mut self) -> &mut Run<'a> {
+    self.runs.push(Run::default());
+    self.runs.last_mut().unwrap()
   }
 
-  pub fn add_break(&mut self) -> &mut Self {
-    self.runs.push(Run::Break);
-    self
-  }
-
-  pub fn add_text(&mut self, text: &'a str) -> &mut Self {
-    self.runs.push(Run::Text(text));
-    self
-  }
-
-  pub fn get_style(&mut self) -> &mut Style<'a> {
-    self.style.get_or_insert(Style::default())
+  pub fn get_style(&mut self) -> &mut ParaStyle<'a> {
+    &mut self.prop
   }
 }
 
-impl<'a> StyleExt<'a> for Para<'a> {
-  fn with_jc(&mut self, justification: &'a Justification) -> &mut Self {
-    self.get_style().with_jc(justification);
-    self
-  }
-
-  fn with_sz(&mut self, size: usize) -> &mut Self {
-    self.get_style().with_sz(size);
-    self
-  }
-
-  fn with_color<S>(&mut self, color: S) -> &mut Self
-  where
-    S: Into<Cow<'a, str>>,
-  {
-    self.get_style().with_color(color);
-    self
-  }
-}
-
-impl<'a> Xml for Para<'a> {
-  fn write<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()> {
-    tag!(w, b"w:p" {{
-      tag!(w, b"w:pPr" {{
-        if let Some(style_name) = self.style_name {
-          tag!(w, b"w:pStyle"["w:val", style_name]);
-        }
-        if let Some(ref style) = self.style {
-          style.write_p_pr(w)?;
-        }
-      }});
-      tag!(w, b"w:r" {{
-        for run in &self.runs {
-          run.write(w)?;
-        }
-      }});
-    }});
-    Ok(())
-  }
-}
-
-// Specifies the contents of the body of the document.
-pub enum _Content<'a> {
+// // Specifies the contents of the body of the document.
+#[derive(Debug, Xml)]
+pub enum BodyContent<'a> {
+  #[xml(event = "Start")]
+  #[xml(tag = "w:p")]
   Para(Para<'a>),
-  Table,
-  SecProp,
+  // Table,
+  // SecProp,
+}
+
+#[derive(Debug, Default, Xml)]
+#[xml(event = "Start")]
+#[xml(tag = "w:body")]
+pub struct Body<'a> {
+  #[xml(child)]
+  #[xml(tag = "w:p")]
+  content: Vec<BodyContent<'a>>,
+}
+
+impl<'a> Body<'a> {
+  pub fn create_para(&mut self) -> &mut Para<'a> {
+    self.content.push(BodyContent::Para(Para::default()));
+    match self.content.last_mut().unwrap() {
+      BodyContent::Para(p) => p,
+    }
+  }
 }

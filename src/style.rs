@@ -1,104 +1,160 @@
-use quick_xml::events::*;
-use quick_xml::Writer;
+use quick_xml::events::BytesStart;
 use std::borrow::Cow;
-use std::io::{Seek, Write};
-use zip::ZipWriter;
 
-use errors::Result;
+use errors::{Error, Result};
 use xml::Xml;
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Xml)]
+#[xml(event = "Start")]
+#[xml(tag = "w:style")]
+#[xml(extend_attrs = "style_extend_attrs")]
 pub struct Style<'a> {
-  name: &'a str,
-  size: Option<usize>,
-  color: Option<Cow<'a, str>>,
-  justify: Option<&'a Justification>,
-}
-
-pub trait StyleExt<'a> {
-  fn with_jc(&mut self, justification: &'a Justification) -> &mut Self;
-  fn with_sz(&mut self, size: usize) -> &mut Self;
-  fn with_color<S>(&mut self, color: S) -> &mut Self
-  where
-    S: Into<Cow<'a, str>>;
-}
-
-impl<'a> StyleExt<'a> for Style<'a> {
-  fn with_jc(&mut self, justification: &'a Justification) -> &mut Self {
-    self.justify = Some(justification);
-    self
-  }
-
-  fn with_sz(&mut self, size: usize) -> &mut Self {
-    self.size = Some(size);
-    self
-  }
-
-  fn with_color<S>(&mut self, color: S) -> &mut Self
-  where
-    S: Into<Cow<'a, str>>,
-  {
-    self.color = Some(color.into());
-    self
-  }
+  #[xml(child)]
+  #[xml(tag = "w:name")]
+  name: StyleName<'a>,
+  #[xml(child)]
+  #[xml(tag = "w:pPr")]
+  para: ParaStyle<'a>,
+  #[xml(child)]
+  #[xml(tag = "w:rPr")]
+  char: CharStyle<'a>,
 }
 
 impl<'a> Style<'a> {
   pub fn with_name(&mut self, name: &'a str) -> &mut Self {
-    self.name = name;
+    self.name = StyleName {
+      name: Cow::Borrowed(name),
+    };
     self
   }
 
-  pub fn write_p_pr<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()> {
-    if let Some(ref jc) = self.justify {
-      tag!(w, b"w:jc"["w:val", jc.as_str()]);
-    }
-    Ok(())
+  pub fn para_style(&mut self) -> &mut ParaStyle<'a> {
+    &mut self.para
   }
 
-  pub fn write_r_pr<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()> {
-    if let Some(ref size) = self.size {
-      tag!(w, b"w:jc"["w:val", size.to_string().as_str()]);
-    }
-    if let Some(ref color) = self.color {
-      tag!(w, b"w:color"["w:val", color.as_ref()]);
-    }
-    Ok(())
+  pub fn char_style(&mut self) -> &mut CharStyle<'a> {
+    &mut self.char
   }
 }
 
-impl<'a> Xml for Style<'a> {
-  fn write<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()> {
-    tag!(w, b"w:style"["w:type", "paragraph", "w:styleId", self.name] {{
-      tag!(w, b"w:name"["w:val", self.name]);
-      tag!(w, b"w:pPr" {{
-        self.write_p_pr(w)?;
-      }});
-      tag!(w, b"w:rPr" {{
-        self.write_r_pr(w)?;
-      }});
-    }});
-    Ok(())
+fn style_extend_attrs(s: &Style, start: &mut BytesStart) {
+  start.push_attribute(("w:type", "paragraph"));
+  start.push_attribute(("w:styleId", &s.name.name as &str));
+}
+
+#[derive(Debug, Default, Xml)]
+#[xml(event = "Empty")]
+#[xml(tag = "w:name")]
+pub struct StyleName<'a> {
+  #[xml(attr = "w:val")]
+  name: Cow<'a, str>,
+}
+
+#[derive(Debug, Default, Xml)]
+#[xml(event = "Start")]
+#[xml(tag = "w:rPr")]
+pub struct CharStyle<'a> {
+  #[xml(child)]
+  #[xml(tag = "w:name")]
+  color: Option<Color<'a>>,
+  #[xml(child)]
+  #[xml(tag = "w:sz")]
+  sz: Option<Size<'a>>,
+}
+
+#[derive(Debug, Default, Xml)]
+#[xml(event = "Empty")]
+#[xml(tag = "w:color")]
+pub struct Color<'a> {
+  #[xml(attr = "w:val")]
+  val: Cow<'a, str>,
+}
+
+#[derive(Debug, Default, Xml)]
+#[xml(event = "Empty")]
+#[xml(tag = "w:sz")]
+pub struct Size<'a> {
+  #[xml(attr = "w:val")]
+  val: Cow<'a, str>,
+}
+
+#[derive(Debug, Default, Xml)]
+#[xml(event = "Start")]
+#[xml(tag = "w:pPr")]
+pub struct ParaStyle<'a> {
+  #[xml(child)]
+  #[xml(tag = "w:pStyle")]
+  style: Option<ParaStyleName<'a>>,
+  #[xml(child)]
+  #[xml(tag = "w:jc")]
+  jc: Option<Justification>,
+}
+
+#[derive(Debug, Default, Xml)]
+#[xml(event = "Empty")]
+#[xml(tag = "w:pStyle")]
+pub struct ParaStyleName<'a> {
+  #[xml(attr = "w:val")]
+  val: Cow<'a, str>,
+}
+
+#[derive(Debug, Default, Xml)]
+#[xml(event = "Empty")]
+#[xml(tag = "w:jc")]
+pub struct Justification {
+  #[xml(attr = "w:val")]
+  val: String,
+}
+
+// #[derive(Clone, Debug)]
+// pub enum JustificationType {
+//   Start,
+//   End,
+//   Center,
+//   Both,
+//   Distribute,
+// }
+
+// impl JustificationType {
+//   pub fn as_ref(&self) -> &str {
+//     match *self {
+//       JustificationType::Start => "start",
+//       JustificationType::End => "end",
+//       JustificationType::Center => "center",
+//       JustificationType::Both => "both",
+//       JustificationType::Distribute => "distribute",
+//     }
+//   }
+// }
+
+impl<'a> ParaStyle<'a> {
+  pub fn with_jc(&mut self, jc: &'a str) -> &mut Self {
+    self.jc = Some(Justification {
+      val: jc.to_string(),
+    });
+    self
+  }
+
+  pub fn with_name(&mut self, name: &'a str) -> &mut Self {
+    self.style = Some(ParaStyleName {
+      val: Cow::Borrowed(name),
+    });
+    self
   }
 }
 
-#[derive(Clone, Debug)]
-pub enum Justification {
-  Start,
-  End,
-  Center,
-  Both,
-  Distribute,
-}
+impl<'a> CharStyle<'a> {
+  pub fn with_sz(&mut self, sz: &'a str) -> &mut Self {
+    self.sz = Some(Size {
+      val: Cow::Borrowed(sz),
+    });
+    self
+  }
 
-impl Justification {
-  pub fn as_str(&self) -> &str {
-    match *self {
-      Justification::Start => "start",
-      Justification::End => "end",
-      Justification::Center => "center",
-      Justification::Both => "both",
-      Justification::Distribute => "distribute",
-    }
+  pub fn with_color(&mut self, color: &'a str) -> &mut Self {
+    self.color = Some(Color {
+      val: Cow::Borrowed(color),
+    });
+    self
   }
 }

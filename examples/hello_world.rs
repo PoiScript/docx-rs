@@ -1,36 +1,46 @@
 extern crate docx;
 
 use docx::prelude::*;
+use std::fs::File;
+use std::path::Path;
 
 fn main() {
-  let path = std::path::Path::new("hello_world.docx");
-  let file = std::fs::File::create(&path).unwrap();
+  let path = Path::new("hello_world.docx");
+  let file = File::create(&path).unwrap();
 
   let mut docx = Docx::default();
 
-  docx
-    .create_style()
-    .with_name("TestStyle")
-    .with_sz(42)
-    .with_color("ff0000");
+  {
+    let test_style = docx.create_style();
 
-  docx
-    .create_para()
-    .add_text("hello, world")
-    .with_style_name("TestStyle")
-    .with_jc(&Justification::Start);
+    test_style.with_name("TestStyle");
 
-  docx
-    .create_para()
-    .add_text("hello, world")
-    .with_style_name("TestStyle")
-    .with_jc(&Justification::Center);
+    test_style.char_style().with_sz("42").with_color("ff0000");
+  }
 
-  docx
-    .create_para()
-    .add_text("hello, world")
-    .with_style_name("TestStyle")
-    .with_jc(&Justification::End);
+  {
+    let para = docx.create_para();
+
+    para.new_run().add_text("hello, world");
+
+    para.get_style().with_name("TestStyle").with_jc("start");
+  }
+
+  {
+    let para = docx.create_para();
+
+    para.new_run().add_text("hello, world");
+
+    para.get_style().with_name("TestStyle").with_jc("center");
+  }
+
+  {
+    let para = docx.create_para();
+
+    para.new_run().add_text("hello, world");
+
+    para.get_style().with_name("TestStyle").with_jc("end");
+  }
 
   docx.generate(file).unwrap();
 }

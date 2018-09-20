@@ -1,32 +1,27 @@
-use quick_xml::events::*;
-use quick_xml::Writer;
-use std::io::{Seek, Write};
-use zip::ZipWriter;
+use quick_xml::events::BytesStart;
 
-use errors::Result;
+use errors::{Error, Result};
 use schema::SCHEMA_MAIN;
 use style::Style;
 use xml::Xml;
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Xml)]
+#[xml(event = "Start")]
+#[xml(tag = "w:styles")]
+#[xml(extend_attrs = "styles_extend_attrs")]
 pub struct StylesXml<'a> {
+  #[xml(child)]
+  #[xml(tag = "w:style")]
   styles: Vec<Style<'a>>,
+}
+
+fn styles_extend_attrs(_: &StylesXml, start: &mut BytesStart) {
+  start.push_attribute(("xmlns:w", SCHEMA_MAIN));
 }
 
 impl<'a> StylesXml<'a> {
   pub fn create_style(&mut self) -> &mut Style<'a> {
     self.styles.push(Style::default());
     self.styles.last_mut().unwrap()
-  }
-}
-
-impl<'a> Xml for StylesXml<'a> {
-  fn write<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()> {
-    tag!(w, b"w:styles"["xmlns:w", SCHEMA_MAIN] {{
-      for style in &self.styles {
-        style.write(w)?;
-      }
-    }});
-    Ok(())
   }
 }

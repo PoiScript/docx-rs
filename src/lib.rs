@@ -1,8 +1,7 @@
+#[macro_use]
+extern crate docx_codegen;
 extern crate quick_xml;
 extern crate zip;
-
-#[macro_use]
-mod event_macro;
 
 mod body;
 mod content_type;

@@ -1,64 +1,81 @@
-use quick_xml::events::*;
-use quick_xml::Writer;
+use quick_xml::events::BytesStart;
+use std::borrow::Cow;
 use std::default::Default;
-use std::io::{Seek, Write};
-use zip::ZipWriter;
 
 use content_type::{
   CONTENT_TYPE_CORE, CONTENT_TYPE_DOCUMENT, CONTENT_TYPE_EXTENDED, CONTENT_TYPE_RELATIONSHIP,
   CONTENT_TYPE_STYLES, CONTENT_TYPE_XML,
 };
-use errors::Result;
+use errors::{Error, Result};
 use schema::SCHEMA_CONTENT_TYPES;
 use xml::Xml;
 
-static DEFAULTS_CT: [(&str, &str); 2] = [
-  ("rels", CONTENT_TYPE_RELATIONSHIP),
-  ("xml", CONTENT_TYPE_XML),
-];
-
-static OVERRIDES_CT: [(&str, &str); 4] = [
-  ("/docProps/app.xml", CONTENT_TYPE_EXTENDED),
-  ("/docProps/core.xml", CONTENT_TYPE_CORE),
-  ("/word/document.xml", CONTENT_TYPE_DOCUMENT),
-  ("/word/styles.xml", CONTENT_TYPE_STYLES),
-];
-
-#[derive(Debug)]
-pub struct ContentTypesXml<'a> {
-  defaults: Vec<(&'a str, &'a str)>,
-  overrides: Vec<(&'a str, &'a str)>,
+#[derive(Debug, Xml)]
+#[xml(event = "Start")]
+#[xml(tag = "Types")]
+#[xml(extend_attrs = "content_types_extend_attrs")]
+pub struct ContentTypes<'a> {
+  #[xml(child)]
+  #[xml(tag = "Default")]
+  defaults: Vec<DefaultContentType<'a>>,
+  #[xml(child)]
+  #[xml(tag = "Override")]
+  overrides: Vec<OverrideContentType<'a>>,
 }
 
-impl<'a> Default for ContentTypesXml<'a> {
-  fn default() -> ContentTypesXml<'a> {
-    ContentTypesXml {
-      defaults: DEFAULTS_CT.to_vec(),
-      overrides: OVERRIDES_CT.to_vec(),
+fn content_types_extend_attrs(_: &ContentTypes, start: &mut BytesStart) {
+  start.push_attribute(("xmlns", SCHEMA_CONTENT_TYPES));
+}
+
+impl<'a> Default for ContentTypes<'a> {
+  fn default() -> ContentTypes<'a> {
+    macro_rules! default_ct {
+      ($e:expr, $t:expr) => {
+        DefaultContentType {
+          ext: Cow::Borrowed($e),
+          ty: Cow::Borrowed($t),
+        }
+      };
+    }
+    macro_rules! override_ct {
+      ($p:expr, $t:expr) => {
+        OverrideContentType {
+          part: Cow::Borrowed($p),
+          ty: Cow::Borrowed($t),
+        }
+      };
+    }
+    ContentTypes {
+      defaults: vec![
+        default_ct!("rels", CONTENT_TYPE_RELATIONSHIP),
+        default_ct!("xml", CONTENT_TYPE_XML),
+      ],
+      overrides: vec![
+        override_ct!("/docProps/app.xml", CONTENT_TYPE_EXTENDED),
+        override_ct!("/docProps/core.xml", CONTENT_TYPE_CORE),
+        override_ct!("/word/document.xml", CONTENT_TYPE_DOCUMENT),
+        override_ct!("/word/styles.xml", CONTENT_TYPE_STYLES),
+      ],
     }
   }
 }
 
-impl<'a> Xml for ContentTypesXml<'a> {
-  fn write<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()> {
-    tag!(w, b"Types"["xmlns", SCHEMA_CONTENT_TYPES] {{
-      for &(extension, content_type) in &self.defaults {
-        tag!(w, b"Default"[
-          "Extension",
-          extension,
-          "ContentType",
-          content_type
-        ]);
-      }
-      for &(part_name, content_type) in &self.overrides {
-        tag!(w, b"Override"[
-          "PartName",
-          part_name,
-          "ContentType",
-          content_type
-        ]);
-      }
-    }});
-    Ok(())
-  }
+#[derive(Debug, Xml)]
+#[xml(event = "Empty")]
+#[xml(tag = "Default")]
+struct DefaultContentType<'a> {
+  #[xml(attr = "Extension")]
+  ext: Cow<'a, str>,
+  #[xml(attr = "ContentType")]
+  ty: Cow<'a, str>,
+}
+
+#[derive(Debug, Xml)]
+#[xml(event = "Empty")]
+#[xml(tag = "Override")]
+struct OverrideContentType<'a> {
+  #[xml(attr = "PartName")]
+  part: Cow<'a, str>,
+  #[xml(attr = "ContentType")]
+  ty: Cow<'a, str>,
 }

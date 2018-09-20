@@ -1,37 +1,43 @@
-use quick_xml::events::*;
-use quick_xml::Writer;
-use std::io::{Seek, Write};
-use zip::ZipWriter;
+use quick_xml::events::BytesStart;
+use std::borrow::Cow;
 
-use errors::Result;
+use errors::{Error, Result};
 use schema::SCHEMA_RELATIONSHIPS;
 use xml::Xml;
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Xml)]
+#[xml(event = "Start")]
+#[xml(tag = "Relationships")]
+#[xml(extend_attrs = "relationships_extend_attrs")]
 pub struct RelsXml<'a> {
-  relationships: Vec<(&'a str, &'a str)>,
+  #[xml(child)]
+  #[xml(tag = "Relationship")]
+  relationships: Vec<Relationship<'a>>,
+}
+
+fn relationships_extend_attrs(_: &RelsXml, start: &mut BytesStart) {
+  start.push_attribute(("xmlns", SCHEMA_RELATIONSHIPS));
 }
 
 impl<'a> RelsXml<'a> {
   pub fn add_rel(&mut self, schema: &'a str, target: &'a str) {
-    self.relationships.push((schema, target));
+    let len = self.relationships.len();
+    self.relationships.push(Relationship {
+      id: Cow::Owned(format!("rId{}", len)),
+      target: Cow::Borrowed(target),
+      ty: Cow::Borrowed(schema),
+    });
   }
 }
 
-impl<'a> Xml for RelsXml<'a> {
-  fn write<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()> {
-    tag!(w, b"Relationships"["xmlns", SCHEMA_RELATIONSHIPS] {{
-      for (i, (schema, target)) in self.relationships.iter().enumerate() {
-        tag!(w, b"Relationship" [
-          "Id",
-          format!("rId{}", i).as_str(),
-          "Target",
-          *target,
-          "Type",
-          *schema
-        ]);
-      }
-    }});
-    Ok(())
-  }
+#[derive(Debug, Xml)]
+#[xml(event = "Start")]
+#[xml(tag = "Relationship")]
+struct Relationship<'a> {
+  #[xml(attr = "Id")]
+  id: Cow<'a, str>,
+  #[xml(attr = "Target")]
+  target: Cow<'a, str>,
+  #[xml(attr = "Type")]
+  ty: Cow<'a, str>,
 }

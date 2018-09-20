@@ -1,6 +1,7 @@
 use quick_xml::events::*;
 use quick_xml::Writer;
 use std::default::Default;
+
 use std::io::{Seek, Write};
 use zip::write::FileOptions;
 use zip::CompressionMethod;
@@ -12,13 +13,13 @@ use schema::{
   SCHEMA_CORE, SCHEMA_FONT_TABLE, SCHEMA_OFFICE_DOCUMENT, SCHEMA_REL_EXTENDED, SCHEMA_STYLES,
 };
 use style::Style;
-use xml::{AppXml, ContentTypesXml, CoreXml, DocumentXml, FontTableXml, RelsXml, StylesXml, Xml};
+use xml::{AppXml, ContentTypes, CoreXml, DocumentXml, FontTableXml, RelsXml, StylesXml, Xml};
 
 #[derive(Debug, Default)]
 pub struct Docx<'a> {
   app_xml: Option<AppXml<'a>>,
   core_xml: Option<CoreXml<'a>>,
-  content_types_xml: ContentTypesXml<'a>,
+  content_types_xml: ContentTypes<'a>,
   document_xml: DocumentXml<'a>,
   font_table_xml: Option<FontTableXml<'a>>,
   styles_xml: Option<StylesXml<'a>>,
@@ -28,7 +29,7 @@ pub struct Docx<'a> {
 
 impl<'a> Docx<'a> {
   pub fn create_para(&mut self) -> &mut Para<'a> {
-    self.document_xml.create_para()
+    self.document_xml.body.create_para()
   }
 
   pub fn create_style(&mut self) -> &mut Style<'a> {

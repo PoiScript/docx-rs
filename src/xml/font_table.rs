@@ -1,43 +1,38 @@
-use quick_xml::events::*;
-use quick_xml::Writer;
-use std::io::{Seek, Write};
-use zip::ZipWriter;
+use quick_xml::events::BytesStart;
+use std::borrow::Cow;
 
-use errors::Result;
+use errors::{Error, Result};
 use schema::{SCHEMA_MAIN, SCHEMA_RELATIONSHIPS};
 use xml::Xml;
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Xml)]
+#[xml(event = "Start")]
+#[xml(tag = "w:font")]
 pub struct Font<'a> {
-  name: &'a str,
-  charset: &'a str,
-  family: &'a str,
-  pitch: &'a str,
+  #[xml(attr = "w:name")]
+  name: Cow<'a, str>,
+  #[xml(flattern_text)]
+  #[xml(tag = "w:charset")]
+  charset: Cow<'a, str>,
+  #[xml(flattern_text)]
+  #[xml(tag = "w:family")]
+  family: Cow<'a, str>,
+  #[xml(flattern_text)]
+  #[xml(tag = "w:pitch")]
+  pitch: Cow<'a, str>,
 }
 
-impl<'a> Xml for Font<'a> {
-  fn write<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()> {
-    tag!(w, b"w:font"["w:name", self.name] {{
-      tag!(w, b"w:charset"["w:val", self.charset]);
-      tag!(w, b"w:family"["w:val", self.family]);
-      tag!(w, b"w:pitch"["w:val", self.pitch]);
-    }});
-    Ok(())
-  }
-}
-
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Xml)]
+#[xml(event = "Start")]
+#[xml(tag = "w:fonts")]
+#[xml(extend_attrs = "font_table_extend_attrs")]
 pub struct FontTableXml<'a> {
+  #[xml(child)]
+  #[xml(tag = "w:font")]
   fonts: Vec<Font<'a>>,
 }
 
-impl<'a> Xml for FontTableXml<'a> {
-  fn write<T: Write + Seek>(&self, w: &mut Writer<ZipWriter<T>>) -> Result<()> {
-    tag!(w, b"w:fonts"["xmlns:w", SCHEMA_MAIN, "xmlns:r", SCHEMA_RELATIONSHIPS] {{
-      for font in &self.fonts {
-        font.write(w)?;
-      }
-    }});
-    Ok(())
-  }
+fn font_table_extend_attrs(_: &FontTableXml, start: &mut BytesStart) {
+  start.push_attribute(("xmlns:w", SCHEMA_MAIN));
+  start.push_attribute(("xmlns:r", SCHEMA_RELATIONSHIPS));
 }

@@ -3,9 +3,9 @@ extern crate docx;
 extern crate docx_codegen;
 extern crate quick_xml;
 
-use docx::errors::Result;
+use docx::errors::{Error, Result};
+use docx::xml::Xml;
 use quick_xml::{Reader, Writer};
-use std::borrow::Cow;
 use std::io::Cursor;
 
 #[derive(Xml, PartialEq, Debug)]
@@ -56,19 +56,6 @@ enum Tag {
   #[xml(event = "Start")]
   #[xml(tag = "tag3")]
   Tag3(Tag3),
-}
-
-trait Xml {
-  fn write<W>(&self, w: &mut quick_xml::Writer<W>) -> Result<()>
-  where
-    W: std::io::Write + std::io::Seek;
-
-  fn read(
-    r: &mut quick_xml::Reader<&[u8]>,
-    bs: Option<&quick_xml::events::BytesStart>,
-  ) -> Result<Self>
-  where
-    Self: Sized;
 }
 
 macro_rules! assert_write_eq {
