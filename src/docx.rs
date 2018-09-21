@@ -117,7 +117,7 @@ impl<'a> Docx<'a> {
     Ok(zip.finish()?)
   }
 
-  pub fn parse<T: Read + Seek, 'a>(reader: T) -> Result<Docx<'a>> {
+  pub fn parse<T: Read + Seek>(reader: T) -> Result<Docx<'a>> {
     let mut zip = ZipArchive::new(reader).unwrap();
 
     macro_rules! read {
