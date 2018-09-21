@@ -1,54 +1,70 @@
 use proc_macro2::Span;
+use quote::ToTokens;
 use syn;
 use syn::Lit::*;
 use syn::Meta::*;
 use syn::NestedMeta::Meta;
-use syn::Type;
-use syn::*;
 
-#[derive(Debug)]
 pub(crate) enum Item {
-  Enum(ItemEnum),
-  Struct(ItemStruct),
+  Enum(Enum),
+  Struct(Struct),
 }
 
-#[derive(Debug, PartialEq)]
 pub(crate) enum Event {
   Start,
   Empty,
 }
 
-#[derive(Debug)]
-pub(crate) struct StructConfig {
+pub(crate) struct Struct {
+  pub name: syn::Ident,
+  pub generics: syn::Generics,
   pub event: Event,
-  pub tag: LitByteStr,
-  pub extend_attrs: Option<Ident>,
+  pub tag: syn::LitStr,
+  pub extend_attrs: Option<syn::Ident>,
+  pub attr_flds: Vec<AttrField>,
+  pub child_flds: Vec<ChildField>,
+  pub text_fld: Option<TextField>,
+  pub flat_empty_flds: Vec<EmptyFlatternField>,
+  pub flat_text_flds: Vec<TextFlatternField>,
 }
 
-#[derive(Debug)]
-pub(crate) struct ItemStruct {
-  pub config: StructConfig,
-  pub name: Ident,
-  pub generics: Generics,
-  pub fields: Vec<Field>,
+pub(crate) struct AttrField {
+  pub attr: syn::LitStr,
+  pub name: syn::Ident,
+  pub ty: syn::Type,
 }
 
-impl ItemStruct {
+pub(crate) struct ChildField {
+  pub tags: Vec<syn::LitStr>,
+  pub name: syn::Ident,
+  pub ty: syn::Type,
+}
+
+pub(crate) struct TextField {
+  pub name: syn::Ident,
+  pub ty: syn::Type,
+}
+
+pub(crate) struct TextFlatternField {
+  pub tag: syn::LitStr,
+  pub name: syn::Ident,
+  pub ty: syn::Type,
+}
+
+pub(crate) struct EmptyFlatternField {
+  pub attr: syn::LitStr,
+  pub tag: syn::LitStr,
+  pub name: syn::Ident,
+  pub ty: syn::Type,
+}
+
+impl Struct {
   pub fn parse(
-    data: &DataStruct,
-    attrs: &Vec<Attribute>,
-    ident: &Ident,
-    generics: &Generics,
-  ) -> ItemStruct {
-    ItemStruct {
-      config: ItemStruct::parse_attrs(ident, attrs),
-      name: ident.clone(),
-      generics: generics.clone(),
-      fields: data.fields.iter().map(|f| Field::parse(f)).collect(),
-    }
-  }
-
-  fn parse_attrs(name: &Ident, attrs: &Vec<syn::Attribute>) -> StructConfig {
+    data: &syn::DataStruct,
+    attrs: &Vec<syn::Attribute>,
+    ident: &syn::Ident,
+    generics: &syn::Generics,
+  ) -> Struct {
     let mut event = None;
     let mut tag = None;
     let mut extend_attrs = None;
@@ -61,25 +77,18 @@ impl ItemStruct {
               event = Some(match lit.value().as_ref() {
                 "Start" => Event::Start,
                 "Empty" => Event::Empty,
-                _ => unreachable!(),
+                _ => panic!("Unknown event '{}'", lit.value()),
               });
             }
           }
           Meta(NameValue(ref m)) if m.ident == "tag" => {
-            if let ByteStr(ref lit) = m.lit {
+            if let Str(ref lit) = m.lit {
               tag = Some(lit.clone());
-            } else if let Str(ref lit) = m.lit {
-              // convert str to byte str here,
-              // 'cause rust stable doesn't support byte str in attribute now
-              tag = Some(LitByteStr::new(
-                &lit.value().as_bytes().to_vec(),
-                Span::call_site(),
-              ));
             }
           }
           Meta(NameValue(ref m)) if m.ident == "extend_attrs" => {
             if let Str(ref lit) = m.lit {
-              extend_attrs = Some(Ident::new(&lit.value(), Span::call_site()));
+              extend_attrs = Some(syn::Ident::new(&lit.value(), Span::call_site()));
             }
           }
           _ => (),
@@ -87,105 +96,194 @@ impl ItemStruct {
       }
     }
 
-    StructConfig {
-      event: event.expect(&format!("No event attribute found for {}", name)),
-      tag: tag.expect(&format!("No tag attribute found for {}", name)),
-      extend_attrs,
+    let mut attr_flds = Vec::new();
+    let mut child_flds = Vec::new();
+    let mut text_fld = None;
+    let mut flat_empty_flds = Vec::new();
+    let mut flat_text_flds = Vec::new();
+
+    for field in data.fields.iter() {
+      let name = field.ident.clone().unwrap();
+      let ty = field.ty.clone();
+      let mut attr = None;
+      let mut child = false;
+      let mut flat_empty = false;
+      let mut flat_text = false;
+      let mut tags = Vec::new();
+      let mut text = false;
+
+      for meta_items in field.attrs.iter().filter_map(get_xml_meta_items) {
+        for meta_item in meta_items {
+          match meta_item {
+            Meta(NameValue(ref m)) if m.ident == "attr" => {
+              if let Str(ref lit) = m.lit {
+                attr = Some(lit.clone());
+              }
+            }
+            Meta(NameValue(ref m)) if m.ident == "tag" => {
+              if let Str(ref lit) = m.lit {
+                tags.push(lit.clone());
+              }
+            }
+            Meta(Word(ref w)) if w == "flattern_text" => {
+              flat_text = true;
+            }
+            Meta(Word(ref w)) if w == "flattern_empty" => {
+              flat_empty = true;
+            }
+            Meta(Word(ref w)) if w == "text" => {
+              text = true;
+            }
+            Meta(Word(ref w)) if w == "child" => {
+              child = true;
+            }
+            _ => panic!(
+              "Unkown attribute when parsing field {}:\n{}.",
+              name,
+              field.into_token_stream()
+            ),
+          }
+        }
+      }
+
+      match (attr, child, flat_text, flat_empty, tags.len(), text) {
+        (Some(attr), false, false, false, 0, false) => attr_flds.push(AttrField { attr, name, ty }),
+        (None, true, false, false, 1...10, false) => child_flds.push(ChildField { tags, name, ty }),
+        (None, false, false, false, 0, true) => text_fld = Some(TextField { name, ty }),
+        (None, false, true, false, 1, false) => flat_text_flds.push(TextFlatternField {
+          tag: tags.pop().unwrap(),
+          name,
+          ty,
+        }),
+        (Some(attr), false, false, true, 1, false) => flat_empty_flds.push(EmptyFlatternField {
+          tag: tags.pop().unwrap(),
+          attr,
+          name,
+          ty,
+        }),
+        _ => panic!(
+          "Unkown attribute when parsing field {}:\n{}.",
+          name,
+          field.into_token_stream()
+        ),
+      }
     }
-  }
-}
 
-#[derive(Debug)]
-pub(crate) struct ItemEnum {
-  pub name: Ident,
-  pub variants: Vec<Variant>,
-  pub generics: Generics,
-}
-
-impl ItemEnum {
-  pub fn parse(
-    data: &DataEnum,
-    _: &Vec<Attribute>,
-    ident: &Ident,
-    generics: &Generics,
-  ) -> ItemEnum {
-    ItemEnum {
+    Struct {
+      event: event.expect(&format!("No event attribute found for {}", ident)),
+      tag: tag.expect(&format!("No tag attribute found for {}", ident)),
+      extend_attrs,
       name: ident.clone(),
       generics: generics.clone(),
-      variants: data.variants.iter().map(|v| Variant::parse(v)).collect(),
+      attr_flds,
+      child_flds,
+      text_fld,
+      flat_empty_flds,
+      flat_text_flds,
     }
   }
 }
 
-#[derive(Debug, Default)]
-pub(crate) struct FieldConfig {
-  pub attr: Option<LitStr>,
-  pub is_attr: bool,
-  pub is_child: bool,
-  pub is_flattern_text: bool,
-  pub is_text: bool,
-  pub tag: Option<LitByteStr>,
+pub(crate) struct Enum {
+  pub name: syn::Ident,
+  pub generics: syn::Generics,
+  pub text_flat_vars: Vec<Variant>,
+  pub empty_flat_vars: Vec<Variant>,
+  pub start_elem_vars: Vec<Variant>,
+  pub empty_elem_vars: Vec<Variant>,
 }
 
-#[derive(Debug)]
-pub(crate) struct Field {
-  pub config: FieldConfig,
-  pub name: Option<Ident>,
-  pub ty: Type,
-}
+impl Enum {
+  pub fn parse(data: &syn::DataEnum, ident: &syn::Ident, generics: &syn::Generics) -> Enum {
+    let mut text_flat_vars = Vec::new();
+    let mut empty_flat_vars = Vec::new();
+    let mut start_elem_vars = Vec::new();
+    let mut empty_elem_vars = Vec::new();
 
-impl Field {
-  fn parse(field: &syn::Field) -> Field {
-    Field {
-      config: Field::parse_attrs(&field.attrs),
-      name: field.ident.clone(),
-      ty: field.ty.clone(),
-    }
-  }
-
-  fn parse_attrs(attrs: &Vec<syn::Attribute>) -> FieldConfig {
-    let mut config = FieldConfig::default();
-
-    for meta_items in attrs.iter().filter_map(get_xml_meta_items) {
-      for meta_item in meta_items {
-        match meta_item {
-          Meta(NameValue(ref m)) if m.ident == "attr" => {
-            if let Str(ref lit) = m.lit {
-              config.attr = Some(lit.clone());
-              config.is_attr = true;
+    for variant in &data.variants {
+      let name = variant.ident.clone();
+      let ty = variant.fields.iter().nth(0).unwrap().ty.clone();
+      let mut event = None;
+      let mut flat_empty = false;
+      let mut flat_text = false;
+      let mut tags = Vec::new();
+      for meta_items in variant.attrs.iter().filter_map(get_xml_meta_items) {
+        for meta_item in meta_items {
+          match meta_item {
+            Meta(NameValue(ref m)) if m.ident == "tag" => {
+              if let Str(ref lit) = m.lit {
+                tags.push(lit.clone());
+              }
             }
-          }
-          Meta(NameValue(ref m)) if m.ident == "tag" => {
-            if let ByteStr(ref lit) = m.lit {
-              config.tag = Some(lit.clone());
-            } else if let Str(ref lit) = m.lit {
-              // convert str to byte str here,
-              // 'cause rust stable doesn't support byte str in attribute now
-              config.tag = Some(LitByteStr::new(
-                &lit.value().as_bytes().to_vec(),
-                Span::call_site(),
-              ));
+            Meta(Word(ref w)) if w == "flattern_text" => {
+              flat_text = true;
             }
+            Meta(Word(ref w)) if w == "flattern_empty" => {
+              flat_empty = true;
+            }
+            Meta(NameValue(ref m)) if m.ident == "event" => {
+              if let Str(ref lit) = m.lit {
+                event = Some(lit.value());
+              }
+            }
+            _ => panic!("Unkown attribute when parsing variant {}.", name),
           }
-          Meta(Word(ref w)) if w == "flattern_text" => {
-            config.is_flattern_text = true;
-          }
-          Meta(Word(ref w)) if w == "text" => {
-            config.is_text = true;
-          }
-          Meta(Word(ref w)) if w == "child" => {
-            config.is_child = true;
-          }
-          _ => (),
         }
+      }
+
+      let tag = tags.pop().unwrap();
+      match (event, flat_text, flat_empty) {
+        (Some(e), false, false) => {
+          if e == "Start" {
+            start_elem_vars.push(Variant { tag, name, ty });
+          } else if e == "Empty" {
+            empty_elem_vars.push(Variant { tag, name, ty });
+          }
+        }
+        (None, true, false) => text_flat_vars.push(Variant { tag, name, ty }),
+        (None, false, true) => empty_flat_vars.push(Variant { tag, name, ty }),
+        _ => panic!("Unkown field type when parsing field {}.", name),
       }
     }
 
-    config
+    Enum {
+      name: ident.clone(),
+      generics: generics.clone(),
+      text_flat_vars,
+      empty_flat_vars,
+      start_elem_vars,
+      empty_elem_vars,
+    }
   }
+}
 
-  pub fn is_option(&self) -> Option<&Type> {
-    let path = match self.ty {
+fn get_xml_meta_items(attr: &syn::Attribute) -> Option<Vec<syn::NestedMeta>> {
+  if attr.path.segments.len() == 1 && attr.path.segments[0].ident == "xml" {
+    match attr.interpret_meta() {
+      Some(syn::Meta::List(ref meta)) => Some(meta.nested.iter().cloned().collect()),
+      _ => None,
+    }
+  } else {
+    None
+  }
+}
+
+pub(crate) struct Variant {
+  pub tag: syn::LitStr,
+  pub name: syn::Ident,
+  pub ty: syn::Type,
+}
+
+pub trait TypeExt {
+  fn is_option(&self) -> Option<&Self>;
+  fn is_cow_str(&self) -> bool;
+  fn is_vec(&self) -> Option<&Self>;
+  fn get_ident(&self) -> Option<syn::Ident>;
+}
+
+impl TypeExt for syn::Type {
+  fn is_option(&self) -> Option<&Self> {
+    let path = match self {
       syn::Type::Path(ref ty) => &ty.path,
       _ => {
         return None;
@@ -213,8 +311,8 @@ impl Field {
     }
   }
 
-  pub fn is_cow_str(&self) -> bool {
-    let path = match self.ty {
+  fn is_cow_str(&self) -> bool {
+    let path = match self {
       syn::Type::Path(ref ty) => &ty.path,
       _ => {
         return false;
@@ -247,8 +345,8 @@ impl Field {
     }
   }
 
-  pub fn is_vec(&self) -> Option<&Type> {
-    let path = match self.ty {
+  fn is_vec(&self) -> Option<&Self> {
+    let path = match self {
       syn::Type::Path(ref ty) => &ty.path,
       _ => {
         return None;
@@ -275,80 +373,17 @@ impl Field {
       None
     }
   }
-}
 
-#[derive(Debug)]
-pub(crate) struct VariantConfig {
-  pub event: Event,
-  pub tag: LitByteStr,
-}
-
-#[derive(Debug)]
-pub(crate) struct Variant {
-  pub config: VariantConfig,
-  pub name: Ident,
-  pub field: Field,
-}
-
-impl Variant {
-  pub fn parse(variant: &syn::Variant) -> Variant {
-    let field = variant.fields.iter().nth(0).unwrap();
-    Variant {
-      config: Variant::parse_variant_attrs(&variant),
-      name: variant.ident.clone(),
-      field: Field::parse(field),
-    }
-  }
-
-  fn parse_variant_attrs(variant: &syn::Variant) -> VariantConfig {
-    let mut event = None;
-    let mut tag = None;
-
-    for meta_items in variant.attrs.iter().filter_map(get_xml_meta_items) {
-      for meta_item in meta_items {
-        match meta_item {
-          Meta(NameValue(ref m)) if m.ident == "event" => {
-            if let Str(ref lit) = m.lit {
-              event = Some(match lit.value().as_ref() {
-                "Start" => Event::Start,
-                "Empty" => Event::Empty,
-                _ => unreachable!(),
-              });
-            }
-          }
-          Meta(NameValue(ref m)) if m.ident == "tag" => {
-            if let ByteStr(ref lit) = m.lit {
-              tag = Some(lit.clone());
-            } else if let Str(ref lit) = m.lit {
-              // convert str to byte str here,
-              // 'cause rust stable doesn't support byte str in attribute now
-              tag = Some(LitByteStr::new(
-                &lit.value().as_bytes().to_vec(),
-                Span::call_site(),
-              ));
-            }
-          }
-          _ => (),
-        }
+  fn get_ident(&self) -> Option<syn::Ident> {
+    let path = match self {
+      syn::Type::Path(ref ty) => &ty.path,
+      _ => {
+        return None;
       }
-    }
-
-    VariantConfig {
-      event: event.expect(&format!("No event attribute found for {}", variant.ident)),
-      tag: tag.expect(&format!("No tag attribute found for {}", variant.ident)),
-    }
-  }
-}
-
-fn get_xml_meta_items(attr: &Attribute) -> Option<Vec<NestedMeta>> {
-  use syn::Meta::List;
-
-  if attr.path.segments.len() == 1 && attr.path.segments[0].ident == "xml" {
-    match attr.interpret_meta() {
-      Some(List(ref meta)) => Some(meta.nested.iter().cloned().collect()),
-      _ => None,
-    }
-  } else {
-    None
+    };
+    path
+      .segments
+      .last()
+      .map(|seg| seg.into_value().ident.clone())
   }
 }

@@ -14,7 +14,7 @@ mod write;
 use proc_macro::TokenStream;
 use read::impl_read;
 use syn::{Data, DeriveInput};
-use types::{Item, ItemEnum, ItemStruct};
+use types::{Enum, Item, Struct};
 use write::impl_write;
 
 #[proc_macro_derive(Xml, attributes(xml))]
@@ -22,13 +22,8 @@ pub fn derive_xml(input: TokenStream) -> TokenStream {
   let input = parse_macro_input!(input as DeriveInput);
 
   let item = match input.data {
-    Data::Enum(ref data) => Item::Enum(ItemEnum::parse(
-      data,
-      &input.attrs,
-      &input.ident,
-      &input.generics,
-    )),
-    Data::Struct(ref data) => Item::Struct(ItemStruct::parse(
+    Data::Enum(ref data) => Item::Enum(Enum::parse(data, &input.ident, &input.generics)),
+    Data::Struct(ref data) => Item::Struct(Struct::parse(
       data,
       &input.attrs,
       &input.ident,

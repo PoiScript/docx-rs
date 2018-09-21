@@ -1,6 +1,11 @@
 use proc_macro2::TokenStream;
-use types::Event;
-use types::{Item, ItemEnum, ItemStruct};
+use types::{Enum, Event, Item, Struct, TypeExt};
+
+macro_rules! bytes_str {
+  ($t:expr) => {
+    ::syn::LitByteStr::new($t.value().as_bytes(), ::proc_macro2::Span::call_site())
+  };
+}
 
 pub(crate) fn impl_write(item: &Item) -> TokenStream {
   match item {
@@ -9,8 +14,8 @@ pub(crate) fn impl_write(item: &Item) -> TokenStream {
   }
 }
 
-fn write_struct(s: &ItemStruct) -> TokenStream {
-  match s.config.event {
+fn write_struct(s: &Struct) -> TokenStream {
+  match s.event {
     Event::Start => {
       let write_start_event = write_start_event(&s);
       let write_end_event = write_end_event(&s);
@@ -44,25 +49,40 @@ fn write_struct(s: &ItemStruct) -> TokenStream {
   }
 }
 
-fn write_enum(e: &ItemEnum) -> TokenStream {
-  use std::iter::repeat;
+fn write_enum(e: &Enum) -> TokenStream {
+  let enum_name = &e.name;
 
-  let variant_names: &Vec<_> = &e.variants.iter().map(|f| &f.name).collect();
+  macro_rules! names {
+    ($t:tt) => {
+      &e.$t
+        .iter()
+        .map(|v| {
+          let var_name = &v.name;
+          quote!{ #enum_name::#var_name(s) => s.write(w), }
+        }).collect::<Vec<_>>()
+    };
+  }
 
-  let enum_names = repeat(&e.name);
+  let text_flat_vars = names!(text_flat_vars);
+  let empty_flat_vars = names!(empty_flat_vars);
+  let start_elem_vars = names!(start_elem_vars);
+  let empty_elem_vars = names!(empty_elem_vars);
 
   quote!{
     match self {
-      #( #enum_names::#variant_names(s) => s.write(w), )*
+      #( #text_flat_vars )*
+      #( #empty_flat_vars )*
+      #( #start_elem_vars )*
+      #( #empty_elem_vars )*
     }
   }
 }
 
-fn write_start_event(s: &ItemStruct) -> TokenStream {
-  let tag = &s.config.tag;
+fn write_start_event(s: &Struct) -> TokenStream {
+  let tag = bytes_str!(s.tag);
   let write_attrs = write_attrs(&s);
 
-  let extend_attrs = &s.config.extend_attrs;
+  let extend_attrs = &s.extend_attrs;
 
   quote! {
     let mut start= BytesStart::borrowed(#tag, #tag.len());
@@ -75,16 +95,16 @@ fn write_start_event(s: &ItemStruct) -> TokenStream {
   }
 }
 
-fn write_end_event(s: &ItemStruct) -> TokenStream {
-  let tag = &s.config.tag;
+fn write_end_event(s: &Struct) -> TokenStream {
+  let tag = bytes_str!(s.tag);
 
   quote! {
     w.write_event(Event::End(BytesEnd::borrowed(#tag)))?;
   }
 }
 
-fn write_empty_event(s: &ItemStruct) -> TokenStream {
-  let tag = &s.config.tag;
+fn write_empty_event(s: &Struct) -> TokenStream {
+  let tag = bytes_str!(s.tag);
   let write_attrs = write_attrs(&s);
 
   quote! {
@@ -96,8 +116,8 @@ fn write_empty_event(s: &ItemStruct) -> TokenStream {
   }
 }
 
-fn write_text_event(s: &ItemStruct) -> TokenStream {
-  if let Some(f) = s.fields.iter().find(|f| f.config.is_text) {
+fn write_text_event(s: &Struct) -> TokenStream {
+  if let Some(f) = &s.text_fld {
     let name = &f.name;
     quote! {
       w.write_event(Event::Text(BytesText::from_plain_str(self.#name.as_ref())))?;
@@ -107,14 +127,14 @@ fn write_text_event(s: &ItemStruct) -> TokenStream {
   }
 }
 
-fn write_attrs(s: &ItemStruct) -> Vec<TokenStream> {
+fn write_attrs(s: &Struct) -> Vec<TokenStream> {
   let mut result = Vec::new();
 
-  for f in s.fields.iter().filter(|f| f.config.is_attr) {
-    let name = &f.name.clone().unwrap();
-    let tag = &f.config.attr.clone().unwrap();
+  for f in &s.attr_flds {
+    let name = &f.name;
+    let tag = &f.attr;
 
-    if f.is_option().is_some() {
+    if let Some(_) = f.ty.is_option() {
       result.push(quote!{
         if let Some(ref #name) = self.#name {
           start.push_attribute((#tag, #name as &str));
@@ -128,21 +148,19 @@ fn write_attrs(s: &ItemStruct) -> Vec<TokenStream> {
   result
 }
 
-fn write_children(s: &ItemStruct) -> Vec<TokenStream> {
+fn write_children(s: &Struct) -> Vec<TokenStream> {
   let mut result = Vec::new();
 
-  let child_fields = s.fields.iter().filter(|f| f.config.is_child);
-
-  for f in child_fields {
+  for f in &s.child_flds {
     let name = &f.name;
 
-    if f.is_option().is_some() {
+    if let Some(_) = f.ty.is_option() {
       result.push(quote! {
         if let Some(ref #name) = self.#name {
           #name.write(w)?;
         }
       });
-    } else if f.is_vec().is_some() {
+    } else if let Some(_) = f.ty.is_vec() {
       result.push(quote! {
         for #name in &self.#name {
           #name.write(w)?;
@@ -158,20 +176,14 @@ fn write_children(s: &ItemStruct) -> Vec<TokenStream> {
   result
 }
 
-fn write_flattern_text(s: &ItemStruct) -> Vec<TokenStream> {
+fn write_flattern_text(s: &Struct) -> Vec<TokenStream> {
   let mut result = Vec::new();
 
-  let flattern_text_fields = s.fields.iter().filter(|f| f.config.is_flattern_text);
+  for f in &s.flat_text_flds {
+    let name = &f.name;
+    let tag = bytes_str!(f.tag);
 
-  for f in flattern_text_fields {
-    let name = &f.name.clone().unwrap();
-    let tag = &f
-      .config
-      .tag
-      .clone()
-      .expect(&format!("Tag attribute not found in field {}", name));
-
-    if f.is_option().is_some() {
+    if let Some(_) = f.ty.is_option() {
       result.push(quote! {
         if let Some(ref #name) = self.#name {
           w.write_event(Event::Start(BytesStart::borrowed(#tag, #tag.len())))?;

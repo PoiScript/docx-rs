@@ -1,6 +1,12 @@
-use proc_macro2::TokenStream;
-use syn::{Ident, Type};
-use types::{Event, Item, ItemEnum, ItemStruct, Variant};
+use proc_macro2::{Span, TokenStream};
+use syn::Ident;
+use types::{Enum, Event, Item, Struct, TypeExt};
+
+macro_rules! bytes_str {
+  ($t:expr) => {
+    ::syn::LitByteStr::new($t.value().as_bytes(), ::proc_macro2::Span::call_site())
+  };
+}
 
 pub(crate) fn impl_read(item: &Item) -> TokenStream {
   match item {
@@ -9,8 +15,7 @@ pub(crate) fn impl_read(item: &Item) -> TokenStream {
   }
 }
 
-fn read_struct(s: &ItemStruct) -> TokenStream {
-  let tag = &s.config.tag;
+fn read_struct(s: &Struct) -> TokenStream {
   let name = &s.name;
 
   let init_fields = init_fields(&s);
@@ -19,155 +24,166 @@ fn read_struct(s: &ItemStruct) -> TokenStream {
   let set_children = set_children(&s);
   let return_struct = return_struct(&s);
 
-  match s.config.event {
+  match s.event {
     Event::Start => {
       quote! {
-        #( #init_fields )*
+        #init_fields
 
-        if let Some(bs) = bs {
-          #set_attrs
-        } else {
-          let mut buf = Vec::new();
-          loop {
-            match r.read_event(&mut buf)? {
-              Event::Start(ref bs) => {
-                if bs.name() == #tag {
-                  #set_attrs
-                  break;
-                } else {
-                  return Err(Error::UnexpectedTag {
-                    expected: String::from(stringify!(#tag)),
-                    found: String::from_utf8(bs.name().to_vec())?,
-                  });
-                }
-              },
-              Event::Empty(_) => {
-                return Err(Error::UnexpectedEvent {
-                  expected: String::from("Empty"),
-                  found: String::from("Start"),
-                });
-              },
-              Event::Eof => return Err(Error::UnexpectedEof),
-              _ => (),
-            }
-            buf.clear();
-          }
-        }
+        #set_attrs
 
         #set_text
 
         #set_children
 
-        Ok(#name { #( #return_struct )* })
+        Ok(#name { #return_struct })
       }
     }
     Event::Empty => {
       quote! {
-        #( #init_fields )*
+        #init_fields
 
-        if let Some(bs) = bs {
-          #set_attrs
-        } else {
-          let mut buf = Vec::new();
-          loop {
-            match r.read_event(&mut buf)? {
-              Event::Empty(ref bs) => {
-                if bs.name() == #tag {
-                  #set_attrs
-                  break;
-                } else {
-                  return Err(Error::UnexpectedTag {
-                    expected: String::from(stringify!(#tag)),
-                    found: String::from_utf8(bs.name().to_vec())?,
-                  });
-                }
-              },
-              Event::Start(_) => {
-                return Err(Error::UnexpectedEvent {
-                  expected: String::from("Empty"),
-                  found: String::from("Start"),
-                });
-              },
-              Event::Eof => return Err(Error::UnexpectedEof),
-              _ => (),
-            }
-            buf.clear();
-          }
-        }
+        #set_attrs
 
-        Ok(#name { #( #return_struct )* })
+        Ok(#name { #return_struct })
       }
     }
   }
 }
 
-fn init_fields(s: &ItemStruct) -> Vec<TokenStream> {
-  s.fields
+fn init_fields(s: &Struct) -> TokenStream {
+  macro_rules! init_fld {
+    ($t:tt) => {
+      s.$t
+        .iter()
+        .map(|f| {
+          let name = &f.name;
+          if let Some(_) = f.ty.is_vec() {
+            quote! { let mut #name = Vec::new(); }
+          } else {
+            quote! { let mut #name = None; }
+          }
+        }).collect::<Vec<_>>()
+    };
+  }
+
+  let init_attr_flds = init_fld!(attr_flds);
+  let init_child_flds = init_fld!(child_flds);
+  let init_text_fld = init_fld!(text_fld);
+  let init_flat_empty_flds = init_fld!(flat_empty_flds);
+  let init_flat_text_flds = init_fld!(flat_text_flds);
+
+  quote! {
+    #( #init_attr_flds )*
+    #( #init_child_flds )*
+    #( #init_text_fld )*
+    #( #init_flat_empty_flds )*
+    #( #init_flat_text_flds )*
+  }
+}
+
+fn set_attrs(s: &Struct) -> TokenStream {
+  let match_attrs: Vec<_> = s
+    .attr_flds
     .iter()
     .map(|f| {
       let name = &f.name;
-      if f.is_vec().is_some() {
-        quote! { let mut #name = Vec::new(); }
-      } else {
-        quote! { let mut #name = None; }
-      }
-    }).collect()
-}
+      let tag = bytes_str!(f.attr);
 
-fn set_attrs(s: &ItemStruct) -> TokenStream {
-  let match_attrs = s.fields.iter().filter(|f| f.config.is_attr).map(|f| {
-    let name = &f.name.clone().unwrap();
-    let tag = &f.config.attr.clone().unwrap();
+      quote! { #tag => #name = Some(String::from_utf8(attr.value.into_owned().to_vec())?), }
+    }).collect();
 
-    quote! { #tag => #name = Some(String::from_utf8(attr.value.into_owned().to_vec())?), }
-  });
+  if match_attrs.len() == 0 {
+    return quote!();
+  }
 
-  quote! {
+  let tag = bytes_str!(s.tag);
+
+  let loop_attrs = quote! {
     for attr in bs.attributes().filter_map(|a| a.ok()) {
-      match ::std::str::from_utf8(attr.key)? {
+      match attr.key {
         #( #match_attrs )*
         _ => (),
       }
     }
+  };
+
+  let (event1, event2) = match s.event {
+    Event::Start => (
+      Ident::new("Start", Span::call_site()),
+      Ident::new("Empty", Span::call_site()),
+    ),
+    Event::Empty => (
+      Ident::new("Empty", Span::call_site()),
+      Ident::new("Start", Span::call_site()),
+    ),
+  };
+
+  quote! {
+    if let Some(bs) = bs {
+      #loop_attrs
+    } else {
+      let mut buf = Vec::new();
+      loop {
+        match r.read_event(&mut buf)? {
+          Event::#event1(ref bs) => {
+            if bs.name() == #tag {
+              #loop_attrs
+              break;
+            } else {
+              return Err(Error::UnexpectedTag {
+                expected: String::from(stringify!(#tag)),
+                found: String::from_utf8(bs.name().to_vec())?,
+              });
+            }
+          },
+          Event::#event2(_) => {
+            return Err(Error::UnexpectedEvent {
+              expected: String::from(stringify!(#event1)),
+              found: String::from(stringify!(#event2)),
+            });
+          },
+          Event::Eof => return Err(Error::UnexpectedEof),
+          _ => (),
+        }
+        buf.clear();
+      }
+    }
   }
 }
 
-fn set_children(s: &ItemStruct) -> TokenStream {
+fn set_children(s: &Struct) -> TokenStream {
   let match_children: &Vec<_> = &s
-    .fields
+    .child_flds
     .iter()
-    .filter(|f| f.config.is_child)
     .map(|f| {
-      let tag = &f.config.tag;
-      let name = f.name.clone().unwrap();
+      let tags = f.tags.iter().map(|t| bytes_str!(t));
+      let name = &f.name;
 
-      if let Some(ty) = f.is_vec() {
-        let ident = get_ty_ident(ty);
+      if let Some(ty) = f.ty.is_vec() {
+        let ident = ty.get_ident();
         quote! {
-          #tag => #name.push(#ident::read(r, Some(bs))?),
+          #( #tags )|* => #name.push(#ident::read(r, Some(bs))?),
         }
-      } else if let Some(ty) = f.is_option() {
-        let ident = get_ty_ident(ty);
+      } else if let Some(ty) = f.ty.is_option() {
+        let ident = ty.get_ident();
         quote! {
-          #tag => #name = Some(#ident::read(r, Some(bs))?),
+          #( #tags )|* => #name = Some(#ident::read(r, Some(bs))?),
         }
       } else {
-        let ident = get_ty_ident(&f.ty);
+        let ident = &f.ty.get_ident();
         quote! {
-          #tag => #name = Some(#ident::read(r, Some(bs))?),
+          #( #tags )|* => #name = Some(#ident::read(r, Some(bs))?),
         }
       }
     }).collect();
 
   let match_flattern_text: &Vec<_> = &s
-    .fields
+    .flat_text_flds
     .iter()
-    .filter(|f| f.config.is_flattern_text)
     .map(|f| {
-      let tag = &f.config.tag;
-      let name = f.name.clone().unwrap();
-      let tag1 = tag.clone();
-      quote! { #tag => #name = Some(r.read_text(#tag1, &mut Vec::new())?), }
+      let tag = bytes_str!(f.tag);
+      let name = &f.name;
+      quote! { #tag => #name = Some(r.read_text(#tag, &mut Vec::new())?), }
     }).collect();
 
   if match_flattern_text.len() == 0 && match_children.len() == 0 {
@@ -194,77 +210,88 @@ fn set_children(s: &ItemStruct) -> TokenStream {
   }
 }
 
-fn set_text(s: &ItemStruct) -> TokenStream {
-  let field = match s.fields.iter().find(|f| f.config.is_text) {
+fn set_text(s: &Struct) -> TokenStream {
+  let field = match &s.text_fld {
     Some(f) => f,
     None => return quote!(),
   };
   let name = &field.name;
-  let tag = &s.config.tag;
+  let tag = bytes_str!(s.tag);
 
   quote! {
     #name = Some(r.read_text(#tag, &mut Vec::new())?);
   }
 }
 
-fn return_struct(s: &ItemStruct) -> Vec<TokenStream> {
+fn return_struct(s: &Struct) -> TokenStream {
   let struct_name = &s.name;
-  s.fields
-    .iter()
-    .map(|f| {
-      let name = &f.name;
-      if f.is_option().is_some() || f.is_vec().is_some() {
-        quote! { #name, }
-      } else if f.is_cow_str() {
-        quote! { #name : Cow::Owned(#name.ok_or(Error::MissingField {
-          name: String::from(stringify!(#struct_name)),
-          field: String::from(stringify!(#name)),
-        })?), }
-      } else {
-        quote! { #name : #name.ok_or(Error::MissingField {
-          name: String::from(stringify!(#struct_name)),
-          field: String::from(stringify!(#name)),
-        })?, }
-      }
-    }).collect()
+
+  macro_rules! return_flds {
+    ($f:tt) => {
+      s.$f
+        .iter()
+        .map(|f| {
+          let name = &f.name;
+          if f.ty.is_option().is_some() || f.ty.is_vec().is_some() {
+            quote! { #name, }
+          } else if f.ty.is_cow_str() {
+            quote! { #name : Cow::Owned(#name.ok_or(Error::MissingField {
+              name: String::from(stringify!(#struct_name)),
+              field: String::from(stringify!(#name)),
+            })?), }
+          } else {
+            quote! { #name : #name.ok_or(Error::MissingField {
+              name: String::from(stringify!(#struct_name)),
+              field: String::from(stringify!(#name)),
+            })?, }
+          }
+        }).collect::<Vec<_>>()
+    };
+  }
+
+  let return_attr_flds = return_flds!(attr_flds);
+  let return_child_flds = return_flds!(child_flds);
+  let return_text_fld = return_flds!(text_fld);
+  let return_flat_empty_flds = return_flds!(flat_empty_flds);
+  let return_flat_text_flds = return_flds!(flat_text_flds);
+
+  quote! {
+    #( #return_attr_flds )*
+    #( #return_child_flds )*
+    #( #return_text_fld )*
+    #( #return_flat_empty_flds )*
+    #( #return_flat_text_flds )*
+  }
 }
 
-fn read_enum(e: &ItemEnum) -> TokenStream {
-  let name = &e.name;
+fn read_enum(e: &Enum) -> TokenStream {
+  let enum_name = &e.name;
 
   let start_tags: &Vec<_> = &e
-    .variants
+    .start_elem_vars
     .iter()
-    .filter(|v| v.config.event == Event::Start)
-    .map(|v| &v.config.tag)
-    .collect();
+    .map(|v| {
+      let tag = bytes_str!(v.tag);
+      let name = &v.name;
+      let ty = &v.ty.get_ident();
+      quote!{ #tag => return #ty::read(r, Some(bs)).map(|p| #enum_name::#name(p)), }
+    }).collect();
 
   let empty_tags: &Vec<_> = &e
-    .variants
+    .empty_elem_vars
     .iter()
-    .filter(|v| v.config.event == Event::Empty)
-    .map(|v| &v.config.tag)
-    .collect();
-
-  let match_start_variants: &Vec<_> = &e
-    .variants
-    .iter()
-    .filter(|v| v.config.event == Event::Start)
-    .map(|v| match_variant(v, name))
-    .collect();
-
-  let match_empty_variants: &Vec<_> = &e
-    .variants
-    .iter()
-    .filter(|v| v.config.event == Event::Empty)
-    .map(|v| match_variant(v, name))
-    .collect();
+    .map(|v| {
+      let tag = bytes_str!(v.tag);
+      let name = &v.name;
+      let ty = &v.ty.get_ident();
+      quote!{ #tag => return #ty::read(r, Some(bs)).map(|p| #enum_name::#name(p)), }
+    }).collect();
 
   quote! {
     if let Some(bs) = bs {
       match bs.name() {
-        #( #match_start_variants )*
-        #( #match_empty_variants )*
+        #( #start_tags )*
+        #( #empty_tags )*
         _ => return Err(Error::UnexpectedTag {
           expected: String::from(stringify!( #( #empty_tags ),* #( #start_tags ),* )),
           found: String::from_utf8(bs.name().to_vec())?,
@@ -276,7 +303,7 @@ fn read_enum(e: &ItemEnum) -> TokenStream {
         match r.read_event(&mut buf)? {
           Event::Start(ref bs) => {
             match bs.name() {
-              #( #match_start_variants )*
+              #( #start_tags )*
               _ => return Err(Error::UnexpectedTag {
                 expected: String::from(stringify!( #( #start_tags ),* )),
                 found: String::from_utf8(bs.name().to_vec())?,
@@ -285,7 +312,7 @@ fn read_enum(e: &ItemEnum) -> TokenStream {
           },
           Event::Empty(ref bs) => {
             match bs.name() {
-              #( #match_empty_variants )*
+              #( #empty_tags )*
               _ => return Err(Error::UnexpectedTag {
                 expected: String::from(stringify!( #( #empty_tags ),* )),
                 found: String::from_utf8(bs.name().to_vec())?,
@@ -299,31 +326,4 @@ fn read_enum(e: &ItemEnum) -> TokenStream {
       }
     }
   }
-}
-
-fn match_variant(v: &Variant, enum_name: &Ident) -> TokenStream {
-  let tag = &v.config.tag;
-  let name = &v.name;
-
-  let ty = get_ty_ident(&v.field.ty);
-
-  quote!{ #tag => return #ty::read(r, Some(bs)).map(|p| #enum_name::#name(p)), }
-}
-
-// Some type may consist of a lifetime, e.g. `CharStyle<'a>`,
-// and this function attempts to get their idents.
-fn get_ty_ident(ty: &Type) -> Option<Ident> {
-  let path = match ty {
-    Type::Path(ref ty) => &ty.path,
-    _ => {
-      return None;
-    }
-  };
-  let seg = match path.segments.last() {
-    Some(seg) => seg.into_value(),
-    None => {
-      return None;
-    }
-  };
-  Some(seg.clone().ident)
 }
