@@ -57,7 +57,7 @@ fn init_fields(s: &Struct) -> TokenStream {
         .iter()
         .map(|f| {
           let name = &f.name;
-          if let Some(_) = f.ty.is_vec() {
+          if f.ty.is_vec().is_some() {
             quote! { let mut #name = Vec::new(); }
           } else {
             quote! { let mut #name = None; }
@@ -92,7 +92,7 @@ fn set_attrs(s: &Struct) -> TokenStream {
       quote! { #tag => #name = Some(String::from_utf8(attr.value.into_owned().to_vec())?), }
     }).collect();
 
-  if match_attrs.len() == 0 {
+  if match_attrs.is_empty() {
     return quote!();
   }
 
@@ -186,7 +186,7 @@ fn set_children(s: &Struct) -> TokenStream {
       quote! { #tag => #name = Some(r.read_text(#tag, &mut Vec::new())?), }
     }).collect();
 
-  if match_flattern_text.len() == 0 && match_children.len() == 0 {
+  if match_flattern_text.is_empty() && match_children.is_empty() {
     return quote!();
   }
 

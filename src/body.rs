@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use errors::{Error, Result};
-use style::{CharStyle, ParaStyle, ParaStyleName};
+use style::{CharStyle, ParaStyle};
 use xml::Xml;
 
 // Specifies a run of content within the paragraph.
@@ -39,7 +39,7 @@ pub enum RunContent<'a> {
 #[derive(Debug, Xml)]
 #[xml(event = "Start")]
 #[xml(tag = "w:t")]
-struct TextRun<'a> {
+pub struct TextRun<'a> {
   #[xml(text)]
   text: Cow<'a, str>,
 }
@@ -47,7 +47,7 @@ struct TextRun<'a> {
 #[derive(Debug, Xml)]
 #[xml(event = "Empty")]
 #[xml(tag = "w:br")]
-struct BreakRun;
+pub struct BreakRun;
 
 #[derive(Debug, Default, Xml)]
 #[xml(event = "Start")]

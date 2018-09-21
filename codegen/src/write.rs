@@ -134,7 +134,7 @@ fn write_attrs(s: &Struct) -> Vec<TokenStream> {
     let name = &f.name;
     let tag = &f.attr;
 
-    if let Some(_) = f.ty.is_option() {
+    if f.ty.is_option().is_some() {
       result.push(quote!{
         if let Some(ref #name) = self.#name {
           start.push_attribute((#tag, #name as &str));
@@ -154,13 +154,13 @@ fn write_children(s: &Struct) -> Vec<TokenStream> {
   for f in &s.child_flds {
     let name = &f.name;
 
-    if let Some(_) = f.ty.is_option() {
+    if f.ty.is_option().is_some() {
       result.push(quote! {
         if let Some(ref #name) = self.#name {
           #name.write(w)?;
         }
       });
-    } else if let Some(_) = f.ty.is_vec() {
+    } else if f.ty.is_vec().is_some() {
       result.push(quote! {
         for #name in &self.#name {
           #name.write(w)?;
@@ -183,7 +183,7 @@ fn write_flattern_text(s: &Struct) -> Vec<TokenStream> {
     let name = &f.name;
     let tag = bytes_str!(f.tag);
 
-    if let Some(_) = f.ty.is_option() {
+    if f.ty.is_option().is_some() {
       result.push(quote! {
         if let Some(ref #name) = self.#name {
           w.write_event(Event::Start(BytesStart::borrowed(#tag, #tag.len())))?;

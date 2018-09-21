@@ -5,6 +5,7 @@ use syn::Lit::*;
 use syn::Meta::*;
 use syn::NestedMeta::Meta;
 
+#[cfg_attr(feature = "cargo-clippy", allow(large_enum_variant))]
 pub(crate) enum Item {
   Enum(Enum),
   Struct(Struct),
@@ -61,7 +62,7 @@ pub(crate) struct EmptyFlatternField {
 impl Struct {
   pub fn parse(
     data: &syn::DataStruct,
-    attrs: &Vec<syn::Attribute>,
+    attrs: &[syn::Attribute],
     ident: &syn::Ident,
     generics: &syn::Generics,
   ) -> Struct {
@@ -170,8 +171,8 @@ impl Struct {
     }
 
     Struct {
-      event: event.expect(&format!("No event attribute found for {}", ident)),
-      tag: tag.expect(&format!("No tag attribute found for {}", ident)),
+      event: event.unwrap_or_else(|| panic!("No event attribute found for {}", ident)),
+      tag: tag.unwrap_or_else(|| panic!("No tag attribute found for {}", ident)),
       extend_attrs,
       name: ident.clone(),
       generics: generics.clone(),
