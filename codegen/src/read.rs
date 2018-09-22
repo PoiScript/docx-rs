@@ -152,6 +152,7 @@ fn set_attrs(s: &Struct) -> TokenStream {
 }
 
 fn set_children(s: &Struct) -> TokenStream {
+  let tag = bytes_str!(s.tag);
   let match_children: &Vec<_> = &s
     .child_flds
     .iter()
@@ -201,7 +202,7 @@ fn set_children(s: &Struct) -> TokenStream {
             _ => (),
           }
         },
-        Event::End(_) => break,
+        Event::End(ref bs) => if bs.name() == #tag { break; },
         Event::Eof => return Err(Error::UnexpectedEof),
         _ => (),
       };
