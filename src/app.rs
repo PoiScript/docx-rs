@@ -4,13 +4,13 @@ use std::default::Default;
 
 use errors::{Error, Result};
 use schema::{SCHEMAS_EXTENDED, SCHEMA_DOC_PROPS_V_TYPES};
-use xml::Xml;
+use Xml;
 
 #[derive(Debug, Xml)]
 #[xml(event = "Start")]
 #[xml(tag = "Properties")]
-#[xml(extend_attrs = "app_xml_extend_attrs")]
-pub struct AppXml<'a> {
+#[xml(extend_attrs = "app_extend_attrs")]
+pub struct App<'a> {
   #[xml(flattern_text)]
   #[xml(tag = "Tempalte")]
   template: Cow<'a, str>,
@@ -61,9 +61,9 @@ pub struct AppXml<'a> {
   app_version: Cow<'a, str>,
 }
 
-impl<'a> Default for AppXml<'a> {
-  fn default() -> AppXml<'a> {
-    AppXml {
+impl<'a> Default for App<'a> {
+  fn default() -> App<'a> {
+    App {
       template: Cow::Borrowed("Normal.dotm"),
       total_time: Cow::Borrowed("1"),
       pages: Cow::Borrowed("1"),
@@ -84,7 +84,7 @@ impl<'a> Default for AppXml<'a> {
   }
 }
 
-fn app_xml_extend_attrs(_: &AppXml, start: &mut BytesStart) {
+fn app_extend_attrs(_: &App, start: &mut BytesStart) {
   start.push_attribute(("xmlns", SCHEMAS_EXTENDED));
   start.push_attribute(("xmlns:vt", SCHEMA_DOC_PROPS_V_TYPES));
 }

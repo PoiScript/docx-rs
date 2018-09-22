@@ -1,8 +1,24 @@
+use quick_xml::events::BytesStart;
 use std::borrow::Cow;
 
 use errors::{Error, Result};
+use schema::SCHEMA_MAIN;
 use style::{CharStyle, ParaStyle};
-use xml::Xml;
+use Xml;
+
+#[derive(Debug, Default, Xml)]
+#[xml(event = "Start")]
+#[xml(tag = "w:document")]
+#[xml(extend_attrs = "document_extend_attrs")]
+pub struct Document<'a> {
+  #[xml(child)]
+  #[xml(tag = "w:body")]
+  pub body: Body<'a>,
+}
+
+fn document_extend_attrs(_: &Document, start: &mut BytesStart) {
+  start.push_attribute(("xmlns:w", SCHEMA_MAIN));
+}
 
 // Specifies a run of content within the paragraph.
 #[derive(Debug, Default, Xml)]
@@ -14,6 +30,7 @@ pub struct Run<'a> {
   prop: CharStyle<'a>,
   #[xml(child)]
   #[xml(tag = "w:t")]
+  #[xml(tag = "w:br")]
   content: Vec<RunContent<'a>>,
 }
 
@@ -22,6 +39,10 @@ impl<'a> Run<'a> {
     self.content.push(RunContent::Text(TextRun {
       text: Cow::Borrowed(text),
     }));
+    self
+  }
+  pub fn add_break(&mut self) -> &mut Self {
+    self.content.push(RunContent::Break(BreakRun { ty: None }));
     self
   }
 }
@@ -47,7 +68,10 @@ pub struct TextRun<'a> {
 #[derive(Debug, Xml)]
 #[xml(event = "Empty")]
 #[xml(tag = "w:br")]
-pub struct BreakRun;
+pub struct BreakRun {
+  #[xml(attr = "type")]
+  ty: Option<String>,
+}
 
 #[derive(Debug, Default, Xml)]
 #[xml(event = "Start")]
@@ -73,7 +97,7 @@ impl<'a> Para<'a> {
   }
 }
 
-// // Specifies the contents of the body of the document.
+/// Specifies the contents of the body of the document.
 #[derive(Debug, Xml)]
 pub enum BodyContent<'a> {
   #[xml(event = "Start")]

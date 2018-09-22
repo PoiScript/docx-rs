@@ -9,36 +9,38 @@ use zip::write::FileOptions;
 use zip::CompressionMethod;
 use zip::{ZipArchive, ZipWriter};
 
-use body::Para;
+use app::App;
+use content_type::ContentTypes;
+use core::Core;
+use document::{Document, Para};
 use errors::{Error, Result};
+use font_table::FontTable;
+use rels::Relationships;
 use schema::{
   SCHEMA_CORE, SCHEMA_FONT_TABLE, SCHEMA_OFFICE_DOCUMENT, SCHEMA_REL_EXTENDED, SCHEMA_STYLES,
 };
-use style::Style;
-use xml::{AppXml, ContentTypes, CoreXml, DocumentXml, FontTableXml, RelsXml, StylesXml, Xml};
+use style::{Style, Styles};
+use Xml;
 
 #[derive(Debug, Default)]
 pub struct Docx<'a> {
-  app_xml: Option<AppXml<'a>>,
-  core_xml: Option<CoreXml<'a>>,
-  content_types_xml: ContentTypes<'a>,
-  document_xml: DocumentXml<'a>,
-  font_table_xml: Option<FontTableXml<'a>>,
-  styles_xml: Option<StylesXml<'a>>,
-  rels: RelsXml<'a>,
-  document_rels: Option<RelsXml<'a>>,
+  app: Option<App<'a>>,
+  core: Option<Core<'a>>,
+  content_types: ContentTypes<'a>,
+  document: Document<'a>,
+  font_table: Option<FontTable<'a>>,
+  styles: Option<Styles<'a>>,
+  rels: Relationships<'a>,
+  document_rels: Option<Relationships<'a>>,
 }
 
 impl<'a> Docx<'a> {
   pub fn create_para(&mut self) -> &mut Para<'a> {
-    self.document_xml.body.create_para()
+    self.document.body.create_para()
   }
 
   pub fn create_style(&mut self) -> &mut Style<'a> {
-    self
-      .styles_xml
-      .get_or_insert(StylesXml::default())
-      .create_style()
+    self.styles.get_or_insert(Styles::default()).create_style()
   }
 
   pub fn generate<T: Write + Seek>(&mut self, writer: T) -> Result<T> {
@@ -71,18 +73,18 @@ impl<'a> Docx<'a> {
     }
 
     // content types
-    write!(self.content_types_xml, "[Content_Types].xml");
+    write!(self.content_types, "[Content_Types].xml");
 
     // document properties
     option_write!(
-      self.app_xml,
+      self.app,
       "docProps/app.xml",
       self.rels,
       SCHEMA_REL_EXTENDED,
       "docProps/app.xml"
     );
     option_write!(
-      self.core_xml,
+      self.core,
       "docProps/core.xml",
       self.rels,
       SCHEMA_CORE,
@@ -91,21 +93,21 @@ impl<'a> Docx<'a> {
 
     // documents specific parts
     write!(
-      self.document_xml,
+      self.document,
       "word/document.xml",
       self.rels, SCHEMA_OFFICE_DOCUMENT, "word/document.xml"
     );
     option_write!(
-      self.styles_xml,
+      self.styles,
       "word/styles.xml",
-      self.document_rels.get_or_insert(RelsXml::default()),
+      self.document_rels.get_or_insert(Relationships::default()),
       SCHEMA_STYLES,
       "styles.xml"
     );
     option_write!(
-      self.font_table_xml,
+      self.font_table,
       "word/fontTable.xml",
-      self.document_rels.get_or_insert(RelsXml::default()),
+      self.document_rels.get_or_insert(Relationships::default()),
       SCHEMA_FONT_TABLE,
       "fontTable.xml"
     );
@@ -144,14 +146,14 @@ impl<'a> Docx<'a> {
     }
 
     Ok(Docx {
-      app_xml: option_read!(AppXml, "docProps/app.xml"),
-      content_types_xml: read!(ContentTypes, "[Content_Types].xml"),
-      core_xml: option_read!(CoreXml, "docProps/core.xml"),
-      document_rels: option_read!(RelsXml, "word/_rels/document.xml.rels"),
-      document_xml: read!(DocumentXml, "word/document.xml"),
-      font_table_xml: option_read!(FontTableXml, "word/fontTable.xml"),
-      rels: read!(RelsXml, "_rels/.rels"),
-      styles_xml: option_read!(StylesXml, "word/styles.xml"),
+      app: option_read!(App, "docProps/app.xml"),
+      content_types: read!(ContentTypes, "[Content_Types].xml"),
+      core: option_read!(Core, "docProps/core.xml"),
+      document_rels: option_read!(Relationships, "word/_rels/document.xml.rels"),
+      document: read!(Document, "word/document.xml"),
+      font_table: option_read!(FontTable, "word/fontTable.xml"),
+      rels: read!(Relationships, "_rels/.rels"),
+      styles: option_read!(Styles, "word/styles.xml"),
     })
   }
 }

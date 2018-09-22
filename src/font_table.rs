@@ -3,7 +3,22 @@ use std::borrow::Cow;
 
 use errors::{Error, Result};
 use schema::{SCHEMA_MAIN, SCHEMA_RELATIONSHIPS};
-use xml::Xml;
+use Xml;
+
+#[derive(Debug, Default, Xml)]
+#[xml(event = "Start")]
+#[xml(tag = "w:fonts")]
+#[xml(extend_attrs = "font_table_extend_attrs")]
+pub struct FontTable<'a> {
+  #[xml(child)]
+  #[xml(tag = "w:font")]
+  fonts: Vec<Font<'a>>,
+}
+
+fn font_table_extend_attrs(_: &FontTable, start: &mut BytesStart) {
+  start.push_attribute(("xmlns:w", SCHEMA_MAIN));
+  start.push_attribute(("xmlns:r", SCHEMA_RELATIONSHIPS));
+}
 
 #[derive(Debug, Default, Xml)]
 #[xml(event = "Start")]
@@ -20,19 +35,4 @@ pub struct Font<'a> {
   #[xml(flattern_text)]
   #[xml(tag = "w:pitch")]
   pitch: Cow<'a, str>,
-}
-
-#[derive(Debug, Default, Xml)]
-#[xml(event = "Start")]
-#[xml(tag = "w:fonts")]
-#[xml(extend_attrs = "font_table_extend_attrs")]
-pub struct FontTableXml<'a> {
-  #[xml(child)]
-  #[xml(tag = "w:font")]
-  fonts: Vec<Font<'a>>,
-}
-
-fn font_table_extend_attrs(_: &FontTableXml, start: &mut BytesStart) {
-  start.push_attribute(("xmlns:w", SCHEMA_MAIN));
-  start.push_attribute(("xmlns:r", SCHEMA_RELATIONSHIPS));
 }

@@ -2,7 +2,29 @@ use quick_xml::events::BytesStart;
 use std::borrow::Cow;
 
 use errors::{Error, Result};
-use xml::Xml;
+use schema::SCHEMA_MAIN;
+use Xml;
+
+#[derive(Debug, Default, Xml)]
+#[xml(event = "Start")]
+#[xml(tag = "w:styles")]
+#[xml(extend_attrs = "styles_extend_attrs")]
+pub struct Styles<'a> {
+  #[xml(child)]
+  #[xml(tag = "w:style")]
+  styles: Vec<Style<'a>>,
+}
+
+fn styles_extend_attrs(_: &Styles, start: &mut BytesStart) {
+  start.push_attribute(("xmlns:w", SCHEMA_MAIN));
+}
+
+impl<'a> Styles<'a> {
+  pub fn create_style(&mut self) -> &mut Style<'a> {
+    self.styles.push(Style::default());
+    self.styles.last_mut().unwrap()
+  }
+}
 
 #[derive(Debug, Default, Xml)]
 #[xml(event = "Start")]
@@ -20,6 +42,11 @@ pub struct Style<'a> {
   char: CharStyle<'a>,
 }
 
+fn style_extend_attrs(s: &Style, start: &mut BytesStart) {
+  start.push_attribute(("w:type", "paragraph"));
+  start.push_attribute(("w:styleId", &s.name.name as &str));
+}
+
 impl<'a> Style<'a> {
   pub fn with_name(&mut self, name: &'a str) -> &mut Self {
     self.name = StyleName {
@@ -35,11 +62,6 @@ impl<'a> Style<'a> {
   pub fn char_style(&mut self) -> &mut CharStyle<'a> {
     &mut self.char
   }
-}
-
-fn style_extend_attrs(s: &Style, start: &mut BytesStart) {
-  start.push_attribute(("w:type", "paragraph"));
-  start.push_attribute(("w:styleId", &s.name.name as &str));
 }
 
 #[derive(Debug, Default, Xml)]

@@ -3,23 +3,23 @@ use std::borrow::Cow;
 
 use errors::{Error, Result};
 use schema::SCHEMA_RELATIONSHIPS;
-use xml::Xml;
+use Xml;
 
 #[derive(Debug, Default, Xml)]
 #[xml(event = "Start")]
 #[xml(tag = "Relationships")]
 #[xml(extend_attrs = "relationships_extend_attrs")]
-pub struct RelsXml<'a> {
+pub struct Relationships<'a> {
   #[xml(child)]
   #[xml(tag = "Relationship")]
   relationships: Vec<Relationship<'a>>,
 }
 
-fn relationships_extend_attrs(_: &RelsXml, start: &mut BytesStart) {
+fn relationships_extend_attrs(_: &Relationships, start: &mut BytesStart) {
   start.push_attribute(("xmlns", SCHEMA_RELATIONSHIPS));
 }
 
-impl<'a> RelsXml<'a> {
+impl<'a> Relationships<'a> {
   pub fn add_rel(&mut self, schema: &'a str, target: &'a str) {
     let len = self.relationships.len();
     self.relationships.push(Relationship {

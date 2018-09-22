@@ -3,13 +3,13 @@ use std::borrow::Cow;
 
 use errors::{Error, Result};
 use schema::SCHEMA_CORE;
-use xml::Xml;
+use Xml;
 
 #[derive(Debug, Default, Xml)]
 #[xml(event = "Start")]
 #[xml(tag = "cp:coreProperties")]
-#[xml(extend_attrs = "core_xml_extend_attrs")]
-pub struct CoreXml<'a> {
+#[xml(extend_attrs = "core_extend_attrs")]
+pub struct Core<'a> {
   #[xml(flattern_text)]
   #[xml(tag = "dc:title")]
   title: Cow<'a, str>,
@@ -33,6 +33,6 @@ pub struct CoreXml<'a> {
   revision: Cow<'a, str>,
 }
 
-fn core_xml_extend_attrs(_: &CoreXml, start: &mut BytesStart) {
+fn core_extend_attrs(_: &Core, start: &mut BytesStart) {
   start.push_attribute(("xmlns:cp", SCHEMA_CORE));
 }
