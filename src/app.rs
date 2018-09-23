@@ -10,52 +10,52 @@ use schema::{SCHEMAS_EXTENDED, SCHEMA_DOC_PROPS_V_TYPES};
 #[xml(tag = "Properties")]
 #[xml(extend_attrs = "app_extend_attrs")]
 pub struct App<'a> {
-  #[xml(flattern_text)]
+  #[xml(flatten_text)]
   #[xml(tag = "Tempalte")]
   template: Cow<'a, str>,
-  #[xml(flattern_text)]
+  #[xml(flatten_text)]
   #[xml(tag = "TotalTime")]
   total_time: Cow<'a, str>,
-  #[xml(flattern_text)]
+  #[xml(flatten_text)]
   #[xml(tag = "Pages")]
   pages: Cow<'a, str>,
-  #[xml(flattern_text)]
+  #[xml(flatten_text)]
   #[xml(tag = "Words")]
   words: Cow<'a, str>,
-  #[xml(flattern_text)]
+  #[xml(flatten_text)]
   #[xml(tag = "Characters")]
   characters: Cow<'a, str>,
-  #[xml(flattern_text)]
+  #[xml(flatten_text)]
   #[xml(tag = "Application")]
   application: Cow<'a, str>,
-  #[xml(flattern_text)]
+  #[xml(flatten_text)]
   #[xml(tag = "DocSecurity")]
   doc_security: Cow<'a, str>,
-  #[xml(flattern_text)]
+  #[xml(flatten_text)]
   #[xml(tag = "Lines")]
   lines: Cow<'a, str>,
-  #[xml(flattern_text)]
+  #[xml(flatten_text)]
   #[xml(tag = "Paragraphs")]
   paragraphs: Cow<'a, str>,
-  #[xml(flattern_text)]
+  #[xml(flatten_text)]
   #[xml(tag = "ScaleCrop")]
   scale_crop: Cow<'a, str>,
-  #[xml(flattern_text)]
+  #[xml(flatten_text)]
   #[xml(tag = "Company")]
   company: Cow<'a, str>,
-  #[xml(flattern_text)]
+  #[xml(flatten_text)]
   #[xml(tag = "LinksUpToDate")]
   links_up_to_date: Cow<'a, str>,
-  #[xml(flattern_text)]
+  #[xml(flatten_text)]
   #[xml(tag = "CharactersWithSpaces")]
   characters_with_spaces: Cow<'a, str>,
-  #[xml(flattern_text)]
+  #[xml(flatten_text)]
   #[xml(tag = "SharedDoc")]
   shared_doc: Cow<'a, str>,
-  #[xml(flattern_text)]
+  #[xml(flatten_text)]
   #[xml(tag = "HyperlinksChanged")]
   hyperlinks_changed: Cow<'a, str>,
-  #[xml(flattern_text)]
+  #[xml(flatten_text)]
   #[xml(tag = "AppVersion")]
   app_version: Cow<'a, str>,
 }

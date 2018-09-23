@@ -9,25 +9,25 @@ use schema::SCHEMA_CORE;
 #[xml(tag = "cp:coreProperties")]
 #[xml(extend_attrs = "core_extend_attrs")]
 pub struct Core<'a> {
-  #[xml(flattern_text)]
+  #[xml(flatten_text)]
   #[xml(tag = "dc:title")]
   title: Cow<'a, str>,
-  #[xml(flattern_text)]
+  #[xml(flatten_text)]
   #[xml(tag = "dc:subject")]
   subject: Cow<'a, str>,
-  #[xml(flattern_text)]
+  #[xml(flatten_text)]
   #[xml(tag = "dc:creator")]
   creator: Cow<'a, str>,
-  #[xml(flattern_text)]
+  #[xml(flatten_text)]
   #[xml(tag = "cp:keywords")]
   keywords: Cow<'a, str>,
-  #[xml(flattern_text)]
+  #[xml(flatten_text)]
   #[xml(tag = "dc:description")]
   description: Cow<'a, str>,
-  #[xml(flattern_text)]
+  #[xml(flatten_text)]
   #[xml(tag = "cp:lastModifiedBy")]
   last_modified_by: Cow<'a, str>,
-  #[xml(flattern_text)]
+  #[xml(flatten_text)]
   #[xml(tag = "cp:revision")]
   revision: Cow<'a, str>,
 }

@@ -25,8 +25,9 @@ pub(crate) struct Struct {
   pub attr_flds: Vec<AttrField>,
   pub child_flds: Vec<ChildField>,
   pub text_fld: Option<TextField>,
-  pub flat_empty_flds: Vec<EmptyFlatternField>,
-  pub flat_text_flds: Vec<TextFlatternField>,
+  pub flat_empty_flds: Vec<EmptyFlatField>,
+  pub flat_empty_attr_flds: Vec<EmptyFlatAttrField>,
+  pub flat_text_flds: Vec<TextFlatField>,
 }
 
 pub(crate) struct AttrField {
@@ -46,13 +47,19 @@ pub(crate) struct TextField {
   pub ty: syn::Type,
 }
 
-pub(crate) struct TextFlatternField {
+pub(crate) struct TextFlatField {
   pub tag: syn::LitStr,
   pub name: syn::Ident,
   pub ty: syn::Type,
 }
 
-pub(crate) struct EmptyFlatternField {
+pub(crate) struct EmptyFlatField {
+  pub tag: syn::LitStr,
+  pub name: syn::Ident,
+  pub ty: syn::Type,
+}
+
+pub(crate) struct EmptyFlatAttrField {
   pub attr: syn::LitStr,
   pub tag: syn::LitStr,
   pub name: syn::Ident,
@@ -102,6 +109,7 @@ impl Struct {
     let mut text_fld = None;
     let mut flat_empty_flds = Vec::new();
     let mut flat_text_flds = Vec::new();
+    let mut flat_empty_attr_flds = Vec::new();
 
     for field in data.fields.iter() {
       let name = field.ident.clone().unwrap();
@@ -126,10 +134,10 @@ impl Struct {
                 tags.push(lit.clone());
               }
             }
-            Meta(Word(ref w)) if w == "flattern_text" => {
+            Meta(Word(ref w)) if w == "flatten_text" => {
               flat_text = true;
             }
-            Meta(Word(ref w)) if w == "flattern_empty" => {
+            Meta(Word(ref w)) if w == "flatten_empty" => {
               flat_empty = true;
             }
             Meta(Word(ref w)) if w == "text" => {
@@ -151,17 +159,19 @@ impl Struct {
         (Some(attr), false, false, false, 0, false) => attr_flds.push(AttrField { attr, name, ty }),
         (None, true, false, false, 1...10, false) => child_flds.push(ChildField { tags, name, ty }),
         (None, false, false, false, 0, true) => text_fld = Some(TextField { name, ty }),
-        (None, false, true, false, 1, false) => flat_text_flds.push(TextFlatternField {
-          tag: tags.pop().unwrap(),
-          name,
-          ty,
-        }),
-        (Some(attr), false, false, true, 1, false) => flat_empty_flds.push(EmptyFlatternField {
-          tag: tags.pop().unwrap(),
-          attr,
-          name,
-          ty,
-        }),
+        (None, false, true, false, 1, false) => {
+          let tag = tags.pop().unwrap();
+          flat_text_flds.push(TextFlatField { tag, name, ty });
+        }
+        (Some(attr), false, false, true, 1, false) => {
+          let tag = tags.pop().unwrap();
+          flat_empty_attr_flds.push(EmptyFlatAttrField {
+            tag,
+            attr,
+            name,
+            ty,
+          });
+        }
         _ => panic!(
           "Unkown attribute when parsing field {}:\n{}.",
           name,
@@ -180,6 +190,7 @@ impl Struct {
       child_flds,
       text_fld,
       flat_empty_flds,
+      flat_empty_attr_flds,
       flat_text_flds,
     }
   }
@@ -216,10 +227,10 @@ impl Enum {
                 tags.push(lit.clone());
               }
             }
-            Meta(Word(ref w)) if w == "flattern_text" => {
+            Meta(Word(ref w)) if w == "flatten_text" => {
               flat_text = true;
             }
-            Meta(Word(ref w)) if w == "flattern_empty" => {
+            Meta(Word(ref w)) if w == "flatten_empty" => {
               flat_empty = true;
             }
             Meta(NameValue(ref m)) if m.ident == "event" => {
@@ -279,6 +290,8 @@ pub trait TypeExt {
   fn is_option(&self) -> Option<&Self>;
   fn is_cow_str(&self) -> bool;
   fn is_vec(&self) -> Option<&Self>;
+  fn is_bool(&self) -> bool;
+  fn is_string(&self) -> bool;
   fn get_ident(&self) -> Option<syn::Ident>;
 }
 
@@ -376,6 +389,20 @@ impl TypeExt for syn::Type {
       }
     } else {
       None
+    }
+  }
+
+  fn is_string(&self) -> bool {
+    match self.get_ident() {
+      Some(ty) => ty == "String",
+      None => false,
+    }
+  }
+
+  fn is_bool(&self) -> bool {
+    match self.get_ident() {
+      Some(ty) => ty == "bool",
+      None => false,
     }
   }
 

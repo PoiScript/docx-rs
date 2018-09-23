@@ -39,7 +39,7 @@ struct Tag3 {
   #[xml(child)]
   #[xml(tag = "tag2")]
   pub tag2: Option<Tag2>,
-  #[xml(flattern_text)]
+  #[xml(flatten_text)]
   #[xml(tag = "text")]
   pub text: Option<String>,
 }

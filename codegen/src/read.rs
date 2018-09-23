@@ -59,6 +59,8 @@ fn init_fields(s: &Struct) -> TokenStream {
           let name = &f.name;
           if f.ty.is_vec().is_some() {
             quote! { let mut #name = Vec::new(); }
+          } else if f.ty.is_bool() {
+            quote! { let mut #name = false; }
           } else {
             quote! { let mut #name = None; }
           }
@@ -178,7 +180,7 @@ fn set_children(s: &Struct) -> TokenStream {
       }
     }).collect();
 
-  let match_flattern_text: &Vec<_> = &s
+  let match_flatten_text: &Vec<_> = &s
     .flat_text_flds
     .iter()
     .map(|f| {
@@ -187,7 +189,7 @@ fn set_children(s: &Struct) -> TokenStream {
       quote! { #tag => #name = Some(r.read_text(#tag, &mut Vec::new())?), }
     }).collect();
 
-  if match_flattern_text.is_empty() && match_children.is_empty() {
+  if match_flatten_text.is_empty() && match_children.is_empty() {
     return quote!();
   }
 
@@ -198,7 +200,7 @@ fn set_children(s: &Struct) -> TokenStream {
         Event::Start(ref bs) | Event::Empty(ref bs) => {
           match bs.name() {
             #( #match_children )*
-            #( #match_flattern_text )*
+            #( #match_flatten_text )*
             _ => (),
           }
         },

@@ -21,7 +21,7 @@ fn write_struct(s: &Struct) -> TokenStream {
       let write_end_event = write_end_event(&s);
       let write_text_event = write_text_event(&s);
       let write_children = write_children(&s);
-      let write_flattern_text = write_flattern_text(&s);
+      let write_flatten_text = write_flatten_text(&s);
 
       quote! {
         #write_start_event
@@ -30,7 +30,7 @@ fn write_struct(s: &Struct) -> TokenStream {
 
         #( #write_children )*
 
-        #( #write_flattern_text )*
+        #( #write_flatten_text )*
 
         #write_end_event
 
@@ -176,7 +176,7 @@ fn write_children(s: &Struct) -> Vec<TokenStream> {
   result
 }
 
-fn write_flattern_text(s: &Struct) -> Vec<TokenStream> {
+fn write_flatten_text(s: &Struct) -> Vec<TokenStream> {
   let mut result = Vec::new();
 
   for f in &s.flat_text_flds {
