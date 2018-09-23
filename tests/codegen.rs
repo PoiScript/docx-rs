@@ -1,6 +1,8 @@
 extern crate docx;
 #[macro_use]
 extern crate docx_codegen;
+#[macro_use]
+extern crate log;
 extern crate quick_xml;
 
 use docx::errors::{Error, Result};

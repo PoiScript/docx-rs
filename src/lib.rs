@@ -1,5 +1,7 @@
 #[macro_use]
 extern crate docx_codegen;
+#[macro_use]
+extern crate log;
 extern crate quick_xml;
 extern crate zip;
 

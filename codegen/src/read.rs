@@ -84,6 +84,8 @@ fn init_fields(s: &Struct) -> TokenStream {
 }
 
 fn set_attrs(s: &Struct) -> TokenStream {
+  let name = &s.name;
+
   let match_attrs: Vec<_> = s
     .attr_flds
     .iter()
@@ -104,7 +106,11 @@ fn set_attrs(s: &Struct) -> TokenStream {
     for attr in bs.attributes().filter_map(|a| a.ok()) {
       match attr.key {
         #( #match_attrs )*
-        _ => (),
+        k => info!(
+          "Unhandled attribute {} when parsing {}.",
+          String::from_utf8_lossy(k),
+          stringify!(#name)
+        ),
       }
     }
   };
@@ -155,6 +161,7 @@ fn set_attrs(s: &Struct) -> TokenStream {
 
 fn set_children(s: &Struct) -> TokenStream {
   let tag = bytes_str!(s.tag);
+  let name = &s.name;
   let match_children: &Vec<_> = &s
     .child_flds
     .iter()
@@ -201,7 +208,11 @@ fn set_children(s: &Struct) -> TokenStream {
           match bs.name() {
             #( #match_children )*
             #( #match_flatten_text )*
-            _ => (),
+            t => info!(
+              "Unhandled tag {} when parsing {}.",
+              String::from_utf8_lossy(t),
+              stringify!(#name)
+            ),
           }
         },
         Event::End(ref bs) => if bs.name() == #tag { break; },
