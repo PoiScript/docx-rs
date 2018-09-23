@@ -331,18 +331,22 @@ impl TypeExt for syn::Type {
         return false;
       }
     };
-    if seg.ident != "Cow" || args.len() != 2 {
+    if args.len() != 2 {
       return false;
     }
     let ty = match (&args[0], &args[1]) {
       (&syn::GenericArgument::Lifetime(_), &syn::GenericArgument::Type(ref arg)) => arg,
       _ => return false,
     };
-    match *ty {
-      syn::Type::Path(ref ty) => {
-        ty.qself.is_none() && ty.path.segments.len() == 1 && ty.path.segments[0].ident == "str"
+    if seg.ident == "Cow" {
+      match *ty {
+        syn::Type::Path(ref ty) => {
+          ty.qself.is_none() && ty.path.segments.len() == 1 && ty.path.segments[0].ident == "str"
+        }
+        _ => false,
       }
-      _ => false,
+    } else {
+      false
     }
   }
 

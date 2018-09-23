@@ -4,7 +4,6 @@ use std::borrow::Cow;
 use errors::{Error, Result};
 use schema::SCHEMA_MAIN;
 use style::{CharStyle, ParaStyle};
-use Xml;
 
 #[derive(Debug, Default, Xml)]
 #[xml(event = "Start")]

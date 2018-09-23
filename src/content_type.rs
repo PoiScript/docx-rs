@@ -4,7 +4,6 @@ use std::default::Default;
 
 use errors::{Error, Result};
 use schema::SCHEMA_CONTENT_TYPES;
-use Xml;
 
 const CONTENT_TYPE_XML: &str = "application/xml";
 const CONTENT_TYPE_CORE: &str = "application/vnd.openxmlformats-package.core-properties+xml";

@@ -4,7 +4,6 @@ use std::default::Default;
 
 use errors::{Error, Result};
 use schema::{SCHEMAS_EXTENDED, SCHEMA_DOC_PROPS_V_TYPES};
-use Xml;
 
 #[derive(Debug, Xml)]
 #[xml(event = "Start")]

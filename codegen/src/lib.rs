@@ -39,8 +39,8 @@ pub fn derive_xml(input: TokenStream) -> TokenStream {
   let impl_read = impl_read(&item);
 
   let gen = quote!{
-    impl #generics Xml for #name #generics {
-      fn write<W>(&self, w: &mut ::quick_xml::Writer<W>) -> Result<()>
+    impl #generics #name #generics {
+      pub fn write<W>(&self, w: &mut ::quick_xml::Writer<W>) -> Result<()>
       where
         W: ::std::io::Write,
       {
@@ -49,7 +49,7 @@ pub fn derive_xml(input: TokenStream) -> TokenStream {
         #impl_write
       }
 
-      fn read<B>(
+      pub fn read<B>(
         r: &mut ::quick_xml::Reader<B>,
         bs: Option<&::quick_xml::events::BytesStart>,
       ) -> Result<#name #generics>

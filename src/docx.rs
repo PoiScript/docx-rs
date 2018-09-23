@@ -20,7 +20,6 @@ use schema::{
   SCHEMA_CORE, SCHEMA_FONT_TABLE, SCHEMA_OFFICE_DOCUMENT, SCHEMA_REL_EXTENDED, SCHEMA_STYLES,
 };
 use style::{Style, Styles};
-use Xml;
 
 #[derive(Debug, Default)]
 pub struct Docx<'a> {

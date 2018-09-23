@@ -4,7 +4,6 @@ extern crate docx_codegen;
 extern crate quick_xml;
 
 use docx::errors::{Error, Result};
-use docx::xml::Xml;
 use quick_xml::{Reader, Writer};
 use std::io::Cursor;
 

@@ -3,7 +3,6 @@ use std::borrow::Cow;
 
 use errors::{Error, Result};
 use schema::SCHEMA_CORE;
-use Xml;
 
 #[derive(Debug, Default, Xml)]
 #[xml(event = "Start")]

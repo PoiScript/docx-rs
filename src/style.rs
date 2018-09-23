@@ -3,7 +3,6 @@ use std::borrow::Cow;
 
 use errors::{Error, Result};
 use schema::SCHEMA_MAIN;
-use Xml;
 
 #[derive(Debug, Default, Xml)]
 #[xml(event = "Start")]
@@ -128,26 +127,15 @@ pub struct Justification {
   val: String,
 }
 
-// #[derive(Clone, Debug)]
-// pub enum JustificationType {
-//   Start,
-//   End,
-//   Center,
-//   Both,
-//   Distribute,
-// }
-
-// impl JustificationType {
-//   pub fn as_ref(&self) -> &str {
-//     match *self {
-//       JustificationType::Start => "start",
-//       JustificationType::End => "end",
-//       JustificationType::Center => "center",
-//       JustificationType::Both => "both",
-//       JustificationType::Distribute => "distribute",
-//     }
-//   }
-// }
+string_enum!{
+  JustificationType {
+    Start = "start",
+    End = "end",
+    Center = "center",
+    Both = "both",
+    Distribute = "distribute",
+  }
+}
 
 impl<'a> ParaStyle<'a> {
   pub fn with_jc(&mut self, jc: &'a str) -> &mut Self {
