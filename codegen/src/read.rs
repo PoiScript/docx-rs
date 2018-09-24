@@ -92,8 +92,18 @@ fn set_attrs(s: &Struct) -> TokenStream {
     .map(|f| {
       let name = &f.name;
       let tag = bytes_str!(f.attr);
+      let mut ty = &f.ty;
 
-      quote! { #tag => #name = Some(String::from_utf8(attr.value.into_owned().to_vec())?), }
+      if let Some(inner) = ty.is_option() {
+        ty = inner;
+      }
+
+      if ty.is_string() || ty.is_cow_str() {
+        quote! { #tag => #name = Some(String::from_utf8(attr.value.into_owned().to_vec())?), }
+      } else {
+        let ty = ty.get_ident();
+        quote! { #tag => #name = Some(#ty::from_str(::std::str::from_utf8(attr.value.borrow())?)?), }
+      }
     }).collect();
 
   if match_attrs.is_empty() {

@@ -137,11 +137,11 @@ fn write_attrs(s: &Struct) -> Vec<TokenStream> {
     if f.ty.is_option().is_some() {
       result.push(quote!{
         if let Some(ref #name) = self.#name {
-          start.push_attribute((#tag, #name as &str));
+          start.push_attribute((#tag, #name.as_ref()));
         }
       });
     } else {
-      result.push(quote!{ start.push_attribute((#tag, self.#name.as_ref() as &str)); });
+      result.push(quote!{ start.push_attribute((#tag, self.#name.as_ref())); });
     };
   }
 

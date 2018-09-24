@@ -23,7 +23,10 @@ fn main() {
 
     para.new_run().add_text("hello, world");
 
-    para.get_style().with_name("TestStyle").with_jc("start");
+    para
+      .get_style()
+      .with_name("TestStyle")
+      .with_jc(JustificationType::Start);
   }
 
   {
@@ -31,7 +34,10 @@ fn main() {
 
     para.new_run().add_text("hello, world");
 
-    para.get_style().with_name("TestStyle").with_jc("center");
+    para
+      .get_style()
+      .with_name("TestStyle")
+      .with_jc(JustificationType::Center);
   }
 
   {
@@ -39,7 +45,10 @@ fn main() {
 
     para.new_run().add_text("hello, world");
 
-    para.get_style().with_name("TestStyle").with_jc("end");
+    para
+      .get_style()
+      .with_name("TestStyle")
+      .with_jc(JustificationType::End);
   }
 
   docx.generate(file).unwrap();

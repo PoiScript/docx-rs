@@ -1,5 +1,7 @@
 use quick_xml::events::BytesStart;
-use std::borrow::Cow;
+use std::borrow::{Borrow, Cow};
+use std::convert::AsRef;
+use std::str::FromStr;
 
 use errors::{Error, Result};
 use schema::SCHEMA_MAIN;
@@ -69,7 +71,22 @@ pub struct TextRun<'a> {
 #[xml(tag = "w:br")]
 pub struct BreakRun {
   #[xml(attr = "type")]
-  ty: Option<String>,
+  ty: Option<BreakType>,
+}
+
+#[derive(Debug)]
+pub enum BreakType {
+  Column,
+  Page,
+  TextWrapping,
+}
+
+string_enum! {
+  BreakType {
+    Column = "column",
+    Page = "page",
+    TextWrapping = "textWrapping",
+  }
 }
 
 #[derive(Debug, Default, Xml)]

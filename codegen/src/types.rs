@@ -407,15 +407,14 @@ impl TypeExt for syn::Type {
   }
 
   fn get_ident(&self) -> Option<syn::Ident> {
-    let path = match self {
-      syn::Type::Path(ref ty) => &ty.path,
-      _ => {
-        return None;
-      }
-    };
-    path
-      .segments
-      .last()
-      .map(|seg| seg.into_value().ident.clone())
+    match self {
+      syn::Type::Path(ref ty) => ty
+        .path
+        .segments
+        .last()
+        .map(|seg| seg.into_value().ident.clone()),
+      syn::Type::Reference(ref ty) => ty.elem.get_ident(),
+      _ => None,
+    }
   }
 }

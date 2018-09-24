@@ -1,5 +1,7 @@
 use quick_xml::events::BytesStart;
-use std::borrow::Cow;
+use std::borrow::{Borrow, Cow};
+use std::convert::AsRef;
+use std::str::FromStr;
 
 use errors::{Error, Result};
 use schema::SCHEMA_MAIN;
@@ -119,12 +121,21 @@ pub struct ParaStyleName<'a> {
   val: Cow<'a, str>,
 }
 
-#[derive(Debug, Default, Xml)]
+#[derive(Debug, Xml)]
 #[xml(event = "Empty")]
 #[xml(tag = "w:jc")]
 pub struct Justification {
   #[xml(attr = "w:val")]
-  val: String,
+  val: JustificationType,
+}
+
+#[derive(Debug)]
+pub enum JustificationType {
+  Start,
+  End,
+  Center,
+  Both,
+  Distribute,
 }
 
 string_enum!{
@@ -138,10 +149,8 @@ string_enum!{
 }
 
 impl<'a> ParaStyle<'a> {
-  pub fn with_jc(&mut self, jc: &'a str) -> &mut Self {
-    self.jc = Some(Justification {
-      val: jc.to_string(),
-    });
+  pub fn with_jc(&mut self, jc: JustificationType) -> &mut Self {
+    self.jc = Some(Justification { val: jc });
     self
   }
 
