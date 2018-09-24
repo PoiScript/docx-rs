@@ -14,9 +14,9 @@ use std::io::Cursor;
 #[xml(tag = "tag1")]
 struct Tag1 {
   #[xml(attr = "att1")]
-  pub att1: Option<String>,
+  att1: Option<String>,
   #[xml(text)]
-  pub content: String,
+  content: String,
 }
 
 #[derive(Xml, PartialEq, Debug)]
@@ -24,9 +24,9 @@ struct Tag1 {
 #[xml(tag = "tag2")]
 struct Tag2 {
   #[xml(attr = "att1")]
-  pub att1: String,
+  att1: String,
   #[xml(attr = "att2")]
-  pub att2: String,
+  att2: String,
 }
 
 #[derive(Xml, PartialEq, Debug)]
@@ -34,16 +34,23 @@ struct Tag2 {
 #[xml(tag = "tag3")]
 struct Tag3 {
   #[xml(attr = "att1")]
-  pub att1: String,
+  att1: String,
   #[xml(child)]
   #[xml(tag = "tag1")]
-  pub tag1: Vec<Tag1>,
+  tag1: Vec<Tag1>,
   #[xml(child)]
   #[xml(tag = "tag2")]
-  pub tag2: Option<Tag2>,
+  tag2: Option<Tag2>,
   #[xml(flatten_text)]
   #[xml(tag = "text")]
-  pub text: Option<String>,
+  text: Option<String>,
+  #[xml(flatten_empty)]
+  #[xml(tag = "tag4")]
+  tag4: bool,
+  #[xml(flatten_empty)]
+  #[xml(tag = "tag5")]
+  #[xml(attr = "att1")]
+  tag5: Option<String>,
 }
 
 #[derive(Xml, PartialEq, Debug)]
@@ -93,11 +100,13 @@ fn test_write() {
         att2: String::from("tag2_att2"),
       }),
       text: None,
+      tag4: false,
+      tag5: None,
     }
   );
 
   assert_write_eq!(
-    r#"<tag3 att1="att1"><tag1>tag1_content</tag1><text>tag3_content</text></tag3>"#,
+    r#"<tag3 att1="att1"><tag1>tag1_content</tag1><text>tag3_content</text><tag4/><tag5 att1="tag5_att1"/></tag3>"#,
     Tag3 {
       att1: String::from("att1"),
       tag1: vec![Tag1 {
@@ -106,11 +115,13 @@ fn test_write() {
       }],
       tag2: None,
       text: Some(String::from("tag3_content")),
+      tag4: true,
+      tag5: Some(String::from("tag5_att1")),
     }
   );
 
   assert_write_eq!(
-    r#"<tag3 att1="att1"><tag1>content</tag1><tag1>tag1</tag1><text>tag3_content</text></tag3>"#,
+    r#"<tag3 att1="att1"><tag1>content</tag1><tag1>tag1</tag1><text>tag3_content</text><tag5 att1="tag5_att1"/></tag3>"#,
     Tag3 {
       att1: String::from("att1"),
       tag1: vec![
@@ -125,6 +136,8 @@ fn test_write() {
       ],
       tag2: None,
       text: Some(String::from("tag3_content")),
+      tag4: false,
+      tag5: Some(String::from("tag5_att1")),
     }
   );
 
@@ -153,12 +166,14 @@ fn test_read() {
         att2: String::from("att2"),
       }),
       text: Some(String::from("tag3_content")),
+      tag4: false,
+      tag5: None,
     }
   );
 
   assert_read_eq!(
     Tag3,
-    r#"<tag3 att1="att1"><tag1>content</tag1><text>tag3_content</text></tag3>"#,
+    r#"<tag3 att1="att1"><tag1>content</tag1><text>tag3_content</text><tag4/><tag5 att1="tag5_att1"/></tag3>"#,
     Tag3 {
       att1: String::from("att1"),
       tag1: vec![Tag1 {
@@ -166,7 +181,9 @@ fn test_read() {
         content: String::from("content"),
       }],
       tag2: None,
+      tag4: true,
       text: Some(String::from("tag3_content")),
+      tag5: Some(String::from("tag5_att1")),
     }
   );
 
@@ -186,7 +203,9 @@ fn test_read() {
         },
       ],
       tag2: None,
+      tag4: false,
       text: None,
+      tag5: None,
     }
   );
 

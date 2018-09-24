@@ -72,6 +72,7 @@ fn init_fields(s: &Struct) -> TokenStream {
   let init_child_flds = init_fld!(child_flds);
   let init_text_fld = init_fld!(text_fld);
   let init_flat_empty_flds = init_fld!(flat_empty_flds);
+  let init_flat_empty_attr_flds = init_fld!(flat_empty_attr_flds);
   let init_flat_text_flds = init_fld!(flat_text_flds);
 
   quote! {
@@ -79,6 +80,7 @@ fn init_fields(s: &Struct) -> TokenStream {
     #( #init_child_flds )*
     #( #init_text_fld )*
     #( #init_flat_empty_flds )*
+    #( #init_flat_empty_attr_flds )*
     #( #init_flat_text_flds )*
   }
 }
@@ -206,7 +208,55 @@ fn set_children(s: &Struct) -> TokenStream {
       quote! { #tag => #name = Some(r.read_text(#tag, &mut Vec::new())?), }
     }).collect();
 
-  if match_flatten_text.is_empty() && match_children.is_empty() {
+  let match_flatten_empty: &Vec<_> = &s
+    .flat_empty_flds
+    .iter()
+    .map(|f| {
+      let tag = bytes_str!(f.tag);
+      let name = &f.name;
+      quote! { #tag => #name = true, }
+    }).collect();
+
+  let match_flatten_empty_attr: &Vec<_> = &s
+    .flat_empty_attr_flds
+    .iter()
+    .map(|f| {
+      let tag = bytes_str!(f.tag);
+      let name = &f.name;
+      let key = bytes_str!(f.attr);
+      let mut ty = &f.ty;
+
+      if let Some(inner) = ty.is_option() {
+        ty = inner;
+      }
+
+      let value = if ty.is_string() || ty.is_cow_str() {
+        quote! { String::from_utf8(attr.value.into_owned().to_vec())? }
+      } else {
+        quote! { #ty::from_str(::std::str::from_utf8(attr.value.borrow())?)? }
+      };
+
+      quote! {
+        #tag => {
+          for attr in bs.attributes().filter_map(|a| a.ok()) {
+            match attr.key {
+              #key => #name = Some(#value),
+              k => info!(
+                "Unhandled attribute {} when parsing {}.",
+                String::from_utf8_lossy(k),
+                stringify!(#name)
+              ),
+            }
+          }
+        }
+      }
+    }).collect();
+
+  if match_flatten_text.is_empty()
+    && match_children.is_empty()
+    && match_flatten_empty.is_empty()
+    && match_flatten_empty_attr.is_empty()
+  {
     return quote!();
   }
 
@@ -218,6 +268,8 @@ fn set_children(s: &Struct) -> TokenStream {
           match bs.name() {
             #( #match_children )*
             #( #match_flatten_text )*
+            #( #match_flatten_empty )*
+            #( #match_flatten_empty_attr )*
             t => info!(
               "Unhandled tag {} when parsing {}.",
               String::from_utf8_lossy(t),
@@ -256,7 +308,7 @@ fn return_struct(s: &Struct) -> TokenStream {
         .iter()
         .map(|f| {
           let name = &f.name;
-          if f.ty.is_option().is_some() || f.ty.is_vec().is_some() {
+          if f.ty.is_option().is_some() || f.ty.is_vec().is_some() || f.ty.is_bool() {
             quote! { #name, }
           } else if f.ty.is_cow_str() {
             quote! { #name : Cow::Owned(#name.ok_or(Error::MissingField {
@@ -277,6 +329,7 @@ fn return_struct(s: &Struct) -> TokenStream {
   let return_child_flds = return_flds!(child_flds);
   let return_text_fld = return_flds!(text_fld);
   let return_flat_empty_flds = return_flds!(flat_empty_flds);
+  let return_flat_empty_attr_flds = return_flds!(flat_empty_attr_flds);
   let return_flat_text_flds = return_flds!(flat_text_flds);
 
   quote! {
@@ -284,6 +337,7 @@ fn return_struct(s: &Struct) -> TokenStream {
     #( #return_child_flds )*
     #( #return_text_fld )*
     #( #return_flat_empty_flds )*
+    #( #return_flat_empty_attr_flds )*
     #( #return_flat_text_flds )*
   }
 }

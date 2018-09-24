@@ -163,6 +163,10 @@ impl Struct {
           let tag = tags.pop().unwrap();
           flat_text_flds.push(TextFlatField { tag, name, ty });
         }
+        (None, false, false, true, 1, false) => {
+          let tag = tags.pop().unwrap();
+          flat_empty_flds.push(EmptyFlatField { tag, name, ty });
+        }
         (Some(attr), false, false, true, 1, false) => {
           let tag = tags.pop().unwrap();
           flat_empty_attr_flds.push(EmptyFlatAttrField {

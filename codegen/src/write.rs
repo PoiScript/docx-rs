@@ -22,6 +22,8 @@ fn write_struct(s: &Struct) -> TokenStream {
       let write_text_event = write_text_event(&s);
       let write_children = write_children(&s);
       let write_flatten_text = write_flatten_text(&s);
+      let write_flatten_empty = wirte_flatten_empty(&s);
+      let write_flatten_empty_attr = write_flatten_empty_attr(&s);
 
       quote! {
         #write_start_event
@@ -31,6 +33,10 @@ fn write_struct(s: &Struct) -> TokenStream {
         #( #write_children )*
 
         #( #write_flatten_text )*
+
+        #( #write_flatten_empty )*
+
+        #( #write_flatten_empty_attr )*
 
         #write_end_event
 
@@ -196,6 +202,51 @@ fn write_flatten_text(s: &Struct) -> Vec<TokenStream> {
         w.write_event(Event::Start(BytesStart::borrowed(#tag, #tag.len())))?;
         w.write_event(Event::Text(BytesText::from_plain_str(self.#name.as_ref())))?;
         w.write_event(Event::End(BytesEnd::borrowed(#tag)))?;
+      });
+    }
+  }
+
+  result
+}
+
+fn wirte_flatten_empty(s: &Struct) -> Vec<TokenStream> {
+  let mut result = Vec::new();
+
+  for f in &s.flat_empty_flds {
+    let name = &f.name;
+    let tag = bytes_str!(f.tag);
+
+    result.push(quote! {
+      if self.#name {
+        w.write_event(Event::Empty(BytesStart::borrowed(#tag, #tag.len())))?;
+      }
+    });
+  }
+
+  result
+}
+
+fn write_flatten_empty_attr(s: &Struct) -> Vec<TokenStream> {
+  let mut result = Vec::new();
+
+  for f in &s.flat_empty_attr_flds {
+    let name = &f.name;
+    let tag = bytes_str!(f.tag);
+    let key = &f.attr;
+
+    if f.ty.is_option().is_some() {
+      result.push(quote! {
+        if let Some(ref #name) = self.#name {
+          let mut start= BytesStart::borrowed(#tag, #tag.len());
+          start.push_attribute((#key, #name.as_ref()));
+          w.write_event(Event::Empty(start))?;
+        }
+      });
+    } else {
+      result.push(quote! {
+        let mut start= BytesStart::borrowed(#tag, #tag.len());
+        start.push_attribute((#key, self.#name.as_ref()));
+        w.write_event(Event::Empty(start))?;
       });
     }
   }
