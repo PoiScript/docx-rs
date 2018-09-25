@@ -10,7 +10,7 @@ fn main() {
 
   let mut docx = Docx::default();
 
-  docx.create_para().new_run().add_text("hello, world");
+  docx.create_para().new_run().text("hello, world");
 
   docx.generate(file).unwrap();
 
@@ -18,7 +18,7 @@ fn main() {
 
   let mut docx = Docx::parse(file).unwrap();
 
-  docx.create_para().new_run().add_text("world, hello");
+  docx.create_para().new_run().text("world, hello");
 
   let path = Path::new("origin_appended.docx");
   let file = File::create(&path).unwrap();
