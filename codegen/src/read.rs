@@ -100,8 +100,10 @@ fn set_attrs(s: &Struct) -> TokenStream {
         ty = inner;
       }
 
-      if ty.is_string() || ty.is_cow_str() {
+      if ty.is_string() {
         quote! { #tag => #name = Some(String::from_utf8(attr.value.into_owned().to_vec())?), }
+      } else if ty.is_cow_str() {
+        quote! { #tag => #name = Some(Cow::Owned(String::from_utf8(attr.value.into_owned().to_vec())?)), }
       } else {
         let ty = ty.get_ident();
         quote! { #tag => #name = Some(#ty::from_str(::std::str::from_utf8(attr.value.borrow())?)?), }
@@ -205,7 +207,11 @@ fn set_children(s: &Struct) -> TokenStream {
     .map(|f| {
       let tag = bytes_str!(f.tag);
       let name = &f.name;
-      quote! { #tag => #name = Some(r.read_text(#tag, &mut Vec::new())?), }
+      if f.ty.is_cow_str() {
+        quote! { #tag => #name = Some(Cow::Owned(r.read_text(#tag, &mut Vec::new())?)), }
+      } else {
+        quote! { #tag => #name = Some(r.read_text(#tag, &mut Vec::new())?), }
+      }
     }).collect();
 
   let match_flatten_empty: &Vec<_> = &s
@@ -296,8 +302,14 @@ fn set_text(s: &Struct) -> TokenStream {
   let name = &field.name;
   let tag = bytes_str!(s.tag);
 
-  quote! {
-    #name = Some(r.read_text(#tag, &mut Vec::new())?);
+  if field.ty.is_cow_str() {
+    quote! {
+      #name = Some(Cow::Owned(r.read_text(#tag, &mut Vec::new())?));
+    }
+  } else {
+    quote! {
+      #name = Some(r.read_text(#tag, &mut Vec::new())?);
+    }
   }
 }
 
@@ -312,11 +324,6 @@ fn return_struct(s: &Struct) -> TokenStream {
           let name = &f.name;
           if f.ty.is_option().is_some() || f.ty.is_vec().is_some() || f.ty.is_bool() {
             quote! { #name, }
-          } else if f.ty.is_cow_str() {
-            quote! { #name : Cow::Owned(#name.ok_or(Error::MissingField {
-              name: String::from(stringify!(#struct_name)),
-              field: String::from(stringify!(#name)),
-            })?), }
           } else {
             quote! { #name : #name.ok_or(Error::MissingField {
               name: String::from(stringify!(#struct_name)),

@@ -235,7 +235,7 @@ fn write_flatten_empty_attr(s: &Struct) -> Vec<TokenStream> {
     let key = &f.attr;
 
     if let Some(ty) = f.ty.is_option() {
-      let path = if ty.is_usize() {
+      let path = if ty.is_usize() || ty.is_bool() {
         quote!{ #name.to_string().as_str() }
       } else {
         quote!{ #name.as_ref() }
@@ -248,7 +248,7 @@ fn write_flatten_empty_attr(s: &Struct) -> Vec<TokenStream> {
         }
       });
     } else {
-      let path = if f.ty.is_usize() {
+      let path = if f.ty.is_usize() || f.ty.is_bool() {
         quote!{ self.#name.to_string().as_str() }
       } else {
         quote!{ self.#name.as_ref() }

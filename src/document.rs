@@ -28,7 +28,7 @@ fn document_extend_attrs(_: &Document, start: &mut BytesStart) {
 pub struct Run<'a> {
   #[xml(child)]
   #[xml(tag = "w:rPr")]
-  prop: CharStyle<'a>,
+  pub prop: CharStyle<'a>,
   #[xml(child)]
   #[xml(tag = "w:t")]
   #[xml(tag = "w:br")]
@@ -36,13 +36,14 @@ pub struct Run<'a> {
 }
 
 impl<'a> Run<'a> {
-  pub fn add_text(&mut self, text: &'a str) -> &mut Self {
+  pub fn text(&mut self, text: &'a str) -> &mut Self {
     self.content.push(RunContent::Text(TextRun {
       text: Cow::Borrowed(text),
     }));
     self
   }
-  pub fn add_break(&mut self) -> &mut Self {
+
+  pub fn text_break(&mut self) -> &mut Self {
     self.content.push(RunContent::Break(BreakRun { ty: None }));
     self
   }
@@ -95,7 +96,7 @@ string_enum! {
 pub struct Para<'a> {
   #[xml(child)]
   #[xml(tag = "w:pPr")]
-  prop: ParaStyle<'a>,
+  pub prop: ParaStyle<'a>,
   // Each paragraph containes one or more runs.
   #[xml(child)]
   #[xml(tag = "w:r")]

@@ -3,7 +3,7 @@ use std::fmt;
 
 use quick_xml::Error as XmlError;
 use std::num::ParseIntError;
-use std::str::Utf8Error;
+use std::str::{ParseBoolError, Utf8Error};
 use std::string::FromUtf8Error;
 use zip::result::ZipError;
 
@@ -13,6 +13,7 @@ pub enum Error {
   Zip(ZipError),
   Utf8(Utf8Error),
   ParseInt(ParseIntError),
+  ParseBool(ParseBoolError),
   UnexpectedEof,
   UnexpectedTag { expected: String, found: String },
   UnexpectedEvent { expected: String, found: String },
@@ -27,6 +28,7 @@ impl fmt::Display for Error {
       Error::Zip(ref err) => write!(f, "{}", err),
       Error::Utf8(ref err) => write!(f, "{}", err),
       Error::ParseInt(ref err) => write!(f, "{}", err),
+      Error::ParseBool(ref err) => write!(f, "{}", err),
       Error::UnexpectedEof => write!(f, "Unexpected Eof"),
       Error::UnexpectedTag {
         ref expected,
@@ -54,6 +56,7 @@ impl error::Error for Error {
       Error::Zip(ref err) => err.description(),
       Error::Utf8(ref err) => err.description(),
       Error::ParseInt(ref err) => err.description(),
+      Error::ParseBool(ref err) => err.description(),
       Error::Xml(_) => "Xml Error",
       Error::UnexpectedEof => "Unexpected Eof",
       Error::UnexpectedTag { .. } => "Unexpted Tag",
@@ -71,6 +74,7 @@ impl error::Error for Error {
         _ => None,
       },
       Error::ParseInt(ref err) => Some(err),
+      Error::ParseBool(ref err) => Some(err),
       Error::Utf8(ref err) => Some(err as &error::Error),
       Error::Zip(ref err) => Some(err),
       Error::UnexpectedEof => None,
@@ -85,6 +89,12 @@ impl error::Error for Error {
 impl From<ParseIntError> for Error {
   fn from(err: ParseIntError) -> Self {
     Error::ParseInt(err)
+  }
+}
+
+impl From<ParseBoolError> for Error {
+  fn from(err: ParseBoolError) -> Self {
+    Error::ParseBool(err)
   }
 }
 
