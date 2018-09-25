@@ -234,18 +234,28 @@ fn write_flatten_empty_attr(s: &Struct) -> Vec<TokenStream> {
     let tag = bytes_str!(f.tag);
     let key = &f.attr;
 
-    if f.ty.is_option().is_some() {
+    if let Some(ty) = f.ty.is_option() {
+      let path = if ty.is_usize() {
+        quote!{ #name.to_string().as_str() }
+      } else {
+        quote!{ #name.as_ref() }
+      };
       result.push(quote! {
         if let Some(ref #name) = self.#name {
           let mut start= BytesStart::borrowed(#tag, #tag.len());
-          start.push_attribute((#key, #name.as_ref()));
+          start.push_attribute((#key, #path));
           w.write_event(Event::Empty(start))?;
         }
       });
     } else {
+      let path = if f.ty.is_usize() {
+        quote!{ self.#name.to_string().as_str() }
+      } else {
+        quote!{ self.#name.as_ref() }
+      };
       result.push(quote! {
         let mut start= BytesStart::borrowed(#tag, #tag.len());
-        start.push_attribute((#key, self.#name.as_ref()));
+          start.push_attribute((#key, #path));
         w.write_event(Event::Empty(start))?;
       });
     }

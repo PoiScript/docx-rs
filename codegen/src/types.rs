@@ -296,6 +296,7 @@ pub trait TypeExt {
   fn is_vec(&self) -> Option<&Self>;
   fn is_bool(&self) -> bool;
   fn is_string(&self) -> bool;
+  fn is_usize(&self) -> bool;
   fn get_ident(&self) -> Option<syn::Ident>;
 }
 
@@ -406,6 +407,13 @@ impl TypeExt for syn::Type {
   fn is_bool(&self) -> bool {
     match self.get_ident() {
       Some(ty) => ty == "bool",
+      None => false,
+    }
+  }
+
+  fn is_usize(&self) -> bool {
+    match self.get_ident() {
+      Some(ty) => ty == "usize",
       None => false,
     }
   }

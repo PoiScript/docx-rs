@@ -15,7 +15,7 @@ fn main() {
 
     test_style.with_name("TestStyle");
 
-    test_style.char_style().with_sz("42").with_color("ff0000");
+    test_style.char_style().with_sz(42).with_color("ff0000");
   }
 
   {
@@ -26,7 +26,7 @@ fn main() {
     para
       .get_style()
       .with_name("TestStyle")
-      .with_jc(JustificationType::Start);
+      .with_jc(Justification::Start);
   }
 
   {
@@ -37,7 +37,7 @@ fn main() {
     para
       .get_style()
       .with_name("TestStyle")
-      .with_jc(JustificationType::Center);
+      .with_jc(Justification::Center);
   }
 
   {
@@ -48,7 +48,7 @@ fn main() {
     para
       .get_style()
       .with_name("TestStyle")
-      .with_jc(JustificationType::End);
+      .with_jc(Justification::End);
   }
 
   docx.generate(file).unwrap();

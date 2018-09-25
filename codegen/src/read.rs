@@ -230,8 +230,10 @@ fn set_children(s: &Struct) -> TokenStream {
         ty = inner;
       }
 
-      let value = if ty.is_string() || ty.is_cow_str() {
+      let value = if ty.is_string() {
         quote! { String::from_utf8(attr.value.into_owned().to_vec())? }
+      } else if ty.is_cow_str() {
+        quote! { Cow::Owned(String::from_utf8(attr.value.into_owned().to_vec())?) }
       } else {
         quote! { #ty::from_str(::std::str::from_utf8(attr.value.borrow())?)? }
       };
