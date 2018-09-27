@@ -125,7 +125,6 @@ impl<'a> Docx<'a> {
       ($xml:tt, $name:expr) => {{
         let file = zip.by_name($name)?;
         let mut reader = Reader::from_reader(BufReader::new(file));
-        reader.trim_text(true);
         $xml::read(&mut reader, None)?
       }};
     }
@@ -137,7 +136,6 @@ impl<'a> Docx<'a> {
           Err(e) => return Err(Error::Zip(e)),
           Ok(file) => {
             let mut reader = Reader::from_reader(BufReader::new(file));
-            reader.trim_text(true);
             Some($xml::read(&mut reader, None)?)
           }
         }
