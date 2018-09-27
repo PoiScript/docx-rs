@@ -12,73 +12,73 @@ use schema::{SCHEMAS_EXTENDED, SCHEMA_DOC_PROPS_V_TYPES};
 pub struct App<'a> {
   #[xml(flatten_text)]
   #[xml(tag = "Tempalte")]
-  template: Cow<'a, str>,
+  template: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "TotalTime")]
-  total_time: Cow<'a, str>,
+  total_time: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "Pages")]
-  pages: Cow<'a, str>,
+  pages: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "Words")]
-  words: Cow<'a, str>,
+  words: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "Characters")]
-  characters: Cow<'a, str>,
+  characters: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "Application")]
-  application: Cow<'a, str>,
+  application: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "DocSecurity")]
-  doc_security: Cow<'a, str>,
+  doc_security: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "Lines")]
-  lines: Cow<'a, str>,
+  lines: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "Paragraphs")]
-  paragraphs: Cow<'a, str>,
+  paragraphs: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "ScaleCrop")]
-  scale_crop: Cow<'a, str>,
+  scale_crop: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "Company")]
-  company: Cow<'a, str>,
+  company: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "LinksUpToDate")]
-  links_up_to_date: Cow<'a, str>,
+  links_up_to_date: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "CharactersWithSpaces")]
-  characters_with_spaces: Cow<'a, str>,
+  characters_with_spaces: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "SharedDoc")]
-  shared_doc: Cow<'a, str>,
+  shared_doc: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "HyperlinksChanged")]
-  hyperlinks_changed: Cow<'a, str>,
+  hyperlinks_changed: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "AppVersion")]
-  app_version: Cow<'a, str>,
+  app_version: Option<Cow<'a, str>>,
 }
 
 impl<'a> Default for App<'a> {
   fn default() -> App<'a> {
     App {
-      template: Cow::Borrowed("Normal.dotm"),
-      total_time: Cow::Borrowed("1"),
-      pages: Cow::Borrowed("1"),
-      words: Cow::Borrowed("0"),
-      characters: Cow::Borrowed("0"),
-      application: Cow::Borrowed("docx-rs"),
-      doc_security: Cow::Borrowed("0"),
-      lines: Cow::Borrowed("0"),
-      paragraphs: Cow::Borrowed("1"),
-      scale_crop: Cow::Borrowed("false"),
-      company: Cow::Borrowed("MS"),
-      links_up_to_date: Cow::Borrowed("false"),
-      characters_with_spaces: Cow::Borrowed("25"),
-      shared_doc: Cow::Borrowed("false"),
-      hyperlinks_changed: Cow::Borrowed("false"),
-      app_version: Cow::Borrowed("12.0000"),
+      template: Some(Cow::Borrowed("Normal.dotm")),
+      total_time: Some(Cow::Borrowed("1")),
+      pages: Some(Cow::Borrowed("1")),
+      words: Some(Cow::Borrowed("0")),
+      characters: Some(Cow::Borrowed("0")),
+      application: Some(Cow::Borrowed("docx-rs")),
+      doc_security: Some(Cow::Borrowed("0")),
+      lines: Some(Cow::Borrowed("0")),
+      paragraphs: Some(Cow::Borrowed("1")),
+      scale_crop: Some(Cow::Borrowed("false")),
+      company: Some(Cow::Borrowed("MS")),
+      links_up_to_date: Some(Cow::Borrowed("false")),
+      characters_with_spaces: Some(Cow::Borrowed("25")),
+      shared_doc: Some(Cow::Borrowed("false")),
+      hyperlinks_changed: Some(Cow::Borrowed("false")),
+      app_version: Some(Cow::Borrowed("12.0000")),
     }
   }
 }

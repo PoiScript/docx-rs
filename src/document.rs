@@ -28,7 +28,7 @@ fn document_extend_attrs(_: &Document, start: &mut BytesStart) {
 pub struct Run<'a> {
   #[xml(child)]
   #[xml(tag = "w:rPr")]
-  pub prop: CharStyle<'a>,
+  pub prop: Option<CharStyle<'a>>,
   #[xml(child)]
   #[xml(tag = "w:t")]
   #[xml(tag = "w:br")]
@@ -38,9 +38,14 @@ pub struct Run<'a> {
 impl<'a> Run<'a> {
   pub fn text(&mut self, text: &'a str) -> &mut Self {
     self.content.push(RunContent::Text(TextRun {
+      space: None,
       text: Cow::Borrowed(text),
     }));
     self
+  }
+
+  pub fn prop(&mut self) -> &mut CharStyle<'a> {
+    self.prop.get_or_insert(CharStyle::default())
   }
 
   pub fn text_break(&mut self) -> &mut Self {
@@ -63,8 +68,23 @@ pub enum RunContent<'a> {
 #[xml(event = "Start")]
 #[xml(tag = "w:t")]
 pub struct TextRun<'a> {
+  #[xml(attr = "xml:space")]
+  space: Option<TextSpace>,
   #[xml(text)]
   text: Cow<'a, str>,
+}
+
+#[derive(Debug)]
+pub enum TextSpace {
+  Default,
+  Preserve,
+}
+
+string_enum! {
+  TextSpace {
+    Default = "default",
+    Preserve = "preserve",
+  }
 }
 
 #[derive(Debug, Xml)]
@@ -96,7 +116,7 @@ string_enum! {
 pub struct Para<'a> {
   #[xml(child)]
   #[xml(tag = "w:pPr")]
-  pub prop: ParaStyle<'a>,
+  pub prop: Option<ParaStyle<'a>>,
   // Each paragraph containes one or more runs.
   #[xml(child)]
   #[xml(tag = "w:r")]
@@ -109,8 +129,8 @@ impl<'a> Para<'a> {
     self.runs.last_mut().unwrap()
   }
 
-  pub fn get_style(&mut self) -> &mut ParaStyle<'a> {
-    &mut self.prop
+  pub fn prop(&mut self) -> &mut ParaStyle<'a> {
+    self.prop.get_or_insert(ParaStyle::default())
   }
 }
 

@@ -104,6 +104,13 @@ fn set_attrs(s: &Struct) -> TokenStream {
         quote! { #tag => #name = Some(String::from_utf8(attr.value.into_owned().to_vec())?), }
       } else if ty.is_cow_str() {
         quote! { #tag => #name = Some(Cow::Owned(String::from_utf8(attr.value.into_owned().to_vec())?)), }
+      }  else if ty.is_bool() {
+        quote! {
+          #tag => {
+            let value = ::std::str::from_utf8(attr.value.borrow())?;
+            #name = Some(bool::from_str(value).or(usize::from_str(value).map(|v| v != 0))?);
+          }
+        }
       } else {
         let ty = ty.get_ident();
         quote! { #tag => #name = Some(#ty::from_str(::std::str::from_utf8(attr.value.borrow())?)?), }
@@ -199,7 +206,8 @@ fn set_children(s: &Struct) -> TokenStream {
           #( #tags )|* => #name = Some(#ident::read(r, Some(bs))?),
         }
       }
-    }).collect();
+    })
+    .collect();
 
   let match_flatten_text: &Vec<_> = &s
     .flat_text_flds
@@ -207,12 +215,17 @@ fn set_children(s: &Struct) -> TokenStream {
     .map(|f| {
       let tag = bytes_str!(f.tag);
       let name = &f.name;
-      if f.ty.is_cow_str() {
+      let mut ty = &f.ty;
+      if let Some(inner) = f.ty.is_option() {
+        ty = inner;
+      }
+      if ty.is_cow_str() {
         quote! { #tag => #name = Some(Cow::Owned(r.read_text(#tag, &mut Vec::new())?)), }
       } else {
         quote! { #tag => #name = Some(r.read_text(#tag, &mut Vec::new())?), }
       }
-    }).collect();
+    })
+    .collect();
 
   let match_flatten_empty: &Vec<_> = &s
     .flat_empty_flds
@@ -221,7 +234,8 @@ fn set_children(s: &Struct) -> TokenStream {
       let tag = bytes_str!(f.tag);
       let name = &f.name;
       quote! { #tag => #name = true, }
-    }).collect();
+    })
+    .collect();
 
   let match_flatten_empty_attr: &Vec<_> = &s
     .flat_empty_attr_flds
@@ -240,12 +254,25 @@ fn set_children(s: &Struct) -> TokenStream {
         quote! { String::from_utf8(attr.value.into_owned().to_vec())? }
       } else if ty.is_cow_str() {
         quote! { Cow::Owned(String::from_utf8(attr.value.into_owned().to_vec())?) }
+      } else if ty.is_bool() {
+        quote! {{
+          let value = ::std::str::from_utf8(attr.value.borrow())?;
+          bool::from_str(value).or(usize::from_str(value).map(|v| v != 0))?
+        }}
       } else {
+        let ty = ty.get_ident();
         quote! { #ty::from_str(::std::str::from_utf8(attr.value.borrow())?)? }
+      };
+
+      let default_value = if ty.is_bool() {
+        quote!{ #name = Some(true); }
+      } else {
+        quote!()
       };
 
       quote! {
         #tag => {
+          #default_value
           for attr in bs.attributes().filter_map(|a| a.ok()) {
             match attr.key {
               #key => #name = Some(#value),
@@ -362,7 +389,8 @@ fn read_enum(e: &Enum) -> TokenStream {
       let name = &v.name;
       let ty = &v.ty.get_ident();
       quote!{ #tag => return #ty::read(r, Some(bs)).map(|p| #enum_name::#name(p)), }
-    }).collect();
+    })
+    .collect();
 
   let empty_tags: &Vec<_> = &e
     .empty_elem_vars
@@ -372,7 +400,8 @@ fn read_enum(e: &Enum) -> TokenStream {
       let name = &v.name;
       let ty = &v.ty.get_ident();
       quote!{ #tag => return #ty::read(r, Some(bs)).map(|p| #enum_name::#name(p)), }
-    }).collect();
+    })
+    .collect();
 
   quote! {
     if let Some(bs) = bs {

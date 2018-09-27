@@ -15,43 +15,43 @@ fn main() {
 
     test_style.name("TestStyle");
 
-    test_style.char.sz(42).color("ff0000");
+    test_style.char().sz(42).color("ff0000");
   }
 
   {
     let para = docx.create_para();
 
-    para.prop.name("TestStyle").jc(Justification::Start);
+    para.prop().name("TestStyle").jc(Justification::Start);
 
     let run = para.new_run();
 
     run.text("hello, world");
 
-    run.prop.bold(true);
+    run.prop().bold(true);
   }
 
   {
     let para = docx.create_para();
 
-    para.prop.name("TestStyle").jc(Justification::Center);
+    para.prop().name("TestStyle").jc(Justification::Center);
 
     let run = para.new_run();
 
     run.text("hello, world");
 
-    run.prop.outline(true);
+    run.prop().outline(true);
   }
 
   {
     let para = docx.create_para();
 
-    para.prop.name("TestStyle").jc(Justification::End);
+    para.prop().name("TestStyle").jc(Justification::End);
 
     let run = para.new_run();
 
     run.text("hello, world");
 
-    run.prop.strike(true);
+    run.prop().strike(true);
   }
 
   docx.generate(file).unwrap();

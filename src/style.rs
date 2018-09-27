@@ -71,10 +71,10 @@ pub struct Style<'a> {
   name: Option<Cow<'a, str>>,
   #[xml(child)]
   #[xml(tag = "w:pPr")]
-  pub para: ParaStyle<'a>,
+  pub para: Option<ParaStyle<'a>>,
   #[xml(child)]
   #[xml(tag = "w:rPr")]
-  pub char: CharStyle<'a>,
+  pub char: Option<CharStyle<'a>>,
 }
 
 fn style_extend_attrs(s: &Style, start: &mut BytesStart) {
@@ -93,6 +93,14 @@ impl<'a> Style<'a> {
   pub fn reset_name(&mut self) -> &mut Self {
     self.name = None;
     self
+  }
+
+  pub fn para(&mut self) -> &mut ParaStyle<'a> {
+    self.para.get_or_insert(ParaStyle::default())
+  }
+
+  pub fn char(&mut self) -> &mut CharStyle<'a> {
+    self.char.get_or_insert(CharStyle::default())
   }
 }
 
@@ -210,7 +218,7 @@ impl<'a> CharStyle<'a> {
     self
   }
 
-  pub fn underline(&mut self, color: Option<&'a str>, ty: Option<UnderlineType>) -> &mut Self {
+  pub fn underline(&mut self, color: Option<&'a str>, ty: Option<UnderlineStyle>) -> &mut Self {
     self.underline = Some(Underline {
       color: color.map(|s| Cow::Borrowed(s)),
       val: ty,
@@ -231,11 +239,11 @@ pub struct Underline<'a> {
   #[xml(attr = "w:color")]
   color: Option<Cow<'a, str>>,
   #[xml(attr = "w:val")]
-  val: Option<UnderlineType>,
+  val: Option<UnderlineStyle>,
 }
 
 #[derive(Debug)]
-pub enum UnderlineType {
+pub enum UnderlineStyle {
   Dash,
   DashDotDotHeavy,
   DashDotHeavy,
@@ -257,7 +265,7 @@ pub enum UnderlineType {
 }
 
 string_enum! {
-  UnderlineType {
+  UnderlineStyle {
     Dash = "dash",
     DashDotDotHeavy = "dashDotDotHeavy",
     DashDotHeavy = "dashDotHeavy",
@@ -291,6 +299,9 @@ pub struct ParaStyle<'a> {
   #[xml(tag = "w:jc")]
   #[xml(attr = "w:val")]
   jc: Option<Justification>,
+  #[xml(child)]
+  #[xml(tag = "w:pBdr")]
+  boarder: Option<Boarders<'a>>,
 }
 
 impl<'a> ParaStyle<'a> {
@@ -322,6 +333,8 @@ pub enum Justification {
   Center,
   Both,
   Distribute,
+  Right,
+  Left,
 }
 
 string_enum!{
@@ -331,5 +344,171 @@ string_enum!{
     Center = "center",
     Both = "both",
     Distribute = "distribute",
+    Right = "right",
+    Left = "left",
+  }
+}
+
+#[derive(Debug, Default, Xml)]
+#[xml(event = "Start")]
+#[xml(tag = "w:pPr")]
+pub struct Boarders<'a> {
+  #[xml(child)]
+  #[xml(tag = "w:top")]
+  top: Option<TopBoarder<'a>>,
+  #[xml(child)]
+  #[xml(tag = "w:bottom")]
+  botton: Option<BottomBoarder<'a>>,
+  #[xml(child)]
+  #[xml(tag = "w:left")]
+  left: Option<LeftBoarder<'a>>,
+  #[xml(child)]
+  #[xml(tag = "w:right")]
+  right: Option<RightBoarder<'a>>,
+  #[xml(child)]
+  #[xml(tag = "w:between")]
+  between: Option<BetweenBoarder<'a>>,
+}
+
+#[derive(Debug, Default, Xml)]
+#[xml(event = "Empty")]
+#[xml(tag = "w:top")]
+pub struct TopBoarder<'a> {
+  #[xml(attr = "w:val")]
+  color: Option<Cow<'a, str>>,
+  #[xml(attr = "w:val")]
+  shadow: Option<bool>,
+  #[xml(attr = "w:val")]
+  space: Option<usize>,
+  #[xml(attr = "w:val")]
+  sz: Option<usize>,
+  #[xml(attr = "w:val")]
+  val: Option<BoarderStyle>,
+}
+
+#[derive(Debug, Default, Xml)]
+#[xml(event = "Empty")]
+#[xml(tag = "w:bottom")]
+pub struct BottomBoarder<'a> {
+  #[xml(attr = "w:val")]
+  color: Option<Cow<'a, str>>,
+  #[xml(attr = "w:val")]
+  shadow: Option<bool>,
+  #[xml(attr = "w:val")]
+  space: Option<usize>,
+  #[xml(attr = "w:val")]
+  sz: Option<usize>,
+  #[xml(attr = "w:val")]
+  val: Option<BoarderStyle>,
+}
+
+#[derive(Debug, Default, Xml)]
+#[xml(event = "Empty")]
+#[xml(tag = "w:left")]
+pub struct LeftBoarder<'a> {
+  #[xml(attr = "w:val")]
+  color: Option<Cow<'a, str>>,
+  #[xml(attr = "w:val")]
+  shadow: Option<bool>,
+  #[xml(attr = "w:val")]
+  space: Option<usize>,
+  #[xml(attr = "w:val")]
+  sz: Option<usize>,
+  #[xml(attr = "w:val")]
+  val: Option<BoarderStyle>,
+}
+
+#[derive(Debug, Default, Xml)]
+#[xml(event = "Empty")]
+#[xml(tag = "w:right")]
+pub struct RightBoarder<'a> {
+  #[xml(attr = "w:val")]
+  color: Option<Cow<'a, str>>,
+  #[xml(attr = "w:val")]
+  shadow: Option<bool>,
+  #[xml(attr = "w:val")]
+  space: Option<usize>,
+  #[xml(attr = "w:val")]
+  sz: Option<usize>,
+  #[xml(attr = "w:val")]
+  val: Option<BoarderStyle>,
+}
+
+#[derive(Debug, Default, Xml)]
+#[xml(event = "Empty")]
+#[xml(tag = "w:between")]
+pub struct BetweenBoarder<'a> {
+  #[xml(attr = "w:val")]
+  color: Option<Cow<'a, str>>,
+  #[xml(attr = "w:val")]
+  shadow: Option<bool>,
+  #[xml(attr = "w:val")]
+  space: Option<usize>,
+  #[xml(attr = "w:val")]
+  sz: Option<usize>,
+  #[xml(attr = "w:val")]
+  val: Option<BoarderStyle>,
+}
+
+#[derive(Debug)]
+pub enum BoarderStyle {
+  Single,
+  DashDotStroked,
+  Dashed,
+  DashSmallGap,
+  DotDash,
+  DotDotDash,
+  Dotted,
+  Double,
+  DoubleWave,
+  Inset,
+  Nil,
+  None,
+  Outset,
+  Thick,
+  ThickThinLargeGap,
+  ThickThinMediumGap,
+  ThickThinSmallGap,
+  ThinThickLargeGap,
+  ThinThickMediumGap,
+  ThinThickSmallGap,
+  ThinThickThinLargeGap,
+  ThinThickThinMediumGap,
+  ThinThickThinSmallGap,
+  ThreeDEmboss,
+  ThreeDEngrave,
+  Triple,
+  Wave,
+}
+
+string_enum!{
+  BoarderStyle {
+    Single = "single",
+    DashDotStroked = "dashDotStroked",
+    Dashed = "dashed",
+    DashSmallGap = "dashSmallGap",
+    DotDash = "dotDash",
+    DotDotDash = "dotDotDash",
+    Dotted = "dotted",
+    Double = "double",
+    DoubleWave = "doubleWave",
+    Inset = "inset",
+    Nil = "nil",
+    None = "none",
+    Outset = "outset",
+    Thick = "thick",
+    ThickThinLargeGap = "thickThinLargeGap",
+    ThickThinMediumGap = "thickThinMediumGap",
+    ThickThinSmallGap = "thickThinSmallGap",
+    ThinThickLargeGap = "thinThickLargeGap",
+    ThinThickMediumGap = "thinThickMediumGap",
+    ThinThickSmallGap = "thinThickSmallGap",
+    ThinThickThinLargeGap = "thinThickThinLargeGap",
+    ThinThickThinMediumGap = "thinThickThinMediumGap",
+    ThinThickThinSmallGap = "thinThickThinSmallGap",
+    ThreeDEmboss = "threeDEmboss",
+    ThreeDEngrave = "threeDEngrave",
+    Triple = "triple",
+    Wave = "wave",
   }
 }

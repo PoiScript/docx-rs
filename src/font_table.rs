@@ -25,13 +25,16 @@ fn font_table_extend_attrs(_: &FontTable, start: &mut BytesStart) {
 pub struct Font<'a> {
   #[xml(attr = "w:name")]
   name: Cow<'a, str>,
-  #[xml(flatten_text)]
+  #[xml(flatten_empty)]
   #[xml(tag = "w:charset")]
-  charset: Cow<'a, str>,
-  #[xml(flatten_text)]
+  #[xml(attr = "w:val")]
+  charset: Option<Cow<'a, str>>,
+  #[xml(flatten_empty)]
   #[xml(tag = "w:family")]
-  family: Cow<'a, str>,
-  #[xml(flatten_text)]
+  #[xml(attr = "w:val")]
+  family: Option<Cow<'a, str>>,
+  #[xml(flatten_empty)]
   #[xml(tag = "w:pitch")]
-  pitch: Cow<'a, str>,
+  #[xml(attr = "w:val")]
+  pitch: Option<Cow<'a, str>>,
 }
