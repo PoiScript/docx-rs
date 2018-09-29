@@ -2,6 +2,7 @@ use std::error;
 use std::fmt;
 
 use quick_xml::Error as XmlError;
+use std::io::Error as IOError;
 use std::num::ParseIntError;
 use std::str::{ParseBoolError, Utf8Error};
 use std::string::FromUtf8Error;
@@ -9,6 +10,7 @@ use zip::result::ZipError;
 
 #[derive(Debug)]
 pub enum Error {
+  IO(IOError),
   Xml(XmlError),
   Zip(ZipError),
   Utf8(Utf8Error),
@@ -24,6 +26,7 @@ pub enum Error {
 impl fmt::Display for Error {
   fn fmt(&self, f: &mut fmt::Formatter) -> ::std::result::Result<(), fmt::Error> {
     match *self {
+      Error::IO(ref err) => write!(f, "{}", err),
       Error::Xml(ref err) => write!(f, "{}", err),
       Error::Zip(ref err) => write!(f, "{}", err),
       Error::Utf8(ref err) => write!(f, "{}", err),
@@ -53,6 +56,7 @@ impl fmt::Display for Error {
 impl error::Error for Error {
   fn description(&self) -> &str {
     match *self {
+      Error::IO(ref err) => err.description(),
       Error::Zip(ref err) => err.description(),
       Error::Utf8(ref err) => err.description(),
       Error::ParseInt(ref err) => err.description(),
@@ -68,6 +72,7 @@ impl error::Error for Error {
 
   fn cause(&self) -> Option<&error::Error> {
     match *self {
+      Error::IO(ref err) => Some(err),
       Error::Xml(ref err) => match err {
         XmlError::Io(ref err) => Some(err as &error::Error),
         XmlError::Utf8(ref err) => Some(err as &error::Error),
@@ -83,6 +88,12 @@ impl error::Error for Error {
       Error::MissingField { .. } => None,
       Error::UnknownValue { .. } => None,
     }
+  }
+}
+
+impl From<IOError> for Error {
+  fn from(err: IOError) -> Self {
+    Error::IO(err)
   }
 }
 

@@ -1,13 +1,8 @@
 extern crate docx;
 
 use docx::prelude::*;
-use std::fs::File;
-use std::path::Path;
 
 fn main() {
-  let path = Path::new("hello_world.docx");
-  let file = File::create(&path).unwrap();
-
   let mut docx = Docx::default();
 
   {
@@ -54,5 +49,5 @@ fn main() {
     run.prop().strike(true);
   }
 
-  docx.generate(file).unwrap();
+  docx.to_file("hello_world.docx").unwrap();
 }

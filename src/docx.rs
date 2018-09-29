@@ -1,6 +1,8 @@
 use quick_xml::events::*;
 use quick_xml::Writer;
 use std::default::Default;
+use std::fs::File;
+use std::path::Path;
 
 use quick_xml::Reader;
 use std::io::{BufReader, Read, Seek, Write};
@@ -118,6 +120,11 @@ impl<'a> Docx<'a> {
     Ok(zip.finish()?)
   }
 
+  pub fn to_file<P: AsRef<Path>>(&mut self, path: P) -> Result<File> {
+    let file = File::create(path)?;
+    self.generate(file)
+  }
+
   pub fn parse<T: Read + Seek>(reader: T) -> Result<Docx<'a>> {
     let mut zip = ZipArchive::new(reader).unwrap();
 
@@ -152,5 +159,11 @@ impl<'a> Docx<'a> {
       rels: read!(Relationships, "_rels/.rels"),
       styles: option_read!(Styles, "word/styles.xml"),
     })
+  }
+
+  pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Docx<'a>> {
+    let file = File::open(path)?;
+    let reader = BufReader::new(file);
+    Docx::parse(reader)
   }
 }
