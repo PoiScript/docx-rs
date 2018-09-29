@@ -9,7 +9,7 @@ A Rust library for parsing and generating docx files.
 
 ```toml
 [dependencies]
-docx = "0.1.1"
+docx = "0.1.2"
 ```
 
 ```rust

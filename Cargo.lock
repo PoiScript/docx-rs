@@ -85,9 +85,9 @@ dependencies = [
 
 [[package]]
 name = "docx"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
- "docx-codegen 0.1.0",
+ "docx-codegen 0.1.1",
  "env_logger 0.5.13 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "quick-xml 0.12.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -96,7 +96,7 @@ dependencies = [
 
 [[package]]
 name = "docx-codegen"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "proc-macro2 0.4.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "quote 0.6.8 (registry+https://github.com/rust-lang/crates.io-index)",

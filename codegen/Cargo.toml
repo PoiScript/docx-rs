@@ -1,6 +1,6 @@
 [package]
 name = "docx-codegen"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["PoiScript <poiscript@gmail.com>"]
 license = "MIT"
 description = "Code generation for docx-rs."
