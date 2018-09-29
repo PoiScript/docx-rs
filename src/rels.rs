@@ -11,7 +11,7 @@ use schema::SCHEMA_RELATIONSHIPS;
 pub struct Relationships<'a> {
   #[xml(child)]
   #[xml(tag = "Relationship")]
-  relationships: Vec<Relationship<'a>>,
+  pub relationships: Vec<Relationship<'a>>,
 }
 
 fn relationships_extend_attrs(_: &Relationships, start: &mut BytesStart) {
@@ -32,11 +32,11 @@ impl<'a> Relationships<'a> {
 #[derive(Debug, Xml)]
 #[xml(event = "Start")]
 #[xml(tag = "Relationship")]
-struct Relationship<'a> {
+pub struct Relationship<'a> {
   #[xml(attr = "Id")]
-  id: Cow<'a, str>,
+  pub id: Cow<'a, str>,
   #[xml(attr = "Target")]
-  target: Cow<'a, str>,
+  pub target: Cow<'a, str>,
   #[xml(attr = "Type")]
-  ty: Cow<'a, str>,
+  pub ty: Cow<'a, str>,
 }

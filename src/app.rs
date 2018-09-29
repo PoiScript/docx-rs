@@ -12,52 +12,52 @@ use schema::{SCHEMAS_EXTENDED, SCHEMA_DOC_PROPS_V_TYPES};
 pub struct App<'a> {
   #[xml(flatten_text)]
   #[xml(tag = "Tempalte")]
-  template: Option<Cow<'a, str>>,
+  pub template: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "TotalTime")]
-  total_time: Option<Cow<'a, str>>,
+  pub total_time: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "Pages")]
-  pages: Option<Cow<'a, str>>,
+  pub pages: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "Words")]
-  words: Option<Cow<'a, str>>,
+  pub words: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "Characters")]
-  characters: Option<Cow<'a, str>>,
+  pub characters: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "Application")]
-  application: Option<Cow<'a, str>>,
+  pub application: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "DocSecurity")]
-  doc_security: Option<Cow<'a, str>>,
+  pub doc_security: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "Lines")]
-  lines: Option<Cow<'a, str>>,
+  pub lines: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "Paragraphs")]
-  paragraphs: Option<Cow<'a, str>>,
+  pub paragraphs: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "ScaleCrop")]
-  scale_crop: Option<Cow<'a, str>>,
+  pub scale_crop: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "Company")]
-  company: Option<Cow<'a, str>>,
+  pub company: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "LinksUpToDate")]
-  links_up_to_date: Option<Cow<'a, str>>,
+  pub links_up_to_date: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "CharactersWithSpaces")]
-  characters_with_spaces: Option<Cow<'a, str>>,
+  pub characters_with_spaces: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "SharedDoc")]
-  shared_doc: Option<Cow<'a, str>>,
+  pub shared_doc: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "HyperlinksChanged")]
-  hyperlinks_changed: Option<Cow<'a, str>>,
+  pub hyperlinks_changed: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "AppVersion")]
-  app_version: Option<Cow<'a, str>>,
+  pub app_version: Option<Cow<'a, str>>,
 }
 
 impl<'a> Default for App<'a> {

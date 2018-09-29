@@ -8,14 +8,14 @@ extern crate zip;
 #[macro_use]
 mod macros;
 
-mod app;
-mod content_type;
-mod core;
-mod document;
-mod docx;
+pub mod app;
+pub mod content_type;
+pub mod core;
+pub mod document;
+pub mod docx;
 pub mod errors;
-mod font_table;
+pub mod font_table;
 pub mod prelude;
-mod rels;
+pub mod rels;
 mod schema;
-mod style;
+pub mod style;

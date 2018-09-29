@@ -23,14 +23,14 @@ use style::{Style, Styles};
 
 #[derive(Debug, Default)]
 pub struct Docx<'a> {
-  app: Option<App<'a>>,
-  core: Option<Core<'a>>,
-  content_types: ContentTypes<'a>,
-  document: Document<'a>,
-  font_table: Option<FontTable<'a>>,
-  styles: Option<Styles<'a>>,
-  rels: Relationships<'a>,
-  document_rels: Option<Relationships<'a>>,
+  pub app: Option<App<'a>>,
+  pub core: Option<Core<'a>>,
+  pub content_types: ContentTypes<'a>,
+  pub document: Document<'a>,
+  pub font_table: Option<FontTable<'a>>,
+  pub styles: Option<Styles<'a>>,
+  pub rels: Relationships<'a>,
+  pub document_rels: Option<Relationships<'a>>,
 }
 
 impl<'a> Docx<'a> {

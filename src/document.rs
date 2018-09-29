@@ -32,7 +32,7 @@ pub struct Run<'a> {
   #[xml(child)]
   #[xml(tag = "w:t")]
   #[xml(tag = "w:br")]
-  content: Vec<RunContent<'a>>,
+  pub content: Vec<RunContent<'a>>,
 }
 
 impl<'a> Run<'a> {
@@ -69,9 +69,9 @@ pub enum RunContent<'a> {
 #[xml(tag = "w:t")]
 pub struct TextRun<'a> {
   #[xml(attr = "xml:space")]
-  space: Option<TextSpace>,
+  pub space: Option<TextSpace>,
   #[xml(text)]
-  text: Cow<'a, str>,
+  pub text: Cow<'a, str>,
 }
 
 #[derive(Debug)]
@@ -120,7 +120,7 @@ pub struct Para<'a> {
   // Each paragraph containes one or more runs.
   #[xml(child)]
   #[xml(tag = "w:r")]
-  runs: Vec<Run<'a>>,
+  pub runs: Vec<Run<'a>>,
 }
 
 impl<'a> Para<'a> {
@@ -150,7 +150,7 @@ pub enum BodyContent<'a> {
 pub struct Body<'a> {
   #[xml(child)]
   #[xml(tag = "w:p")]
-  content: Vec<BodyContent<'a>>,
+  pub content: Vec<BodyContent<'a>>,
 }
 
 impl<'a> Body<'a> {

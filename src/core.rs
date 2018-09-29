@@ -11,25 +11,25 @@ use schema::SCHEMA_CORE;
 pub struct Core<'a> {
   #[xml(flatten_text)]
   #[xml(tag = "dc:title")]
-  title: Option<Cow<'a, str>>,
+  pub title: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "dc:subject")]
-  subject: Option<Cow<'a, str>>,
+  pub subject: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "dc:creator")]
-  creator: Option<Cow<'a, str>>,
+  pub creator: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "cp:keywords")]
-  keywords: Option<Cow<'a, str>>,
+  pub keywords: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "dc:description")]
-  description: Option<Cow<'a, str>>,
+  pub description: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "cp:lastModifiedBy")]
-  last_modified_by: Option<Cow<'a, str>>,
+  pub last_modified_by: Option<Cow<'a, str>>,
   #[xml(flatten_text)]
   #[xml(tag = "cp:revision")]
-  revision: Option<Cow<'a, str>>,
+  pub revision: Option<Cow<'a, str>>,
 }
 
 fn core_extend_attrs(_: &Core, start: &mut BytesStart) {

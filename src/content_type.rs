@@ -22,10 +22,10 @@ const CONTENT_TYPE_STYLES: &str =
 pub struct ContentTypes<'a> {
   #[xml(child)]
   #[xml(tag = "Default")]
-  defaults: Vec<DefaultContentType<'a>>,
+  pub defaults: Vec<DefaultContentType<'a>>,
   #[xml(child)]
   #[xml(tag = "Override")]
-  overrides: Vec<OverrideContentType<'a>>,
+  pub overrides: Vec<OverrideContentType<'a>>,
 }
 
 fn content_types_extend_attrs(_: &ContentTypes, start: &mut BytesStart) {
@@ -68,19 +68,19 @@ impl<'a> Default for ContentTypes<'a> {
 #[derive(Debug, Xml)]
 #[xml(event = "Empty")]
 #[xml(tag = "Default")]
-struct DefaultContentType<'a> {
+pub struct DefaultContentType<'a> {
   #[xml(attr = "Extension")]
-  ext: Cow<'a, str>,
+  pub ext: Cow<'a, str>,
   #[xml(attr = "ContentType")]
-  ty: Cow<'a, str>,
+  pub ty: Cow<'a, str>,
 }
 
 #[derive(Debug, Xml)]
 #[xml(event = "Empty")]
 #[xml(tag = "Override")]
-struct OverrideContentType<'a> {
+pub struct OverrideContentType<'a> {
   #[xml(attr = "PartName")]
-  part: Cow<'a, str>,
+  pub part: Cow<'a, str>,
   #[xml(attr = "ContentType")]
-  ty: Cow<'a, str>,
+  pub ty: Cow<'a, str>,
 }

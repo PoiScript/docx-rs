@@ -13,10 +13,10 @@ use schema::SCHEMA_MAIN;
 pub struct Styles<'a> {
   #[xml(child)]
   #[xml(tag = "w:docDefaults")]
-  default: Option<DefaultStyle<'a>>,
+  pub default: Option<DefaultStyle<'a>>,
   #[xml(child)]
   #[xml(tag = "w:style")]
-  styles: Vec<Style<'a>>,
+  pub styles: Vec<Style<'a>>,
 }
 
 fn styles_extend_attrs(_: &Styles, start: &mut BytesStart) {
@@ -36,10 +36,10 @@ impl<'a> Styles<'a> {
 pub struct DefaultStyle<'a> {
   #[xml(child)]
   #[xml(tag = "w:rPrDefault")]
-  char: CharStyle<'a>,
+  pub char: CharStyle<'a>,
   #[xml(child)]
   #[xml(tag = "w:pPrDefault")]
-  para: ParaStyle<'a>,
+  pub para: ParaStyle<'a>,
 }
 
 #[derive(Debug, Default, Xml)]
@@ -48,7 +48,7 @@ pub struct DefaultStyle<'a> {
 pub struct DefaultCharStyle<'a> {
   #[xml(child)]
   #[xml(tag = "w:rPr")]
-  inner: CharStyle<'a>,
+  pub inner: CharStyle<'a>,
 }
 
 #[derive(Debug, Default, Xml)]
@@ -57,7 +57,7 @@ pub struct DefaultCharStyle<'a> {
 pub struct DefaultParaStyle<'a> {
   #[xml(child)]
   #[xml(tag = "w:pPr")]
-  inner: ParaStyle<'a>,
+  pub inner: ParaStyle<'a>,
 }
 
 #[derive(Debug, Default, Xml)]
@@ -68,7 +68,7 @@ pub struct Style<'a> {
   #[xml(flatten_empty)]
   #[xml(tag = "w:name")]
   #[xml(attr = "w:val")]
-  name: Option<Cow<'a, str>>,
+  pub name: Option<Cow<'a, str>>,
   #[xml(child)]
   #[xml(tag = "w:pPr")]
   pub para: Option<ParaStyle<'a>>,
@@ -111,34 +111,34 @@ pub struct CharStyle<'a> {
   #[xml(flatten_empty)]
   #[xml(tag = "w:color")]
   #[xml(attr = "w:val")]
-  color: Option<Cow<'a, str>>,
+  pub color: Option<Cow<'a, str>>,
   #[xml(flatten_empty)]
   #[xml(tag = "w:sz")]
   #[xml(attr = "w:val")]
-  sz: Option<usize>,
+  pub sz: Option<usize>,
   #[xml(flatten_empty)]
   #[xml(tag = "w:b")]
   #[xml(attr = "w:val")]
-  bold: Option<bool>,
+  pub bold: Option<bool>,
   #[xml(flatten_empty)]
   #[xml(tag = "w:i")]
   #[xml(attr = "w:val")]
-  italics: Option<bool>,
+  pub italics: Option<bool>,
   #[xml(flatten_empty)]
   #[xml(tag = "w:strike")]
   #[xml(attr = "w:val")]
-  strike: Option<bool>,
+  pub strike: Option<bool>,
   #[xml(flatten_empty)]
   #[xml(tag = "w:dstrike")]
   #[xml(attr = "w:val")]
-  dstrike: Option<bool>,
+  pub dstrike: Option<bool>,
   #[xml(flatten_empty)]
   #[xml(tag = "w:outline")]
   #[xml(attr = "w:val")]
-  outline: Option<bool>,
+  pub outline: Option<bool>,
   #[xml(child)]
   #[xml(tag = "w:u")]
-  underline: Option<Underline<'a>>,
+  pub underline: Option<Underline<'a>>,
 }
 
 impl<'a> CharStyle<'a> {
@@ -237,9 +237,9 @@ impl<'a> CharStyle<'a> {
 #[xml(tag = "w:u")]
 pub struct Underline<'a> {
   #[xml(attr = "w:color")]
-  color: Option<Cow<'a, str>>,
+  pub color: Option<Cow<'a, str>>,
   #[xml(attr = "w:val")]
-  val: Option<UnderlineStyle>,
+  pub val: Option<UnderlineStyle>,
 }
 
 #[derive(Debug)]
@@ -294,14 +294,14 @@ pub struct ParaStyle<'a> {
   #[xml(flatten_empty)]
   #[xml(tag = "w:pStyle")]
   #[xml(attr = "w:val")]
-  name: Option<Cow<'a, str>>,
+  pub name: Option<Cow<'a, str>>,
   #[xml(flatten_empty)]
   #[xml(tag = "w:jc")]
   #[xml(attr = "w:val")]
-  jc: Option<Justification>,
+  pub jc: Option<Justification>,
   #[xml(child)]
   #[xml(tag = "w:pBdr")]
-  boarder: Option<Boarders<'a>>,
+  pub boarder: Option<Boarders<'a>>,
 }
 
 impl<'a> ParaStyle<'a> {
@@ -355,19 +355,19 @@ string_enum!{
 pub struct Boarders<'a> {
   #[xml(child)]
   #[xml(tag = "w:top")]
-  top: Option<TopBoarder<'a>>,
+  pub top: Option<TopBoarder<'a>>,
   #[xml(child)]
   #[xml(tag = "w:bottom")]
-  botton: Option<BottomBoarder<'a>>,
+  pub botton: Option<BottomBoarder<'a>>,
   #[xml(child)]
   #[xml(tag = "w:left")]
-  left: Option<LeftBoarder<'a>>,
+  pub left: Option<LeftBoarder<'a>>,
   #[xml(child)]
   #[xml(tag = "w:right")]
-  right: Option<RightBoarder<'a>>,
+  pub right: Option<RightBoarder<'a>>,
   #[xml(child)]
   #[xml(tag = "w:between")]
-  between: Option<BetweenBoarder<'a>>,
+  pub between: Option<BetweenBoarder<'a>>,
 }
 
 #[derive(Debug, Default, Xml)]
@@ -375,15 +375,15 @@ pub struct Boarders<'a> {
 #[xml(tag = "w:top")]
 pub struct TopBoarder<'a> {
   #[xml(attr = "w:val")]
-  color: Option<Cow<'a, str>>,
+  pub color: Option<Cow<'a, str>>,
   #[xml(attr = "w:val")]
-  shadow: Option<bool>,
+  pub shadow: Option<bool>,
   #[xml(attr = "w:val")]
-  space: Option<usize>,
+  pub space: Option<usize>,
   #[xml(attr = "w:val")]
-  sz: Option<usize>,
+  pub sz: Option<usize>,
   #[xml(attr = "w:val")]
-  val: Option<BoarderStyle>,
+  pub val: Option<BoarderStyle>,
 }
 
 #[derive(Debug, Default, Xml)]
@@ -391,15 +391,15 @@ pub struct TopBoarder<'a> {
 #[xml(tag = "w:bottom")]
 pub struct BottomBoarder<'a> {
   #[xml(attr = "w:val")]
-  color: Option<Cow<'a, str>>,
+  pub color: Option<Cow<'a, str>>,
   #[xml(attr = "w:val")]
-  shadow: Option<bool>,
+  pub shadow: Option<bool>,
   #[xml(attr = "w:val")]
-  space: Option<usize>,
+  pub space: Option<usize>,
   #[xml(attr = "w:val")]
-  sz: Option<usize>,
+  pub sz: Option<usize>,
   #[xml(attr = "w:val")]
-  val: Option<BoarderStyle>,
+  pub val: Option<BoarderStyle>,
 }
 
 #[derive(Debug, Default, Xml)]
@@ -407,15 +407,15 @@ pub struct BottomBoarder<'a> {
 #[xml(tag = "w:left")]
 pub struct LeftBoarder<'a> {
   #[xml(attr = "w:val")]
-  color: Option<Cow<'a, str>>,
+  pub color: Option<Cow<'a, str>>,
   #[xml(attr = "w:val")]
-  shadow: Option<bool>,
+  pub shadow: Option<bool>,
   #[xml(attr = "w:val")]
-  space: Option<usize>,
+  pub space: Option<usize>,
   #[xml(attr = "w:val")]
-  sz: Option<usize>,
+  pub sz: Option<usize>,
   #[xml(attr = "w:val")]
-  val: Option<BoarderStyle>,
+  pub val: Option<BoarderStyle>,
 }
 
 #[derive(Debug, Default, Xml)]
@@ -423,15 +423,15 @@ pub struct LeftBoarder<'a> {
 #[xml(tag = "w:right")]
 pub struct RightBoarder<'a> {
   #[xml(attr = "w:val")]
-  color: Option<Cow<'a, str>>,
+  pub color: Option<Cow<'a, str>>,
   #[xml(attr = "w:val")]
-  shadow: Option<bool>,
+  pub shadow: Option<bool>,
   #[xml(attr = "w:val")]
-  space: Option<usize>,
+  pub space: Option<usize>,
   #[xml(attr = "w:val")]
-  sz: Option<usize>,
+  pub sz: Option<usize>,
   #[xml(attr = "w:val")]
-  val: Option<BoarderStyle>,
+  pub val: Option<BoarderStyle>,
 }
 
 #[derive(Debug, Default, Xml)]
@@ -439,15 +439,15 @@ pub struct RightBoarder<'a> {
 #[xml(tag = "w:between")]
 pub struct BetweenBoarder<'a> {
   #[xml(attr = "w:val")]
-  color: Option<Cow<'a, str>>,
+  pub color: Option<Cow<'a, str>>,
   #[xml(attr = "w:val")]
-  shadow: Option<bool>,
+  pub shadow: Option<bool>,
   #[xml(attr = "w:val")]
-  space: Option<usize>,
+  pub space: Option<usize>,
   #[xml(attr = "w:val")]
-  sz: Option<usize>,
+  pub sz: Option<usize>,
   #[xml(attr = "w:val")]
-  val: Option<BoarderStyle>,
+  pub val: Option<BoarderStyle>,
 }
 
 #[derive(Debug)]

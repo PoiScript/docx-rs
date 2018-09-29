@@ -11,7 +11,7 @@ use schema::{SCHEMA_MAIN, SCHEMA_RELATIONSHIPS};
 pub struct FontTable<'a> {
   #[xml(child)]
   #[xml(tag = "w:font")]
-  fonts: Vec<Font<'a>>,
+  pub fonts: Vec<Font<'a>>,
 }
 
 fn font_table_extend_attrs(_: &FontTable, start: &mut BytesStart) {
@@ -24,17 +24,17 @@ fn font_table_extend_attrs(_: &FontTable, start: &mut BytesStart) {
 #[xml(tag = "w:font")]
 pub struct Font<'a> {
   #[xml(attr = "w:name")]
-  name: Cow<'a, str>,
+  pub name: Cow<'a, str>,
   #[xml(flatten_empty)]
   #[xml(tag = "w:charset")]
   #[xml(attr = "w:val")]
-  charset: Option<Cow<'a, str>>,
+  pub charset: Option<Cow<'a, str>>,
   #[xml(flatten_empty)]
   #[xml(tag = "w:family")]
   #[xml(attr = "w:val")]
-  family: Option<Cow<'a, str>>,
+  pub family: Option<Cow<'a, str>>,
   #[xml(flatten_empty)]
   #[xml(tag = "w:pitch")]
   #[xml(attr = "w:val")]
-  pitch: Option<Cow<'a, str>>,
+  pub pitch: Option<Cow<'a, str>>,
 }
