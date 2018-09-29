@@ -4,10 +4,10 @@ version = "0.1.1"
 authors = ["PoiScript <poiscript@gmail.com>"]
 exclude = ["validator/*"]
 license = "MIT"
+readme = "README.md"
 repository = "https://github.com/PoiScript/docx-rs"
-description = """
-A Rust library for generating docx files.
-"""
+description = "A Rust library for parsing and generating docx files."
+keywords = ["docx","generator","openxml","parser"]
 
 [badges]
 travis-ci = { repository = "PoiScript/docx-rs" }
