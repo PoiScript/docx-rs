@@ -1,3 +1,7 @@
+//! Font Table part
+//!
+//! The corresponding ZIP item is `/word/fontTable.xml`.
+
 use quick_xml::events::BytesStart;
 use std::borrow::Cow;
 

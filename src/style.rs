@@ -1,3 +1,7 @@
+//! Style Definitions part
+//!
+//! The corresponding ZIP item is `/word/styles.xml`.
+
 use quick_xml::events::BytesStart;
 use std::borrow::{Borrow, Cow};
 use std::convert::AsRef;
@@ -6,6 +10,9 @@ use std::str::FromStr;
 use errors::{Error, Result};
 use schema::SCHEMA_MAIN;
 
+/// The root element of the styles of the document
+///
+/// Styles are predefined sets of properties which can be applied to text.
 #[derive(Debug, Default, Xml)]
 #[xml(event = "Start")]
 #[xml(tag = "w:styles")]
@@ -13,9 +20,11 @@ use schema::SCHEMA_MAIN;
 pub struct Styles<'a> {
   #[xml(child)]
   #[xml(tag = "w:docDefaults")]
+  /// Specifies the default set of properties.
   pub default: Option<DefaultStyle<'a>>,
   #[xml(child)]
   #[xml(tag = "w:style")]
+  /// Specifies a set of properties.
   pub styles: Vec<Style<'a>>,
 }
 
@@ -24,12 +33,16 @@ fn styles_extend_attrs(_: &Styles, start: &mut BytesStart) {
 }
 
 impl<'a> Styles<'a> {
+  /// Appends a style to the back of the styles, and returns it.
   pub fn create_style(&mut self) -> &mut Style<'a> {
     self.styles.push(Style::default());
     self.styles.last_mut().unwrap()
   }
 }
 
+/// The root element of the default style
+///
+/// This style is inherited by every paragraph and run.
 #[derive(Debug, Default, Xml)]
 #[xml(event = "Start")]
 #[xml(tag = "w:docDefaults")]
@@ -42,36 +55,48 @@ pub struct DefaultStyle<'a> {
   pub para: ParaStyle<'a>,
 }
 
+/// The root element of the default character properties
 #[derive(Debug, Default, Xml)]
 #[xml(event = "Start")]
 #[xml(tag = "w:rPrDefault")]
 pub struct DefaultCharStyle<'a> {
+  /// Specifies a set of character properties
   #[xml(child)]
   #[xml(tag = "w:rPr")]
   pub inner: CharStyle<'a>,
 }
 
+/// The root element of the default paragraph properties
 #[derive(Debug, Default, Xml)]
 #[xml(event = "Start")]
 #[xml(tag = "w:pPrDefault")]
 pub struct DefaultParaStyle<'a> {
+  /// Specifies a set of paragraph properties
   #[xml(child)]
   #[xml(tag = "w:pPr")]
   pub inner: ParaStyle<'a>,
 }
 
+/// The root element of a style
+///
+/// This style is applied to a region of a document.
 #[derive(Debug, Default, Xml)]
 #[xml(event = "Start")]
 #[xml(tag = "w:style")]
 #[xml(extend_attrs = "style_extend_attrs")]
 pub struct Style<'a> {
+  /// Specifies the primary name and the unique identifier
+  ///
+  /// This identifier is used throughout the document to apply style in content.
   #[xml(flatten_empty)]
   #[xml(tag = "w:name")]
   #[xml(attr = "w:val")]
   pub name: Option<Cow<'a, str>>,
+  /// Specifies a set of paragraph properties
   #[xml(child)]
   #[xml(tag = "w:pPr")]
   pub para: Option<ParaStyle<'a>>,
+  /// Specifies a set of character properties
   #[xml(child)]
   #[xml(tag = "w:rPr")]
   pub char: Option<CharStyle<'a>>,
@@ -85,45 +110,55 @@ fn style_extend_attrs(s: &Style, start: &mut BytesStart) {
 }
 
 impl<'a> Style<'a> {
+  /// Setting the name of this style
   pub fn name(&mut self, name: &'a str) -> &mut Self {
     self.name = Some(Cow::Borrowed(name));
     self
   }
 
+  /// Resetting the name of this style
   pub fn reset_name(&mut self) -> &mut Self {
     self.name = None;
     self
   }
 
+  /// Returns the paragraph properties
   pub fn para(&mut self) -> &mut ParaStyle<'a> {
     self.para.get_or_insert(ParaStyle::default())
   }
 
+  /// Returns the character properties
   pub fn char(&mut self) -> &mut CharStyle<'a> {
     self.char.get_or_insert(CharStyle::default())
   }
 }
 
+/// The root elemnt a set of character properties
 #[derive(Debug, Default, Xml)]
 #[xml(event = "Start")]
 #[xml(tag = "w:rPr")]
 pub struct CharStyle<'a> {
+  /// Specifies the color to be used to display text.
   #[xml(flatten_empty)]
   #[xml(tag = "w:color")]
   #[xml(attr = "w:val")]
   pub color: Option<Cow<'a, str>>,
+  /// Specifies the font size in half points.
   #[xml(flatten_empty)]
   #[xml(tag = "w:sz")]
   #[xml(attr = "w:val")]
   pub sz: Option<usize>,
+  /// Specifies that the text of the text run is to be bold.
   #[xml(flatten_empty)]
   #[xml(tag = "w:b")]
   #[xml(attr = "w:val")]
   pub bold: Option<bool>,
+  /// Specifies that the text of the text run is to be italics.
   #[xml(flatten_empty)]
   #[xml(tag = "w:i")]
   #[xml(attr = "w:val")]
   pub italics: Option<bool>,
+  /// Specifies that the contents are to be displayed with a horizontal line through the center of the line.
   #[xml(flatten_empty)]
   #[xml(tag = "w:strike")]
   #[xml(attr = "w:val")]
@@ -287,6 +322,7 @@ string_enum! {
   }
 }
 
+/// The root elemnt a set of paragraph properties
 #[derive(Debug, Default, Xml)]
 #[xml(event = "Start")]
 #[xml(tag = "w:pPr")]

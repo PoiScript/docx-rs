@@ -1,3 +1,7 @@
+//! Content-type item
+//!
+//! The corresponding ZIP item is `/[Content_Types].xml`.
+
 use quick_xml::events::BytesStart;
 use std::borrow::Cow;
 use std::default::Default;

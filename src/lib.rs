@@ -1,3 +1,5 @@
+//! A Rust library for parsing and generating docx files.
+
 #[macro_use]
 extern crate docx_codegen;
 #[macro_use]

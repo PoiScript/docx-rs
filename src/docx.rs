@@ -1,3 +1,5 @@
+//! Module for `Docx`.
+
 use quick_xml::events::*;
 use quick_xml::Writer;
 use std::default::Default;
@@ -23,23 +25,34 @@ use schema::{
 };
 use style::{Style, Styles};
 
+/// A WordprocessingML package
 #[derive(Debug, Default)]
 pub struct Docx<'a> {
+  /// Specifies package-level properties part
   pub app: Option<App<'a>>,
+  /// Specifies core properties part
   pub core: Option<Core<'a>>,
+  /// Specifies the content type of relationship parts and the main document part.
   pub content_types: ContentTypes<'a>,
+  /// Specifies the main document part.
   pub document: Document<'a>,
+  /// Specifies the font table part
   pub font_table: Option<FontTable<'a>>,
+  /// Specifies the style definitions part
   pub styles: Option<Styles<'a>>,
+  /// Specifies the package-level relationship to the main document part
   pub rels: Relationships<'a>,
+  /// Specifies the part-level relationship to the main document part
   pub document_rels: Option<Relationships<'a>>,
 }
 
 impl<'a> Docx<'a> {
+  /// Create a paragraph, and returns it.
   pub fn create_para(&mut self) -> &mut Para<'a> {
     self.document.body.create_para()
   }
 
+  /// Create a style, and returns it.
   pub fn create_style(&mut self) -> &mut Style<'a> {
     self.styles.get_or_insert(Styles::default()).create_style()
   }

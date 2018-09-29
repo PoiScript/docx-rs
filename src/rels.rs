@@ -1,3 +1,7 @@
+//! Relationship item
+//!
+//! The corresponding ZIP item is `/_rels/.rels` (package-relationship) or `/word/_rels/document.xml.rels` (part-relationship).
+
 use quick_xml::events::BytesStart;
 use std::borrow::Cow;
 

@@ -1,3 +1,7 @@
+//! Core File Properties part
+//!
+//! The corresponding ZIP item is `/docProps/core.xml`.
+
 use quick_xml::events::BytesStart;
 use std::borrow::Cow;
 

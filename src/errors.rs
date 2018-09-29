@@ -1,3 +1,5 @@
+//! Error module
+
 use std::error;
 use std::fmt;
 
@@ -8,6 +10,7 @@ use std::str::{ParseBoolError, Utf8Error};
 use std::string::FromUtf8Error;
 use zip::result::ZipError;
 
+/// Error type of docx-rs
 #[derive(Debug)]
 pub enum Error {
   IO(IOError),
@@ -133,4 +136,5 @@ impl From<ZipError> for Error {
   }
 }
 
+/// Specialized `Result` which the error value is `Error`.
 pub type Result<T> = ::std::result::Result<T, Error>;

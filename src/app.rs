@@ -1,3 +1,7 @@
+//! Application-Defined File Properties part
+//!
+//! The corresponding ZIP item is `/docProps/app.xml`.
+
 use quick_xml::events::BytesStart;
 use std::borrow::Cow;
 use std::default::Default;
