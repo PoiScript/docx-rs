@@ -133,7 +133,7 @@ impl<'a> Style<'a> {
   }
 }
 
-/// The root elemnt a set of character properties
+/// The root element of a set of character properties
 #[derive(Debug, Default, Xml)]
 #[xml(event = "Start")]
 #[xml(tag = "w:rPr")]
@@ -322,7 +322,7 @@ string_enum! {
   }
 }
 
-/// The root elemnt a set of paragraph properties
+/// The root element of a set of paragraph properties
 #[derive(Debug, Default, Xml)]
 #[xml(event = "Start")]
 #[xml(tag = "w:pPr")]
