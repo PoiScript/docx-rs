@@ -2,10 +2,10 @@
 //!
 //! ## Example
 //!
-//! Using methods [`from_file`] and [`to_file`] for reading from and writing to file directly.
+//! Using methods [`from_file`] and [`write_file`] for reading from and writing to file directly.
 //!
 //! [`from_file`]: struct.Docx.html#method.from_file
-//! [`to_file`]: struct.Docx.html#method.to_file
+//! [`write_file`]: struct.Docx.html#method.write_file
 //!
 //! ```no_run
 //! use docx::Docx;
@@ -18,7 +18,7 @@
 //! docx.create_para().new_run().text("Lorem Ipsum");
 //!
 //! // writing back to the original file
-//! docx.to_file("demo.docx").unwrap();
+//! docx.write_file("demo.docx").unwrap();
 //! ```
 //!
 //! Alternatively, you can use [`parse`] (accepts [`Read`] + [`Seek`]) and [`generate`] (accepts [`Write`] + [`Seek`]).

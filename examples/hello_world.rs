@@ -49,5 +49,5 @@ fn main() {
     run.prop().strike(true);
   }
 
-  docx.to_file("hello_world.docx").unwrap();
+  docx.write_file("hello_world.docx").unwrap();
 }

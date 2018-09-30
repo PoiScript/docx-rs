@@ -133,7 +133,7 @@ impl<'a> Docx<'a> {
     Ok(zip.finish()?)
   }
 
-  pub fn to_file<P: AsRef<Path>>(&mut self, path: P) -> Result<File> {
+  pub fn write_file<P: AsRef<Path>>(&mut self, path: P) -> Result<File> {
     let file = File::create(path)?;
     self.generate(file)
   }
