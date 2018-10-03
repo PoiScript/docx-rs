@@ -1,4 +1,4 @@
-use proc_macro2::Span;
+use proc_macro2::{Span, TokenStream};
 use quote::ToTokens;
 use syn;
 use syn::Lit::*;
@@ -297,6 +297,8 @@ pub trait TypeExt {
   fn is_bool(&self) -> bool;
   fn is_string(&self) -> bool;
   fn is_usize(&self) -> bool;
+  fn init_value(&self) -> TokenStream;
+  fn parse_attr_value(&self) -> TokenStream;
   fn get_ident(&self) -> Option<syn::Ident>;
 }
 
@@ -356,15 +358,11 @@ impl TypeExt for syn::Type {
       (&syn::GenericArgument::Lifetime(_), &syn::GenericArgument::Type(ref arg)) => arg,
       _ => return false,
     };
-    if seg.ident == "Cow" {
-      match *ty {
-        syn::Type::Path(ref ty) => {
-          ty.qself.is_none() && ty.path.segments.len() == 1 && ty.path.segments[0].ident == "str"
-        }
-        _ => false,
+    seg.ident == "Cow" && match *ty {
+      syn::Type::Path(ref ty) => {
+        ty.qself.is_none() && ty.path.segments.len() == 1 && ty.path.segments[0].ident == "str"
       }
-    } else {
-      false
+      _ => false,
     }
   }
 
@@ -397,25 +395,48 @@ impl TypeExt for syn::Type {
     }
   }
 
-  fn is_string(&self) -> bool {
-    match self.get_ident() {
-      Some(ty) => ty == "String",
-      None => false,
+  // Specifies how to initialize this field by its type
+  fn init_value(&self) -> TokenStream {
+    if self.is_vec().is_some() {
+      quote!(Vec::new())
+    } else if self.is_bool() {
+      quote!(false)
+    } else {
+      quote!(None)
     }
+  }
+
+  // Specifies how to parse attributes value (attr.value) by its type
+  fn parse_attr_value(&self) -> TokenStream {
+    let ty = self.is_option().unwrap_or(&self);
+
+    if ty.is_string() {
+      quote!(String::from_utf8(attr.value.into_owned().to_vec())?)
+    } else if ty.is_cow_str() {
+      quote!(Cow::Owned(String::from_utf8(
+        attr.value.into_owned().to_vec()
+      )?))
+    } else if ty.is_bool() {
+      quote! {{
+        let value = ::std::str::from_utf8(attr.value.borrow())?;
+        bool::from_str(value).or(usize::from_str(value).map(|v| v != 0))?
+      }}
+    } else {
+      let ty = ty.get_ident();
+      quote!(#ty::from_str(::std::str::from_utf8(attr.value.borrow())?)?)
+    }
+  }
+
+  fn is_string(&self) -> bool {
+    self.get_ident().map_or(false, |ty| ty == "String")
   }
 
   fn is_bool(&self) -> bool {
-    match self.get_ident() {
-      Some(ty) => ty == "bool",
-      None => false,
-    }
+    self.get_ident().map_or(false, |ty| ty == "bool")
   }
 
   fn is_usize(&self) -> bool {
-    match self.get_ident() {
-      Some(ty) => ty == "usize",
-      None => false,
-    }
+    self.get_ident().map_or(false, |ty| ty == "usize")
   }
 
   fn get_ident(&self) -> Option<syn::Ident> {

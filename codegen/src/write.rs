@@ -34,7 +34,7 @@ fn write_struct(s: &Struct) -> TokenStream {
 
         #( #write_flatten_text )*
 
-        #( #write_flatten_empty )*
+        #write_flatten_empty
 
         #( #write_flatten_empty_attr )*
 
@@ -56,17 +56,14 @@ fn write_struct(s: &Struct) -> TokenStream {
 }
 
 fn write_enum(e: &Enum) -> TokenStream {
-  let enum_name = &e.name;
+  use std::iter::repeat;
 
   macro_rules! names {
-    ($t:tt) => {
-      &e.$t
-        .iter()
-        .map(|v| {
-          let var_name = &v.name;
-          quote!{ #enum_name::#var_name(s) => s.write(w), }
-        }).collect::<Vec<_>>()
-    };
+    ($t:tt) => {{
+      let var_name = e.$t.iter().map(|v| &v.name);
+      let enum_name = repeat(&e.name);
+      quote! { #(#enum_name::#var_name(s) => s.write(w),)* }
+    }};
   }
 
   let text_flat_vars = names!(text_flat_vars);
@@ -76,10 +73,10 @@ fn write_enum(e: &Enum) -> TokenStream {
 
   quote!{
     match self {
-      #( #text_flat_vars )*
-      #( #empty_flat_vars )*
-      #( #start_elem_vars )*
-      #( #empty_elem_vars )*
+      #text_flat_vars
+      #empty_flat_vars
+      #start_elem_vars
+      #empty_elem_vars
     }
   }
 }
@@ -122,14 +119,15 @@ fn write_empty_event(s: &Struct) -> TokenStream {
   }
 }
 
-fn write_text_event(s: &Struct) -> TokenStream {
-  if let Some(f) = &s.text_fld {
-    let name = &f.name;
-    quote! {
-      w.write_event(Event::Text(BytesText::from_plain_str(self.#name.as_ref())))?;
+fn write_text_event(s: &Struct) -> Option<TokenStream> {
+  match &s.text_fld {
+    Some(f) => {
+      let name = &f.name;
+      Some(quote! {
+        w.write_event(Event::Text(BytesText::from_plain_str(self.#name.as_ref())))?;
+      })
     }
-  } else {
-    quote!()
+    None => None,
   }
 }
 
@@ -221,21 +219,18 @@ fn write_flatten_text(s: &Struct) -> Vec<TokenStream> {
   result
 }
 
-fn wirte_flatten_empty(s: &Struct) -> Vec<TokenStream> {
-  let mut result = Vec::new();
+fn wirte_flatten_empty(s: &Struct) -> TokenStream {
+  let names = s.flat_empty_flds.iter().map(|f| &f.name);
+  let tags = s.flat_empty_flds.iter().map(|f| bytes_str!(f.tag));
+  let tags1 = tags.clone();
 
-  for f in &s.flat_empty_flds {
-    let name = &f.name;
-    let tag = bytes_str!(f.tag);
-
-    result.push(quote! {
-      if self.#name {
-        w.write_event(Event::Empty(BytesStart::borrowed(#tag, #tag.len())))?;
+  quote! {
+    #(
+      if self.#names {
+        w.write_event(Event::Empty(BytesStart::borrowed(#tags, #tags1.len())))?;
       }
-    });
+    )*
   }
-
-  result
 }
 
 fn write_flatten_empty_attr(s: &Struct) -> Vec<TokenStream> {
