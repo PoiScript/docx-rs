@@ -87,6 +87,7 @@ impl<'a> Default for App<'a> {
   }
 }
 
+#[inline]
 fn app_extend_attrs(_: &App, start: &mut BytesStart) {
   start.push_attribute(("xmlns", SCHEMAS_EXTENDED));
   start.push_attribute(("xmlns:vt", SCHEMA_DOC_PROPS_V_TYPES));

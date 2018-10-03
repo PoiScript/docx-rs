@@ -18,6 +18,7 @@ pub struct FontTable<'a> {
   pub fonts: Vec<Font<'a>>,
 }
 
+#[inline]
 fn font_table_extend_attrs(_: &FontTable, start: &mut BytesStart) {
   start.push_attribute(("xmlns:w", SCHEMA_MAIN));
   start.push_attribute(("xmlns:r", SCHEMA_RELATIONSHIPS));

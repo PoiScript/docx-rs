@@ -36,6 +36,7 @@ pub struct Core<'a> {
   pub revision: Option<Cow<'a, str>>,
 }
 
+#[inline]
 fn core_extend_attrs(_: &Core, start: &mut BytesStart) {
   start.push_attribute(("xmlns:cp", SCHEMA_CORE));
 }

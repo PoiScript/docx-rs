@@ -20,10 +20,22 @@ pub enum Error {
   ParseInt(ParseIntError),
   ParseBool(ParseBoolError),
   UnexpectedEof,
-  UnexpectedTag { expected: String, found: String },
-  UnexpectedEvent { expected: String, found: String },
-  MissingField { name: String, field: String },
-  UnknownValue { expected: String, found: String },
+  UnexpectedTag {
+    expected: &'static str,
+    found: String,
+  },
+  UnexpectedEvent {
+    expected: &'static str,
+    found: &'static str,
+  },
+  MissingField {
+    name: &'static str,
+    field: &'static str,
+  },
+  UnknownValue {
+    expected: &'static str,
+    found: String,
+  },
 }
 
 impl fmt::Display for Error {

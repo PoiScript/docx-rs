@@ -15,7 +15,7 @@ macro_rules! string_enum {
         match s {
           $($value => Ok($name::$variant),)*
           s => Err(Error::UnknownValue {
-            expected: stringify!($($value,)*).to_string(),
+            expected: stringify!($($value,)*),
             found: String::from(s),
           })
         }

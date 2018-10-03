@@ -3,6 +3,7 @@
 //! The corresponding ZIP item is `/_rels/.rels` (package-relationship) or `/word/_rels/document.xml.rels` (part-relationship).
 
 use quick_xml::events::BytesStart;
+use std::borrow::Borrow;
 use std::borrow::Cow;
 
 use errors::{Error, Result};
@@ -18,6 +19,7 @@ pub struct Relationships<'a> {
   pub relationships: Vec<Relationship<'a>>,
 }
 
+#[inline]
 fn relationships_extend_attrs(_: &Relationships, start: &mut BytesStart) {
   start.push_attribute(("xmlns", SCHEMA_RELATIONSHIPS));
 }
@@ -30,6 +32,14 @@ impl<'a> Relationships<'a> {
       target: Cow::Borrowed(target),
       ty: Cow::Borrowed(schema),
     });
+  }
+
+  pub fn get_target(&'a self, id: &'a str) -> Option<&'a str> {
+    self
+      .relationships
+      .iter()
+      .find(|r| r.id == id)
+      .map(|r| r.target.borrow())
   }
 }
 

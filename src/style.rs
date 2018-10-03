@@ -28,6 +28,7 @@ pub struct Styles<'a> {
   pub styles: Vec<Style<'a>>,
 }
 
+#[inline]
 fn styles_extend_attrs(_: &Styles, start: &mut BytesStart) {
   start.push_attribute(("xmlns:w", SCHEMA_MAIN));
 }
@@ -102,6 +103,7 @@ pub struct Style<'a> {
   pub char: Option<CharStyle<'a>>,
 }
 
+#[inline]
 fn style_extend_attrs(s: &Style, start: &mut BytesStart) {
   start.push_attribute(("w:type", "paragraph"));
   if let Some(ref name) = s.name {
@@ -255,7 +257,7 @@ impl<'a> CharStyle<'a> {
 
   pub fn underline(&mut self, color: Option<&'a str>, ty: Option<UnderlineStyle>) -> &mut Self {
     self.underline = Some(Underline {
-      color: color.map(|s| Cow::Borrowed(s)),
+      color: color.map(Cow::Borrowed),
       val: ty,
     });
     self
@@ -338,6 +340,9 @@ pub struct ParaStyle<'a> {
   #[xml(child)]
   #[xml(tag = "w:pBdr")]
   pub boarder: Option<Boarders<'a>>,
+  #[xml(child)]
+  #[xml(tag = "w:numBdr")]
+  pub num: Option<Numbers>,
 }
 
 impl<'a> ParaStyle<'a> {
@@ -547,4 +552,20 @@ string_enum!{
     Triple = "triple",
     Wave = "wave",
   }
+}
+
+#[derive(Debug, Xml)]
+#[xml(event = "Empty")]
+#[xml(tag = "w:numPr")]
+pub struct Numbers {
+  /// Specifies a reference to a numbering definition instance
+  #[xml(flatten_empty)]
+  #[xml(tag = "w:numId")]
+  #[xml(attr = "w:val")]
+  pub id: usize,
+  /// Specifies the numbering level of the numbering definition to use for the paragraph.
+  #[xml(flatten_empty)]
+  #[xml(tag = "w:ilvl")]
+  #[xml(attr = "w:val")]
+  pub level: usize,
 }

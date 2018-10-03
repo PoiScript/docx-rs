@@ -32,6 +32,7 @@ pub struct ContentTypes<'a> {
   pub overrides: Vec<OverrideContentType<'a>>,
 }
 
+#[inline]
 fn content_types_extend_attrs(_: &ContentTypes, start: &mut BytesStart) {
   start.push_attribute(("xmlns", SCHEMA_CONTENT_TYPES));
 }
