@@ -41,16 +41,6 @@ pub struct Body<'a> {
   pub content: Vec<BodyContent<'a>>,
 }
 
-impl<'a> Body<'a> {
-  /// Create a paragraph in this body, and returns it.
-  pub fn create_para(&mut self) -> &mut Para<'a> {
-    self.content.push(BodyContent::Para(Para::default()));
-    match self.content.last_mut().unwrap() {
-      BodyContent::Para(p) => p,
-    }
-  }
-}
-
 /// A set of elements that can be contained in the body
 #[derive(Debug, Xml)]
 pub enum BodyContent<'a> {
@@ -87,9 +77,22 @@ pub struct Para<'a> {
 impl<'a> Para<'a> {
   /// Appends a text to the back of this paragraph.
   ///
-  /// Similarly to [`Run.text`], but it will create a new run.
+  /// Similarly to [`Run.text`], but it will create a new run without
+  /// any formatting. If you want to insert a styled text, use method
+  /// [`run`] instead.
+  ///
+  /// ```rust
+  /// use docx::document::{Para, Text, TextSpace};
+  ///
+  /// let mut para = Para::default();
+  ///
+  /// para.text("Hello,");
+  /// para.text(Text::new(" world", Some(TextSpace::Preserve)));
+  /// ```
   ///
   /// [`Run.text`]: struct.Run.html#method.text
+  /// [`run`]: #method.run
+  #[inline]
   pub fn text<T: Into<Text<'a>>>(&mut self, t: T) -> &mut Self {
     self.content.push(ParaContent::Run(Run {
       prop: None,
@@ -98,13 +101,30 @@ impl<'a> Para<'a> {
     self
   }
 
-  /// Appends a run to the back of this paragraph, and returns it.
-  pub fn new_run(&mut self) -> &mut Run<'a> {
-    self.content.push(ParaContent::Run(Run::default()));
-    match self.content.last_mut() {
-      Some(ParaContent::Run(r)) => r,
-      _ => unreachable!("We just insert a run, so the last element must be a run."),
-    }
+  /// Appends a run to the back of this paragraph
+  ///
+  /// ```rust
+  /// use docx::document::{Para, Run};
+  ///
+  /// let mut para = Para::default();
+  /// let mut run = Run::text("Hello");
+  /// run.prop().bold(true);
+  ///
+  /// para.run(run);
+  /// ```
+  #[inline]
+  pub fn run(&mut self, r: Run<'a>) -> &mut Self {
+    self.content.push(ParaContent::Run(r.into()));
+    self
+  }
+
+  #[inline]
+  pub fn text_break(&mut self) -> &mut Self {
+    self.content.push(ParaContent::Run(Run {
+      prop: None,
+      content: vec![RunContent::Break(Break { ty: None })],
+    }));
+    self
   }
 
   /// Returns the properties of this paragraph.
@@ -190,25 +210,12 @@ pub struct Run<'a> {
 }
 
 impl<'a> Run<'a> {
-  /// Appends a text to the back of this run.
-  ///
-  /// This function accepts a `&str` or a `Text`.
-  ///
-  /// ```rust
-  /// use docx::document::{Run, Text, TextSpace};
-  /// use std::borrow::Cow;
-  ///
-  /// let mut run = Run::default();
-  ///
-  /// run.text(" Hello, world  ");
-  /// run.text(Text::new(
-  ///   Cow::Borrowed("  Hello, world  "),
-  ///   Some(TextSpace::Preserve),
-  /// ));
-  /// ```
-  pub fn text<T: Into<Text<'a>>>(&mut self, t: T) -> &mut Self {
-    self.content.push(RunContent::Text(t.into()));
-    self
+  /// Creates a new run containing the given text
+  pub fn text<T: Into<Text<'a>>>(t: T) -> Self {
+    Run {
+      prop: None,
+      content: vec![RunContent::Text(t.into())],
+    }
   }
 
   /// Returns the properties of this run.
@@ -248,8 +255,11 @@ pub struct Text<'a> {
 }
 
 impl<'a> Text<'a> {
-  pub fn new(text: Cow<'a, str>, space: Option<TextSpace>) -> Self {
-    Text { text, space }
+  pub fn new<S: Into<Cow<'a, str>>>(text: S, space: Option<TextSpace>) -> Self {
+    Text {
+      text: text.into(),
+      space,
+    }
   }
 }
 

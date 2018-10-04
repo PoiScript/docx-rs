@@ -9,13 +9,16 @@
 //!
 //! ```no_run
 //! use docx::Docx;
+//! use docx::document::Para;
 //!
 //! // reading docx from file
 //! let mut docx = Docx::from_file("demo.docx").unwrap();
 //!
 //! // do what you want to do…
 //! // for example, appending something
-//! docx.create_para().new_run().text("Lorem Ipsum");
+//! let mut para = Para::default();
+//! para.text("Lorem Ipsum");
+//! docx.insert_para(para);
 //!
 //! // writing back to the original file
 //! docx.write_file("demo.docx").unwrap();
@@ -53,6 +56,7 @@
 //!
 //! ```rust
 //! use docx::Docx;
+//! use docx::document::{Para, Run};
 //!
 //! let mut docx = Docx::default();
 //!
@@ -63,17 +67,16 @@
 //!   .bold(true)
 //!   .italics(true);
 //!
-//! let para = docx.create_para();
+//! let mut para = Para::default();
 //! para.prop().name("Normal");
 //!
-//! para.new_run().text("I'm bold and italics.").text_break();
+//! para.text("I'm bold and italics.").text_break();
 //!
-//! para
-//!   .new_run()
-//!   .text("I'm neither bold nor italics.")
-//!   .prop()
-//!   .bold(false)
-//!   .italics(false);
+//! let mut run = Run::text("poi");
+//! run.prop().bold(false).italics(false);
+//! para.run(run);
+//!
+//! docx.insert_para(para);
 //! ```
 
 #[macro_use]

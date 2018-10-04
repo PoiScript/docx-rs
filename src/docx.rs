@@ -16,7 +16,7 @@ use zip::{ZipArchive, ZipWriter};
 use app::App;
 use content_type::ContentTypes;
 use core::Core;
-use document::{Document, Para};
+use document::{BodyContent, Document, Para};
 use errors::{Error, Result};
 use font_table::FontTable;
 use rels::Relationships;
@@ -47,11 +47,6 @@ pub struct Docx<'a> {
 }
 
 impl<'a> Docx<'a> {
-  /// Create a paragraph, and returns it.
-  pub fn create_para(&mut self) -> &mut Para<'a> {
-    self.document.body.create_para()
-  }
-
   /// Create a style, and returns it.
   pub fn create_style(&mut self) -> &mut Style<'a> {
     self.styles.get_or_insert(Styles::default()).create_style()
@@ -178,5 +173,21 @@ impl<'a> Docx<'a> {
     let file = File::open(path)?;
     let reader = BufReader::new(file);
     Docx::parse(reader)
+  }
+
+  #[inline]
+  pub fn insert_para(&mut self, para: Para<'a>) -> &mut Self {
+    self.document.body.content.push(BodyContent::Para(para));
+    self
+  }
+
+  #[inline]
+  pub fn insert_style(&mut self, style: Style<'a>) -> &mut Self {
+    self
+      .styles
+      .get_or_insert(Styles::default())
+      .styles
+      .push(style);
+    self
   }
 }

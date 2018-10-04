@@ -5,13 +5,17 @@ use docx::prelude::*;
 fn main() {
   let mut docx = Docx::default();
 
-  docx.create_para().new_run().text("hello, world");
+  let mut para = Para::default();
+  para.text("hello, world");
+  docx.insert_para(para);
 
   docx.write_file("origin.docx").unwrap();
 
   let mut docx = Docx::from_file("origin.docx").unwrap();
 
-  docx.create_para().new_run().text("world, hello");
+  let mut para = Para::default();
+  para.text("world, hello");
+  docx.insert_para(para);
 
   docx.write_file("origin_appended.docx").unwrap();
 }

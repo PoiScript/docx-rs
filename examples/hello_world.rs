@@ -1,53 +1,35 @@
 extern crate docx;
 
 use docx::prelude::*;
+use docx::style::Justification;
 
 fn main() {
   let mut docx = Docx::default();
 
-  {
-    let test_style = docx.create_style();
+  let mut test_style = Style::default();
+  test_style.name("TestStyle").char().sz(42).color("ff0000");
+  docx.insert_style(test_style);
 
-    test_style.name("TestStyle");
+  let mut para = Para::default();
+  para.prop().name("TestStyle").jc(Justification::Start);
+  let mut run = Run::text("hello, world");
+  run.prop().bold(true);
+  para.run(run);
+  docx.insert_para(para);
 
-    test_style.char().sz(42).color("ff0000");
-  }
+  let mut para = Para::default();
+  para.prop().name("TestStyle").jc(Justification::Center);
+  let mut run = Run::text("hello, world");
+  run.prop().outline(true);
+  para.run(run);
+  docx.insert_para(para);
 
-  {
-    let para = docx.create_para();
-
-    para.prop().name("TestStyle").jc(Justification::Start);
-
-    let run = para.new_run();
-
-    run.text("hello, world");
-
-    run.prop().bold(true);
-  }
-
-  {
-    let para = docx.create_para();
-
-    para.prop().name("TestStyle").jc(Justification::Center);
-
-    let run = para.new_run();
-
-    run.text("hello, world");
-
-    run.prop().outline(true);
-  }
-
-  {
-    let para = docx.create_para();
-
-    para.prop().name("TestStyle").jc(Justification::End);
-
-    let run = para.new_run();
-
-    run.text("hello, world");
-
-    run.prop().strike(true);
-  }
+  let mut para = Para::default();
+  para.prop().name("TestStyle").jc(Justification::End);
+  let mut run = Run::text("hello, world");
+  run.prop().strike(true);
+  para.run(run);
+  docx.insert_para(para);
 
   docx.write_file("hello_world.docx").unwrap();
 }
