@@ -96,9 +96,17 @@ pub mod document;
 mod docx;
 pub mod errors;
 pub mod font_table;
-pub mod prelude;
 pub mod rels;
 mod schema;
 pub mod style;
 
-pub use docx::Docx;
+pub mod prelude {
+    //! Prelude module
+
+    pub use crate::document::{Para, Run};
+    pub use crate::docx::Docx;
+    pub use crate::style::Style;
+}
+
+pub use crate::docx::Docx;
+pub use crate::errors::{Error, Result};
