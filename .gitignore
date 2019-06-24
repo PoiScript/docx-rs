@@ -3,3 +3,4 @@
 /codegen/target
 **/*.rs.bk
 *.docx
+Cargo.lock
