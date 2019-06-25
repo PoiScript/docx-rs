@@ -11,6 +11,9 @@ name = "docx_codegen"
 proc-macro = true
 
 [dependencies]
+docx = "0.1.2"
+log = "0.4.6"
 proc-macro2 = "0.4"
+quick-xml = "0.14.0"
 quote = "0.6"
 syn = { version = "0.15", features = ["extra-traits"] }

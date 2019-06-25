@@ -1,23 +1,5 @@
-[package]
-name = "docx"
-version = "0.1.2"
-authors = ["PoiScript <poiscript@gmail.com>"]
-edition = "2018"
-exclude = ["validator/*"]
-license = "MIT"
-readme = "README.md"
-repository = "https://github.com/PoiScript/docx-rs"
-description = "A Rust library for parsing and generating docx files."
-keywords = ["docx","generator","openxml","parser"]
-
-[badges]
-travis-ci = { repository = "PoiScript/docx-rs" }
-
-[dependencies]
-docx-codegen = { version = "0.1.1", path = "./codegen/" }
-log = "0.4.6"
-quick-xml = "0.14.0"
-zip = "0.5.2"
-
-[dev-dependencies]
-env_logger = "0.6.1"
+[workspace]
+members = [
+    "codegen",
+    "docx",
+]

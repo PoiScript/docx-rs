@@ -39,5 +39,5 @@ macro_rules! w_val_element {
                 $name { value }
             }
         }
-    }
+    };
 }

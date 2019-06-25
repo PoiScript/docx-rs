@@ -1,4 +1,4 @@
-#![recursion_limit = "128"]
+#![recursion_limit = "256"]
 
 extern crate proc_macro;
 
@@ -26,34 +26,34 @@ pub fn derive_xml(input: TokenStream) -> TokenStream {
     let impl_read = impl_read(&element);
 
     let gen = quote! {
-            impl #generics #name #generics {
-                pub fn write<W>(&self, w: &mut ::quick_xml::Writer<W>) -> Result<()>
-                where
-                    W: ::std::io::Write,
-                {
-                    use quick_xml::events::*;
+        impl #generics #name #generics {
+            pub fn write<W>(&self, w: &mut ::quick_xml::Writer<W>) -> Result<()>
+            where
+                W: ::std::io::Write,
+            {
+                use quick_xml::events::*;
 
-                    #impl_write
+                #impl_write
 
-                    Ok(())
-                }
-
-                pub fn read<B>(
-                    r: &mut ::quick_xml::Reader<B>,
-                    bs: Option<::quick_xml::events::BytesStart>,
-                ) -> Result<Self>
-                where
-                    B: ::std::io::BufRead,
-                {
-                    use quick_xml::events::*;
-                    use std::borrow::Borrow;
-                    use std::convert::AsRef;
-                    use std::str::FromStr;
-
-                    #impl_read
-                }
+                Ok(())
             }
-        };
+
+            pub fn read<B>(
+                r: &mut ::quick_xml::Reader<B>,
+                bs: Option<::quick_xml::events::BytesStart>,
+            ) -> Result<Self>
+            where
+                B: ::std::io::BufRead,
+            {
+                use quick_xml::events::*;
+                use std::borrow::Borrow;
+                use std::convert::AsRef;
+                use std::str::FromStr;
+
+                #impl_read
+            }
+        }
+    };
 
     gen.into()
 }
