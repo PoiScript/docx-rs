@@ -5,26 +5,21 @@
 use crate::errors::{Error, Result};
 use crate::schema::SCHEMA_MAIN;
 use quick_xml::events::BytesStart;
-use std::borrow::{Borrow, Cow};
-use std::convert::AsRef;
-use std::str::FromStr;
+use std::borrow::Borrow;
 
 /// The root element of the styles of the document
 ///
 /// Styles are predefined sets of properties which can be applied to text.
 #[derive(Debug, Default, Xml)]
-#[xml(event = "Start")]
 #[xml(tag = "w:styles")]
 #[xml(extend_attrs = "styles_extend_attrs")]
-pub struct Styles<'a> {
+pub struct Styles {
     /// Specifies the default set of properties.
-    #[xml(child)]
-    #[xml(tag = "w:docDefaults")]
-    pub default: Option<DefaultStyle<'a>>,
+    #[xml(child = "w:docDefaults")]
+    pub default: Option<DefaultStyle>,
     /// Specifies a set of properties.
-    #[xml(child)]
-    #[xml(tag = "w:style")]
-    pub styles: Vec<Style<'a>>,
+    #[xml(child = "w:style")]
+    pub styles: Vec<Style>,
 }
 
 #[inline]
@@ -32,9 +27,9 @@ fn styles_extend_attrs(_: &Styles, start: &mut BytesStart) {
     start.push_attribute(("xmlns:w", SCHEMA_MAIN));
 }
 
-impl<'a> Styles<'a> {
+impl Styles {
     /// Appends a style to the back of the styles, and returns it.
-    pub fn create_style(&mut self) -> &mut Style<'a> {
+    pub fn create_style(&mut self) -> &mut Style {
         self.styles.push(Style::default());
         self.styles.last_mut().unwrap()
     }
@@ -44,76 +39,66 @@ impl<'a> Styles<'a> {
 ///
 /// This style is inherited by every paragraph and run.
 #[derive(Debug, Default, Xml)]
-#[xml(event = "Start")]
 #[xml(tag = "w:docDefaults")]
-pub struct DefaultStyle<'a> {
-    #[xml(child)]
-    #[xml(tag = "w:rPrDefault")]
-    pub char: CharStyle<'a>,
-    #[xml(child)]
-    #[xml(tag = "w:pPrDefault")]
-    pub para: ParaStyle<'a>,
+pub struct DefaultStyle {
+    #[xml(child = "w:rPrDefault")]
+    pub char: Option<DefaultCharStyle>,
+    #[xml(child = "w:pPrDefault")]
+    pub para: Option<DefaultParaStyle>,
 }
 
 /// The root element of the default character properties
 #[derive(Debug, Default, Xml)]
-#[xml(event = "Start")]
 #[xml(tag = "w:rPrDefault")]
-pub struct DefaultCharStyle<'a> {
+pub struct DefaultCharStyle {
     /// Specifies a set of character properties
-    #[xml(child)]
-    #[xml(tag = "w:rPr")]
-    pub inner: CharStyle<'a>,
+    #[xml(child = "w:rPr")]
+    pub inner: CharStyle,
 }
 
 /// The root element of the default paragraph properties
 #[derive(Debug, Default, Xml)]
-#[xml(event = "Start")]
 #[xml(tag = "w:pPrDefault")]
-pub struct DefaultParaStyle<'a> {
+pub struct DefaultParaStyle {
     /// Specifies a set of paragraph properties
-    #[xml(child)]
-    #[xml(tag = "w:pPr")]
-    pub inner: ParaStyle<'a>,
+    #[xml(child = "w:pPr")]
+    pub inner: ParaStyle,
 }
 
 /// The root element of a style
 ///
 /// This style is applied to a region of a document.
 #[derive(Debug, Default, Xml)]
-#[xml(event = "Start")]
 #[xml(tag = "w:style")]
 #[xml(extend_attrs = "style_extend_attrs")]
-pub struct Style<'a> {
+pub struct Style {
     /// Specifies the primary name and the unique identifier
     ///
     /// This identifier is used throughout the document to apply style in content.
-    #[xml(flatten_empty)]
-    #[xml(tag = "w:name")]
-    #[xml(attr = "w:val")]
-    pub name: Option<Cow<'a, str>>,
+    #[xml(child = "w:name")]
+    pub name: Option<StyleName>,
     /// Specifies a set of paragraph properties
-    #[xml(child)]
-    #[xml(tag = "w:pPr")]
-    pub para: Option<ParaStyle<'a>>,
+    #[xml(child = "w:pPr")]
+    pub para: Option<ParaStyle>,
     /// Specifies a set of character properties
-    #[xml(child)]
-    #[xml(tag = "w:rPr")]
-    pub char: Option<CharStyle<'a>>,
+    #[xml(child = "w:rPr")]
+    pub char: Option<CharStyle>,
 }
+
+w_val_element!(StyleName, "w:name", String);
 
 #[inline]
 fn style_extend_attrs(s: &Style, start: &mut BytesStart) {
     start.push_attribute(("w:type", "paragraph"));
     if let Some(ref name) = s.name {
-        start.push_attribute(("w:styleId", name.borrow()));
+        start.push_attribute(("w:styleId", name.value.borrow()));
     }
 }
 
-impl<'a> Style<'a> {
+impl Style {
     /// Setting the name of this style
-    pub fn name(&mut self, name: &'a str) -> &mut Self {
-        self.name = Some(Cow::Borrowed(name));
+    pub fn name(&mut self, name: &str) -> &mut Self {
+        self.name = Some(StyleName::new(name.to_owned()));
         self
     }
 
@@ -124,62 +109,54 @@ impl<'a> Style<'a> {
     }
 
     /// Returns the paragraph properties
-    pub fn para(&mut self) -> &mut ParaStyle<'a> {
+    pub fn para(&mut self) -> &mut ParaStyle {
         self.para.get_or_insert(ParaStyle::default())
     }
 
     /// Returns the character properties
-    pub fn char(&mut self) -> &mut CharStyle<'a> {
+    pub fn char(&mut self) -> &mut CharStyle {
         self.char.get_or_insert(CharStyle::default())
     }
 }
 
 /// The root element of a set of character properties
 #[derive(Debug, Default, Xml)]
-#[xml(event = "Start")]
 #[xml(tag = "w:rPr")]
-pub struct CharStyle<'a> {
+pub struct CharStyle {
     /// Specifies the color to be used to display text.
-    #[xml(flatten_empty)]
-    #[xml(tag = "w:color")]
-    #[xml(attr = "w:val")]
-    pub color: Option<Cow<'a, str>>,
+    #[xml(child = "w:color")]
+    pub color: Option<Color>,
     /// Specifies the font size in half points.
-    #[xml(flatten_empty)]
-    #[xml(tag = "w:sz")]
-    #[xml(attr = "w:val")]
-    pub sz: Option<usize>,
+    #[xml(child = "w:sz")]
+    pub sz: Option<Size>,
     /// Specifies that the text of the text run is to be bold.
-    #[xml(flatten_empty)]
-    #[xml(tag = "w:b")]
-    #[xml(attr = "w:val")]
-    pub bold: Option<bool>,
+    #[xml(child = "w:b")]
+    pub bold: Option<Bold>,
     /// Specifies that the text of the text run is to be italics.
-    #[xml(flatten_empty)]
-    #[xml(tag = "w:i")]
-    #[xml(attr = "w:val")]
-    pub italics: Option<bool>,
+    #[xml(child = "w:i")]
+    pub italics: Option<Italics>,
     /// Specifies that the contents are to be displayed with a horizontal line through the center of the line.
-    #[xml(flatten_empty)]
-    #[xml(tag = "w:strike")]
-    #[xml(attr = "w:val")]
-    pub strike: Option<bool>,
-    #[xml(flatten_empty)]
-    #[xml(tag = "w:dstrike")]
-    #[xml(attr = "w:val")]
-    pub dstrike: Option<bool>,
-    #[xml(flatten_empty)]
-    #[xml(tag = "w:outline")]
-    #[xml(attr = "w:val")]
-    pub outline: Option<bool>,
-    #[xml(child)]
-    #[xml(tag = "w:u")]
-    pub underline: Option<Underline<'a>>,
+    #[xml(child = "w:strike")]
+    pub strike: Option<Strike>,
+    #[xml(child = "w:dstrike")]
+    pub dstrike: Option<Dstrike>,
+    #[xml(child = "w:outline")]
+    pub outline: Option<Outline>,
+    #[xml(child = "w:u")]
+    pub underline: Option<Underline>,
 }
 
-impl<'a> CharStyle<'a> {
+w_val_element!(Color, "w:color", String);
+w_val_element!(Size, "w:sz", usize);
+w_val_element!(Bold, "w:bold", bool);
+w_val_element!(Italics, "w:i", bool);
+w_val_element!(Strike, "w:strike", bool);
+w_val_element!(Dstrike, "w:dstrike", bool);
+w_val_element!(Outline, "w:outline", bool);
+
+impl CharStyle {
     pub fn sz(&mut self, sz: usize) -> &mut Self {
-        self.sz = Some(sz);
+        self.sz = Some(Size::new(sz));
         self
     }
 
@@ -188,8 +165,8 @@ impl<'a> CharStyle<'a> {
         self
     }
 
-    pub fn color(&mut self, color: &'a str) -> &mut Self {
-        self.color = Some(Cow::Borrowed(color));
+    pub fn color(&mut self, color: &str) -> &mut Self {
+        self.color = Some(Color::new(color.to_owned()));
         self
     }
 
@@ -199,7 +176,7 @@ impl<'a> CharStyle<'a> {
     }
 
     pub fn bold(&mut self, val: bool) -> &mut Self {
-        self.bold = Some(val);
+        self.bold = Some(Bold::new(val));
         self
     }
 
@@ -209,7 +186,7 @@ impl<'a> CharStyle<'a> {
     }
 
     pub fn italics(&mut self, val: bool) -> &mut Self {
-        self.italics = Some(val);
+        self.italics = Some(Italics::new(val));
         self
     }
 
@@ -219,8 +196,8 @@ impl<'a> CharStyle<'a> {
     }
 
     pub fn strike(&mut self, val: bool) -> &mut Self {
-        self.strike = Some(val);
-        if let Some(true) = self.dstrike {
+        self.strike = Some(Strike::new(val));
+        if let Some(Dstrike { value: true }) = self.dstrike {
             self.dstrike = None;
         }
         self
@@ -232,8 +209,8 @@ impl<'a> CharStyle<'a> {
     }
 
     pub fn dstrike(&mut self, val: bool) -> &mut Self {
-        self.dstrike = Some(val);
-        if let Some(true) = self.strike {
+        self.dstrike = Some(Dstrike::new(val));
+        if let Some(Strike { value: true }) = self.strike {
             self.strike = None;
         }
         self
@@ -245,7 +222,7 @@ impl<'a> CharStyle<'a> {
     }
 
     pub fn outline(&mut self, val: bool) -> &mut Self {
-        self.outline = Some(val);
+        self.outline = Some(Outline::new(val));
         self
     }
 
@@ -254,9 +231,9 @@ impl<'a> CharStyle<'a> {
         self
     }
 
-    pub fn underline(&mut self, color: Option<&'a str>, ty: Option<UnderlineStyle>) -> &mut Self {
+    pub fn underline(&mut self, color: Option<&str>, ty: Option<UnderlineStyle>) -> &mut Self {
         self.underline = Some(Underline {
-            color: color.map(Cow::Borrowed),
+            color: color.map(|c| c.to_owned()),
             val: ty,
         });
         self
@@ -269,11 +246,11 @@ impl<'a> CharStyle<'a> {
 }
 
 #[derive(Debug, Default, Xml)]
-#[xml(event = "Empty")]
 #[xml(tag = "w:u")]
-pub struct Underline<'a> {
+#[xml(leaf)]
+pub struct Underline {
     #[xml(attr = "w:color")]
-    pub color: Option<Cow<'a, str>>,
+    pub color: Option<String>,
     #[xml(attr = "w:val")]
     pub val: Option<UnderlineStyle>,
 }
@@ -325,28 +302,24 @@ string_enum! {
 
 /// The root element of a set of paragraph properties
 #[derive(Debug, Default, Xml)]
-#[xml(event = "Start")]
 #[xml(tag = "w:pPr")]
-pub struct ParaStyle<'a> {
-    #[xml(flatten_empty)]
-    #[xml(tag = "w:pStyle")]
-    #[xml(attr = "w:val")]
-    pub name: Option<Cow<'a, str>>,
-    #[xml(flatten_empty)]
-    #[xml(tag = "w:jc")]
-    #[xml(attr = "w:val")]
-    pub jc: Option<Justification>,
-    #[xml(child)]
-    #[xml(tag = "w:pBdr")]
-    pub boarder: Option<Boarders<'a>>,
-    #[xml(child)]
-    #[xml(tag = "w:numBdr")]
+pub struct ParaStyle {
+    #[xml(child = "w:pStyle")]
+    pub name: Option<ParaStyleId>,
+    #[xml(child = "w:jc")]
+    pub jc: Option<Jc>,
+    #[xml(child = "w:pBdr")]
+    pub boarder: Option<Boarders>,
+    #[xml(child = "w:numBdr")]
     pub num: Option<Numbers>,
 }
 
-impl<'a> ParaStyle<'a> {
+w_val_element!(ParaStyleId, "w:pStyle", String);
+w_val_element!(Jc, "w:jc", Justification);
+
+impl ParaStyle {
     pub fn jc(&mut self, jc: Justification) -> &mut Self {
-        self.jc = Some(jc);
+        self.jc = Some(Jc::new(jc));
         self
     }
 
@@ -355,8 +328,8 @@ impl<'a> ParaStyle<'a> {
         self
     }
 
-    pub fn name(&mut self, name: &'a str) -> &mut Self {
-        self.name = Some(Cow::Borrowed(name));
+    pub fn name(&mut self, name: &str) -> &mut Self {
+        self.name = Some(ParaStyleId::new(name.to_owned()));
         self
     }
 
@@ -390,32 +363,26 @@ string_enum! {
 }
 
 #[derive(Debug, Default, Xml)]
-#[xml(event = "Start")]
 #[xml(tag = "w:pPr")]
-pub struct Boarders<'a> {
-    #[xml(child)]
-    #[xml(tag = "w:top")]
-    pub top: Option<TopBoarder<'a>>,
-    #[xml(child)]
-    #[xml(tag = "w:bottom")]
-    pub botton: Option<BottomBoarder<'a>>,
-    #[xml(child)]
-    #[xml(tag = "w:left")]
-    pub left: Option<LeftBoarder<'a>>,
-    #[xml(child)]
-    #[xml(tag = "w:right")]
-    pub right: Option<RightBoarder<'a>>,
-    #[xml(child)]
-    #[xml(tag = "w:between")]
-    pub between: Option<BetweenBoarder<'a>>,
+pub struct Boarders {
+    #[xml(child = "w:top")]
+    pub top: Option<TopBoarder>,
+    #[xml(child = "w:bottom")]
+    pub botton: Option<BottomBoarder>,
+    #[xml(child = "w:left")]
+    pub left: Option<LeftBoarder>,
+    #[xml(child = "w:right")]
+    pub right: Option<RightBoarder>,
+    #[xml(child = "w:between")]
+    pub between: Option<BetweenBoarder>,
 }
 
 #[derive(Debug, Default, Xml)]
-#[xml(event = "Empty")]
+#[xml(leaf)]
 #[xml(tag = "w:top")]
-pub struct TopBoarder<'a> {
+pub struct TopBoarder {
     #[xml(attr = "w:val")]
-    pub color: Option<Cow<'a, str>>,
+    pub color: Option<String>,
     #[xml(attr = "w:val")]
     pub shadow: Option<bool>,
     #[xml(attr = "w:val")]
@@ -427,11 +394,11 @@ pub struct TopBoarder<'a> {
 }
 
 #[derive(Debug, Default, Xml)]
-#[xml(event = "Empty")]
+#[xml(leaf)]
 #[xml(tag = "w:bottom")]
-pub struct BottomBoarder<'a> {
+pub struct BottomBoarder {
     #[xml(attr = "w:val")]
-    pub color: Option<Cow<'a, str>>,
+    pub color: Option<String>,
     #[xml(attr = "w:val")]
     pub shadow: Option<bool>,
     #[xml(attr = "w:val")]
@@ -443,11 +410,11 @@ pub struct BottomBoarder<'a> {
 }
 
 #[derive(Debug, Default, Xml)]
-#[xml(event = "Empty")]
+#[xml(leaf)]
 #[xml(tag = "w:left")]
-pub struct LeftBoarder<'a> {
+pub struct LeftBoarder {
     #[xml(attr = "w:val")]
-    pub color: Option<Cow<'a, str>>,
+    pub color: Option<String>,
     #[xml(attr = "w:val")]
     pub shadow: Option<bool>,
     #[xml(attr = "w:val")]
@@ -459,11 +426,11 @@ pub struct LeftBoarder<'a> {
 }
 
 #[derive(Debug, Default, Xml)]
-#[xml(event = "Empty")]
+#[xml(leaf)]
 #[xml(tag = "w:right")]
-pub struct RightBoarder<'a> {
+pub struct RightBoarder {
     #[xml(attr = "w:val")]
-    pub color: Option<Cow<'a, str>>,
+    pub color: Option<String>,
     #[xml(attr = "w:val")]
     pub shadow: Option<bool>,
     #[xml(attr = "w:val")]
@@ -475,11 +442,11 @@ pub struct RightBoarder<'a> {
 }
 
 #[derive(Debug, Default, Xml)]
-#[xml(event = "Empty")]
+#[xml(leaf)]
 #[xml(tag = "w:between")]
-pub struct BetweenBoarder<'a> {
+pub struct BetweenBoarder {
     #[xml(attr = "w:val")]
-    pub color: Option<Cow<'a, str>>,
+    pub color: Option<String>,
     #[xml(attr = "w:val")]
     pub shadow: Option<bool>,
     #[xml(attr = "w:val")]
@@ -554,17 +521,15 @@ string_enum! {
 }
 
 #[derive(Debug, Xml)]
-#[xml(event = "Empty")]
 #[xml(tag = "w:numPr")]
 pub struct Numbers {
     /// Specifies a reference to a numbering definition instance
-    #[xml(flatten_empty)]
-    #[xml(tag = "w:numId")]
-    #[xml(attr = "w:val")]
-    pub id: usize,
+    #[xml(child = "w:numId")]
+    pub id: NumId,
     /// Specifies the numbering level of the numbering definition to use for the paragraph.
-    #[xml(flatten_empty)]
-    #[xml(tag = "w:ilvl")]
-    #[xml(attr = "w:val")]
-    pub level: usize,
+    #[xml(child = "w:ilvl")]
+    pub level: NumLvl,
 }
+
+w_val_element!(NumId, "w:numId", usize);
+w_val_element!(NumLvl, "w:ilvl", usize);

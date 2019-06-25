@@ -5,17 +5,13 @@
 use crate::errors::{Error, Result};
 use crate::schema::SCHEMA_RELATIONSHIPS;
 use quick_xml::events::BytesStart;
-use std::borrow::Borrow;
-use std::borrow::Cow;
 
 #[derive(Debug, Default, Xml)]
-#[xml(event = "Start")]
 #[xml(tag = "Relationships")]
 #[xml(extend_attrs = "relationships_extend_attrs")]
-pub struct Relationships<'a> {
-    #[xml(child)]
-    #[xml(tag = "Relationship")]
-    pub relationships: Vec<Relationship<'a>>,
+pub struct Relationships {
+    #[xml(child = "Relationship")]
+    pub relationships: Vec<Relationship>,
 }
 
 #[inline]
@@ -23,32 +19,32 @@ fn relationships_extend_attrs(_: &Relationships, start: &mut BytesStart) {
     start.push_attribute(("xmlns", SCHEMA_RELATIONSHIPS));
 }
 
-impl<'a> Relationships<'a> {
-    pub fn add_rel(&mut self, schema: &'a str, target: &'a str) {
+impl Relationships {
+    pub fn add_rel(&mut self, schema: &str, target: &str) {
         let len = self.relationships.len();
         self.relationships.push(Relationship {
-            id: Cow::Owned(format!("rId{}", len)),
-            target: Cow::Borrowed(target),
-            ty: Cow::Borrowed(schema),
+            id: format!("rId{}", len),
+            target: target.to_owned(),
+            ty: schema.to_owned(),
         });
     }
 
-    pub fn get_target(&'a self, id: &'a str) -> Option<&'a str> {
+    pub fn get_target(&self, id: &str) -> Option<&str> {
         self.relationships
             .iter()
             .find(|r| r.id == id)
-            .map(|r| r.target.borrow())
+            .map(|r| &*r.target)
     }
 }
 
 #[derive(Debug, Xml)]
-#[xml(event = "Start")]
 #[xml(tag = "Relationship")]
-pub struct Relationship<'a> {
+#[xml(leaf)]
+pub struct Relationship {
     #[xml(attr = "Id")]
-    pub id: Cow<'a, str>,
+    pub id: String,
     #[xml(attr = "Target")]
-    pub target: Cow<'a, str>,
+    pub target: String,
     #[xml(attr = "Type")]
-    pub ty: Cow<'a, str>,
+    pub ty: String,
 }

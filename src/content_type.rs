@@ -5,7 +5,6 @@
 use crate::errors::{Error, Result};
 use crate::schema::SCHEMA_CONTENT_TYPES;
 use quick_xml::events::BytesStart;
-use std::borrow::Cow;
 
 const CONTENT_TYPE_XML: &str = "application/xml";
 const CONTENT_TYPE_CORE: &str = "application/vnd.openxmlformats-package.core-properties+xml";
@@ -18,16 +17,13 @@ const CONTENT_TYPE_STYLES: &str =
     "application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml";
 
 #[derive(Debug, Xml)]
-#[xml(event = "Start")]
 #[xml(tag = "Types")]
 #[xml(extend_attrs = "content_types_extend_attrs")]
-pub struct ContentTypes<'a> {
-    #[xml(child)]
-    #[xml(tag = "Default")]
-    pub defaults: Vec<DefaultContentType<'a>>,
-    #[xml(child)]
-    #[xml(tag = "Override")]
-    pub overrides: Vec<OverrideContentType<'a>>,
+pub struct ContentTypes {
+    #[xml(child = "Default")]
+    pub defaults: Vec<DefaultContentType>,
+    #[xml(child = "Override")]
+    pub overrides: Vec<OverrideContentType>,
 }
 
 #[inline]
@@ -35,21 +31,21 @@ fn content_types_extend_attrs(_: &ContentTypes, start: &mut BytesStart) {
     start.push_attribute(("xmlns", SCHEMA_CONTENT_TYPES));
 }
 
-impl<'a> Default for ContentTypes<'a> {
-    fn default() -> ContentTypes<'a> {
+impl Default for ContentTypes {
+    fn default() -> ContentTypes {
         macro_rules! default_ct {
             ($e:expr, $t:expr) => {
                 DefaultContentType {
-                    ext: Cow::Borrowed($e),
-                    ty: Cow::Borrowed($t),
+                    ext: $e.to_string(),
+                    ty: $t.to_string(),
                 }
             };
         }
         macro_rules! override_ct {
             ($p:expr, $t:expr) => {
                 OverrideContentType {
-                    part: Cow::Borrowed($p),
-                    ty: Cow::Borrowed($t),
+                    part: $p.to_string(),
+                    ty: $t.to_string(),
                 }
             };
         }
@@ -69,21 +65,21 @@ impl<'a> Default for ContentTypes<'a> {
 }
 
 #[derive(Debug, Xml)]
-#[xml(event = "Empty")]
 #[xml(tag = "Default")]
-pub struct DefaultContentType<'a> {
+#[xml(leaf)]
+pub struct DefaultContentType {
     #[xml(attr = "Extension")]
-    pub ext: Cow<'a, str>,
+    pub ext: String,
     #[xml(attr = "ContentType")]
-    pub ty: Cow<'a, str>,
+    pub ty: String,
 }
 
 #[derive(Debug, Xml)]
-#[xml(event = "Empty")]
 #[xml(tag = "Override")]
-pub struct OverrideContentType<'a> {
+#[xml(leaf)]
+pub struct OverrideContentType {
     #[xml(attr = "PartName")]
-    pub part: Cow<'a, str>,
+    pub part: String,
     #[xml(attr = "ContentType")]
-    pub ty: Cow<'a, str>,
+    pub ty: String,
 }

@@ -5,34 +5,25 @@
 use crate::errors::{Error, Result};
 use crate::schema::SCHEMA_CORE;
 use quick_xml::events::BytesStart;
-use std::borrow::Cow;
 
 #[derive(Debug, Default, Xml)]
-#[xml(event = "Start")]
 #[xml(tag = "cp:coreProperties")]
 #[xml(extend_attrs = "core_extend_attrs")]
-pub struct Core<'a> {
-    #[xml(flatten_text)]
-    #[xml(tag = "dc:title")]
-    pub title: Option<Cow<'a, str>>,
-    #[xml(flatten_text)]
-    #[xml(tag = "dc:subject")]
-    pub subject: Option<Cow<'a, str>>,
-    #[xml(flatten_text)]
-    #[xml(tag = "dc:creator")]
-    pub creator: Option<Cow<'a, str>>,
-    #[xml(flatten_text)]
-    #[xml(tag = "cp:keywords")]
-    pub keywords: Option<Cow<'a, str>>,
-    #[xml(flatten_text)]
-    #[xml(tag = "dc:description")]
-    pub description: Option<Cow<'a, str>>,
-    #[xml(flatten_text)]
-    #[xml(tag = "cp:lastModifiedBy")]
-    pub last_modified_by: Option<Cow<'a, str>>,
-    #[xml(flatten_text)]
-    #[xml(tag = "cp:revision")]
-    pub revision: Option<Cow<'a, str>>,
+pub struct Core {
+    #[xml(flatten_text = "dc:title")]
+    pub title: Option<String>,
+    #[xml(flatten_text = "dc:subject")]
+    pub subject: Option<String>,
+    #[xml(flatten_text = "dc:creator")]
+    pub creator: Option<String>,
+    #[xml(flatten_text = "cp:keywords")]
+    pub keywords: Option<String>,
+    #[xml(flatten_text = "dc:description")]
+    pub description: Option<String>,
+    #[xml(flatten_text = "cp:lastModifiedBy")]
+    pub last_modified_by: Option<String>,
+    #[xml(flatten_text = "cp:revision")]
+    pub revision: Option<String>,
 }
 
 #[inline]

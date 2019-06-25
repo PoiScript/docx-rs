@@ -21,28 +21,28 @@ use crate::{
 
 /// A WordprocessingML package
 #[derive(Debug, Default)]
-pub struct Docx<'a> {
+pub struct Docx {
     /// Specifies package-level properties part
-    pub app: Option<App<'a>>,
+    pub app: Option<App>,
     /// Specifies core properties part
-    pub core: Option<Core<'a>>,
+    pub core: Option<Core>,
     /// Specifies the content type of relationship parts and the main document part.
-    pub content_types: ContentTypes<'a>,
+    pub content_types: ContentTypes,
     /// Specifies the main document part.
-    pub document: Document<'a>,
+    pub document: Document,
     /// Specifies the font table part
-    pub font_table: Option<FontTable<'a>>,
+    pub font_table: Option<FontTable>,
     /// Specifies the style definitions part
-    pub styles: Option<Styles<'a>>,
+    pub styles: Option<Styles>,
     /// Specifies the package-level relationship to the main document part
-    pub rels: Relationships<'a>,
+    pub rels: Relationships,
     /// Specifies the part-level relationship to the main document part
-    pub document_rels: Option<Relationships<'a>>,
+    pub document_rels: Option<Relationships>,
 }
 
-impl<'a> Docx<'a> {
+impl Docx {
     /// Create a style, and returns it.
-    pub fn create_style(&mut self) -> &mut Style<'a> {
+    pub fn create_style(&mut self) -> &mut Style {
         self.styles.get_or_insert(Styles::default()).create_style()
     }
 
@@ -127,7 +127,7 @@ impl<'a> Docx<'a> {
         self.generate(file)
     }
 
-    pub fn parse<T: Read + Seek>(reader: T) -> Result<Docx<'a>> {
+    pub fn parse<T: Read + Seek>(reader: T) -> Result<Docx> {
         let mut zip = ZipArchive::new(reader)?;
 
         macro_rules! read {
@@ -173,19 +173,19 @@ impl<'a> Docx<'a> {
     }
 
     #[inline]
-    pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Docx<'a>> {
+    pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Docx> {
         let reader = BufReader::new(File::open(path)?);
         Docx::parse(reader)
     }
 
     #[inline]
-    pub fn insert_para(&mut self, para: Para<'a>) -> &mut Self {
+    pub fn insert_para(&mut self, para: Para) -> &mut Self {
         self.document.body.content.push(BodyContent::Para(para));
         self
     }
 
     #[inline]
-    pub fn insert_style(&mut self, style: Style<'a>) -> &mut Self {
+    pub fn insert_style(&mut self, style: Style) -> &mut Self {
         self.styles
             .get_or_insert(Styles::default())
             .styles

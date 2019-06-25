@@ -5,16 +5,13 @@
 use crate::errors::{Error, Result};
 use crate::schema::{SCHEMA_MAIN, SCHEMA_RELATIONSHIPS};
 use quick_xml::events::BytesStart;
-use std::borrow::Cow;
 
 #[derive(Debug, Default, Xml)]
-#[xml(event = "Start")]
 #[xml(tag = "w:fonts")]
 #[xml(extend_attrs = "font_table_extend_attrs")]
-pub struct FontTable<'a> {
-    #[xml(child)]
-    #[xml(tag = "w:font")]
-    pub fonts: Vec<Font<'a>>,
+pub struct FontTable {
+    #[xml(child = "w:font")]
+    pub fonts: Vec<Font>,
 }
 
 #[inline]
@@ -24,21 +21,18 @@ fn font_table_extend_attrs(_: &FontTable, start: &mut BytesStart) {
 }
 
 #[derive(Debug, Default, Xml)]
-#[xml(event = "Start")]
 #[xml(tag = "w:font")]
-pub struct Font<'a> {
+pub struct Font {
     #[xml(attr = "w:name")]
-    pub name: Cow<'a, str>,
-    #[xml(flatten_empty)]
-    #[xml(tag = "w:charset")]
-    #[xml(attr = "w:val")]
-    pub charset: Option<Cow<'a, str>>,
-    #[xml(flatten_empty)]
-    #[xml(tag = "w:family")]
-    #[xml(attr = "w:val")]
-    pub family: Option<Cow<'a, str>>,
-    #[xml(flatten_empty)]
-    #[xml(tag = "w:pitch")]
-    #[xml(attr = "w:val")]
-    pub pitch: Option<Cow<'a, str>>,
+    pub name: String,
+    #[xml(child = "w:val")]
+    pub charset: Option<Charset>,
+    #[xml(child = "w:family")]
+    pub family: Option<Family>,
+    #[xml(child = "w:pitch")]
+    pub pitch: Option<Pitch>,
 }
+
+w_val_element!(Charset, "w:charset", String);
+w_val_element!(Family, "w:fmaily", String);
+w_val_element!(Pitch, "w:pitch", String);

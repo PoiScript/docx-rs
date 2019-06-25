@@ -6,20 +6,15 @@ use crate::errors::{Error, Result};
 use crate::schema::SCHEMA_MAIN;
 use crate::style::{CharStyle, ParaStyle};
 use quick_xml::events::BytesStart;
-use std::borrow::{Borrow, Cow};
-use std::convert::AsRef;
-use std::str::FromStr;
 
 /// The root element of the main document part.
 #[derive(Debug, Default, Xml)]
-#[xml(event = "Start")]
 #[xml(tag = "w:document")]
 #[xml(extend_attrs = "document_extend_attrs")]
-pub struct Document<'a> {
+pub struct Document {
     /// Specifies the body of the docment.
-    #[xml(child)]
-    #[xml(tag = "w:body")]
-    pub body: Body<'a>,
+    #[xml(child = "w:body")]
+    pub body: Body,
 }
 
 #[inline]
@@ -31,21 +26,18 @@ fn document_extend_attrs(_: &Document, start: &mut BytesStart) {
 ///
 /// This is the main document editing surface.
 #[derive(Debug, Default, Xml)]
-#[xml(event = "Start")]
 #[xml(tag = "w:body")]
-pub struct Body<'a> {
+pub struct Body {
     /// Specifies the contents of the body of the document.
-    #[xml(child)]
-    #[xml(tag = "w:p")]
-    pub content: Vec<BodyContent<'a>>,
+    #[xml(child = "w:p")]
+    pub content: Vec<BodyContent>,
 }
 
 /// A set of elements that can be contained in the body
 #[derive(Debug, Xml)]
-pub enum BodyContent<'a> {
-    #[xml(event = "Start")]
+pub enum BodyContent {
     #[xml(tag = "w:p")]
-    Para(Para<'a>),
+    Para(Para),
     // Table,
     // SecProp,
 }
@@ -55,25 +47,21 @@ pub enum BodyContent<'a> {
 /// Paragraph is the main block-level container for content.
 /// Paragraph begins with a new line.
 #[derive(Debug, Default, Xml)]
-#[xml(event = "Start")]
 #[xml(tag = "w:p")]
-pub struct Para<'a> {
+pub struct Para {
     /// Specifies the properties of a paragraph
     ///
     /// This information is applied to all the contents of the paragraph.
-    #[xml(child)]
-    #[xml(tag = "w:pPr")]
-    pub prop: Option<ParaStyle<'a>>,
+    #[xml(child = "w:pPr")]
+    pub prop: Option<ParaStyle>,
     /// Specifes the run contents of a paragraph
     ///
     /// Run is a region of text with properties. Each paragraph containes one or more runs.
-    #[xml(child)]
-    #[xml(tag = "w:r")]
-    #[xml(tag = "w:hyperlink")]
-    pub content: Vec<ParaContent<'a>>,
+    #[xml(child = "w:r", child = "w:hyperlink")]
+    pub content: Vec<ParaContent>,
 }
 
-impl<'a> Para<'a> {
+impl Para {
     /// Appends a text to the back of this paragraph.
     ///
     /// Similarly to [`Run.text`], but it will create a new run without
@@ -92,7 +80,7 @@ impl<'a> Para<'a> {
     /// [`Run.text`]: struct.Run.html#method.text
     /// [`run`]: #method.run
     #[inline]
-    pub fn text<T: Into<Text<'a>>>(&mut self, t: T) -> &mut Self {
+    pub fn text<T: Into<Text>>(&mut self, t: T) -> &mut Self {
         self.content.push(ParaContent::Run(Run {
             prop: None,
             content: vec![RunContent::Text(t.into())],
@@ -112,8 +100,8 @@ impl<'a> Para<'a> {
     /// para.run(run);
     /// ```
     #[inline]
-    pub fn run(&mut self, r: Run<'a>) -> &mut Self {
-        self.content.push(ParaContent::Run(r.into()));
+    pub fn run(&mut self, r: Run) -> &mut Self {
+        self.content.push(ParaContent::Run(r));
         self
     }
 
@@ -127,90 +115,80 @@ impl<'a> Para<'a> {
     }
 
     /// Returns the properties of this paragraph.
-    pub fn prop(&mut self) -> &mut ParaStyle<'a> {
+    pub fn prop(&mut self) -> &mut ParaStyle {
         self.prop.get_or_insert(ParaStyle::default())
     }
 }
 
 /// A set of elements that can be contained as the content of a paragraph.
 #[derive(Debug, Xml)]
-pub enum ParaContent<'a> {
-    #[xml(event = "Start")]
+pub enum ParaContent {
     #[xml(tag = "w:r")]
-    Run(Run<'a>),
-    #[xml(event = "Start")]
+    Run(Run),
     #[xml(tag = "w:hyperlink")]
-    Link(Hyperlink<'a>),
-    #[xml(event = "Empty")]
+    Link(Hyperlink),
     #[xml(tag = "w:bookmarkStart")]
-    BookmarkStart(BookmarkStart<'a>),
-    #[xml(event = "Empty")]
+    BookmarkStart(BookmarkStart),
     #[xml(tag = "w:bookmarkEnd")]
-    BookmarkEnd(BookmarkEnd<'a>),
+    BookmarkEnd(BookmarkEnd),
 }
 
 /// The empty element that defines the beginning of a bookmark
 #[derive(Debug, Default, Xml)]
-#[xml(event = "Empty")]
 #[xml(tag = "w:bookmarkStart")]
-pub struct BookmarkStart<'a> {
+#[xml(leaf)]
+pub struct BookmarkStart {
     /// Specifies a unique identifier for the bookmark.
     #[xml(attr = "w:id")]
-    pub id: Option<Cow<'a, str>>,
+    pub id: Option<String>,
     /// Specifies the bookmark name.
     #[xml(attr = "w:name")]
-    pub name: Option<Cow<'a, str>>,
+    pub name: Option<String>,
 }
 
 /// The empty element that defines the end of a bookmark
 #[derive(Debug, Default, Xml)]
-#[xml(event = "Empty")]
 #[xml(tag = "w:bookmarkEnd")]
-pub struct BookmarkEnd<'a> {
+#[xml(leaf)]
+pub struct BookmarkEnd {
     /// Specifies a unique identifier for the bookmark.
     #[xml(attr = "w:id")]
-    pub id: Option<Cow<'a, str>>,
+    pub id: Option<String>,
 }
 
 /// The root element of a hyperlink within the paragraph
 #[derive(Debug, Default, Xml)]
-#[xml(event = "Start")]
 #[xml(tag = "w:hyperlink")]
-pub struct Hyperlink<'a> {
+pub struct Hyperlink {
     /// Specifies the ID of the relationship in the relationships part for an external link.
     #[xml(attr = "r:id")]
-    pub id: Option<Cow<'a, str>>,
+    pub id: Option<String>,
     /// Specifies the name of a bookmark within the document.
     #[xml(attr = "w:anchor")]
-    pub anchor: Option<Cow<'a, str>>,
-    #[xml(child)]
-    #[xml(tag = "w:r")]
-    pub content: Run<'a>,
+    pub anchor: Option<String>,
+    #[xml(child = "w:r")]
+    pub content: Run,
 }
 
 /// The root element of a run within the paragraph
 ///
 /// Run is a non-block region of text with properties.
 #[derive(Debug, Default, Xml)]
-#[xml(event = "Start")]
 #[xml(tag = "w:r")]
-pub struct Run<'a> {
+pub struct Run {
     /// Specifies the properties of a run
     ///
     /// Just as paragraph, a run's properties is applied to all the contents of the run.
-    #[xml(child)]
-    #[xml(tag = "w:rPr")]
-    pub prop: Option<CharStyle<'a>>,
-    #[xml(child)]
-    #[xml(tag = "w:t")]
-    #[xml(tag = "w:br")]
+    #[xml(child = "w:rPr")]
+    pub prop: Option<CharStyle>,
+    #[xml(child = "w:t", child = "w:br")]
     /// Specifies the content of a run
-    pub content: Vec<RunContent<'a>>,
+    pub content: Vec<RunContent>,
 }
 
-impl<'a> Run<'a> {
+impl Run {
     /// Creates a new run containing the given text
-    pub fn text<T: Into<Text<'a>>>(t: T) -> Self {
+    pub fn text<T: Into<Text>>(t: T) -> Self {
         Run {
             prop: None,
             content: vec![RunContent::Text(t.into())],
@@ -218,7 +196,7 @@ impl<'a> Run<'a> {
     }
 
     /// Returns the properties of this run.
-    pub fn prop(&mut self) -> &mut CharStyle<'a> {
+    pub fn prop(&mut self) -> &mut CharStyle {
         self.prop.get_or_insert(CharStyle::default())
     }
 
@@ -231,30 +209,27 @@ impl<'a> Run<'a> {
 
 /// A set of elements that can be contained as the content of a run.
 #[derive(Debug, Xml)]
-pub enum RunContent<'a> {
-    #[xml(event = "Start")]
+pub enum RunContent {
     #[xml(tag = "w:t")]
-    Text(Text<'a>),
-    #[xml(event = "Empty")]
+    Text(Text),
     #[xml(tag = "w:br")]
     Break(Break),
 }
 
 /// The root element of a literal text that shall be displayed in the document
 #[derive(Debug, Xml)]
-#[xml(event = "Start")]
 #[xml(tag = "w:t")]
-pub struct Text<'a> {
+pub struct Text {
     /// Specifies how to handle whitespace
     #[xml(attr = "xml:space")]
     pub space: Option<TextSpace>,
     /// Specifies a literal text
     #[xml(text)]
-    pub text: Cow<'a, str>,
+    pub text: String,
 }
 
-impl<'a> Text<'a> {
-    pub fn new<S: Into<Cow<'a, str>>>(text: S, space: Option<TextSpace>) -> Self {
+impl Text {
+    pub fn new<S: Into<String>>(text: S, space: Option<TextSpace>) -> Self {
         Text {
             text: text.into(),
             space,
@@ -262,11 +237,11 @@ impl<'a> Text<'a> {
     }
 }
 
-impl<'a> From<&'a str> for Text<'a> {
-    fn from(s: &'a str) -> Self {
+impl From<&str> for Text {
+    fn from(s: &str) -> Self {
         Text {
             space: None,
-            text: Cow::Borrowed(s),
+            text: s.to_owned(),
         }
     }
 }
@@ -288,8 +263,8 @@ string_enum! {
 
 /// The root element of a break
 #[derive(Debug, Xml)]
-#[xml(event = "Empty")]
 #[xml(tag = "w:br")]
+#[xml(leaf)]
 pub struct Break {
     /// Specifies the break type of this break.
     #[xml(attr = "type")]
