@@ -16,7 +16,7 @@ docx = "0.1.2"
 extern crate docx;
 ```
 
-Check out [examples](https://github.com/PoiScript/docx-rs/tree/master/examples) directory for quick start, or the [document](https://docs.rs/docx/) (WIP).
+Check out the [examples](https://github.com/PoiScript/docx-rs/tree/master/docx/examples) directory in the `docx` crate for the quick start or the [document](https://docs.rs/docx/) (WIP).
 
 # License
 
