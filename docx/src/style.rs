@@ -314,7 +314,7 @@ pub struct ParaStyle {
     #[xml(child = "w:jc")]
     pub jc: Option<Jc>,
     #[xml(child = "w:pBdr")]
-    pub boarder: Option<Boarders>,
+    pub border: Option<Borders>,
     #[xml(child = "w:numBdr")]
     pub num: Option<Numbers>,
 }
@@ -369,23 +369,23 @@ __string_enum! {
 
 #[derive(Debug, Default, Xml)]
 #[xml(tag = "w:pPr")]
-pub struct Boarders {
+pub struct Borders {
     #[xml(child = "w:top")]
-    pub top: Option<TopBoarder>,
+    pub top: Option<TopBorder>,
     #[xml(child = "w:bottom")]
-    pub botton: Option<BottomBoarder>,
+    pub botton: Option<BottomBorder>,
     #[xml(child = "w:left")]
-    pub left: Option<LeftBoarder>,
+    pub left: Option<LeftBorder>,
     #[xml(child = "w:right")]
-    pub right: Option<RightBoarder>,
+    pub right: Option<RightBorder>,
     #[xml(child = "w:between")]
-    pub between: Option<BetweenBoarder>,
+    pub between: Option<BetweenBorder>,
 }
 
 #[derive(Debug, Default, Xml)]
 #[xml(leaf)]
 #[xml(tag = "w:top")]
-pub struct TopBoarder {
+pub struct TopBorder {
     #[xml(attr = "w:val")]
     pub color: Option<String>,
     #[xml(attr = "w:val")]
@@ -395,13 +395,13 @@ pub struct TopBoarder {
     #[xml(attr = "w:val")]
     pub sz: Option<usize>,
     #[xml(attr = "w:val")]
-    pub val: Option<BoarderStyle>,
+    pub val: Option<BorderStyle>,
 }
 
 #[derive(Debug, Default, Xml)]
 #[xml(leaf)]
 #[xml(tag = "w:bottom")]
-pub struct BottomBoarder {
+pub struct BottomBorder {
     #[xml(attr = "w:val")]
     pub color: Option<String>,
     #[xml(attr = "w:val")]
@@ -411,13 +411,13 @@ pub struct BottomBoarder {
     #[xml(attr = "w:val")]
     pub sz: Option<usize>,
     #[xml(attr = "w:val")]
-    pub val: Option<BoarderStyle>,
+    pub val: Option<BorderStyle>,
 }
 
 #[derive(Debug, Default, Xml)]
 #[xml(leaf)]
 #[xml(tag = "w:left")]
-pub struct LeftBoarder {
+pub struct LeftBorder {
     #[xml(attr = "w:val")]
     pub color: Option<String>,
     #[xml(attr = "w:val")]
@@ -427,13 +427,13 @@ pub struct LeftBoarder {
     #[xml(attr = "w:val")]
     pub sz: Option<usize>,
     #[xml(attr = "w:val")]
-    pub val: Option<BoarderStyle>,
+    pub val: Option<BorderStyle>,
 }
 
 #[derive(Debug, Default, Xml)]
 #[xml(leaf)]
 #[xml(tag = "w:right")]
-pub struct RightBoarder {
+pub struct RightBorder {
     #[xml(attr = "w:val")]
     pub color: Option<String>,
     #[xml(attr = "w:val")]
@@ -443,13 +443,13 @@ pub struct RightBoarder {
     #[xml(attr = "w:val")]
     pub sz: Option<usize>,
     #[xml(attr = "w:val")]
-    pub val: Option<BoarderStyle>,
+    pub val: Option<BorderStyle>,
 }
 
 #[derive(Debug, Default, Xml)]
 #[xml(leaf)]
 #[xml(tag = "w:between")]
-pub struct BetweenBoarder {
+pub struct BetweenBorder {
     #[xml(attr = "w:val")]
     pub color: Option<String>,
     #[xml(attr = "w:val")]
@@ -459,11 +459,11 @@ pub struct BetweenBoarder {
     #[xml(attr = "w:val")]
     pub sz: Option<usize>,
     #[xml(attr = "w:val")]
-    pub val: Option<BoarderStyle>,
+    pub val: Option<BorderStyle>,
 }
 
 #[derive(Debug)]
-pub enum BoarderStyle {
+pub enum BorderStyle {
     Single,
     DashDotStroked,
     Dashed,
@@ -494,7 +494,7 @@ pub enum BoarderStyle {
 }
 
 __string_enum! {
-    BoarderStyle {
+    BorderStyle {
         Single = "single",
         DashDotStroked = "dashDotStroked",
         Dashed = "dashed",
