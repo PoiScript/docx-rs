@@ -1,9 +1,77 @@
-#[macro_use]
-extern crate docx_codegen;
+use docx_codegen::Xml;
+use quick_xml::{Error as XmlError, Reader, Writer};
 
-use docx::errors::{Error, Result};
-use quick_xml::{Reader, Writer};
-use std::io::Cursor;
+use std::{
+    io::Cursor,
+    io::Error as IOError,
+    num::ParseIntError,
+    str::{ParseBoolError, Utf8Error},
+    string::FromUtf8Error,
+};
+
+#[derive(Debug)]
+pub enum Error {
+    IO(IOError),
+    Xml(XmlError),
+    Utf8(Utf8Error),
+    ParseInt(ParseIntError),
+    ParseBool(ParseBoolError),
+    UnexpectedEof,
+    UnexpectedTag {
+        expected: &'static str,
+        found: String,
+    },
+    UnexpectedEvent {
+        expected: &'static str,
+        found: &'static str,
+    },
+    MissingField {
+        name: &'static str,
+        field: &'static str,
+    },
+    UnknownValue {
+        expected: &'static str,
+        found: String,
+    },
+}
+
+impl From<IOError> for Error {
+    fn from(err: IOError) -> Self {
+        Error::IO(err)
+    }
+}
+
+impl From<ParseIntError> for Error {
+    fn from(err: ParseIntError) -> Self {
+        Error::ParseInt(err)
+    }
+}
+
+impl From<ParseBoolError> for Error {
+    fn from(err: ParseBoolError) -> Self {
+        Error::ParseBool(err)
+    }
+}
+
+impl From<Utf8Error> for Error {
+    fn from(err: Utf8Error) -> Self {
+        Error::Utf8(err)
+    }
+}
+
+impl From<FromUtf8Error> for Error {
+    fn from(err: FromUtf8Error) -> Self {
+        Error::Utf8(err.utf8_error())
+    }
+}
+
+impl From<XmlError> for Error {
+    fn from(err: XmlError) -> Self {
+        Error::Xml(err)
+    }
+}
+
+type Result<T> = ::std::result::Result<T, Error>;
 
 #[derive(Xml, PartialEq, Debug)]
 #[xml(tag = "tag1")]
@@ -85,7 +153,7 @@ fn test_write() {
     );
 
     assert_write_eq!(
-        r#"<tag3 att1="att1"><tag1>tag1_content</tag1><text>tag3_content</text><tag4/><tag5 att1="tag5_att1"/></tag3>"#,
+        r#"<tag3 att1="att1"><tag1>tag1_content</tag1><text>tag3_content</text></tag3>"#,
         Tag3 {
             att1: "att1".to_string(),
             tag1: vec![Tag1 {
@@ -98,7 +166,7 @@ fn test_write() {
     );
 
     assert_write_eq!(
-        r#"<tag3 att1="att1"><tag1>content</tag1><tag1>tag1</tag1><text>tag3_content</text><tag5 att1="tag5_att1"/></tag3>"#,
+        r#"<tag3 att1="att1"><tag1>content</tag1><tag1>tag1</tag1><text>tag3_content</text></tag3>"#,
         Tag3 {
             att1: "att1".to_string(),
             tag1: vec![
@@ -127,23 +195,6 @@ fn test_write() {
 
 #[test]
 fn test_read() {
-    assert_read_eq!(
-        Tag3,
-        r#"<tag3 att1="att1"><text>tag3_content</text><tag2 att2="att2" att1="att1"/><tag1 att1="att1">content</tag1></tag3>"#,
-        Tag3 {
-            att1: "att1".to_string(),
-            tag1: vec![Tag1 {
-                att1: Some("att1".to_string()),
-                content: "content".to_string(),
-            }],
-            tag2: Some(Tag2 {
-                att1: "att1".to_string(),
-                att2: "att2".to_string(),
-            }),
-            text: Some("tag3_content".to_string()),
-        }
-    );
-
     assert_read_eq!(
         Tag3,
         r#"<tag3 att1="att1"><tag1>content</tag1><text>tag3_content</text><tag4/><tag5 att1="tag5_att1"/></tag3>"#,
