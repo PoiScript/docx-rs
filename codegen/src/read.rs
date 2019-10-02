@@ -32,16 +32,12 @@ pub fn impl_read(element: &Element) -> TokenStream {
             let name = &t.name;
             let tag = &t.tag;
 
-            let init_values = t
-                .attributes
-                .iter()
-                .map(|e| init_value(&e.0))
-                .chain(once(init_value(&t.text_field)));
+            let init_values = t.attributes.iter().map(|e| init_value(&e.0));
 
             let set_attrs = set_attrs(name, tag, &t.attributes);
             let set_text = {
                 let name = &t.text_field.name;
-                quote! { #name = Some(r.read_text(#tag, &mut Vec::new())?); }
+                quote! { let #name = Some(r.read_text(#tag, &mut Vec::new())?); }
             };
 
             let return_values = t

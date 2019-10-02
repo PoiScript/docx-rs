@@ -75,15 +75,15 @@ impl Element {
             for meta_item in meta_items {
                 use NestedMeta::Meta;
                 match meta_item {
-                    Meta(Path(p)) if p.is_ident("leaf") => {
+                    Meta(Path(ref p)) if p.is_ident("leaf") => {
                         leaf = true;
                     }
-                    Meta(NameValue(m)) if m.path.is_ident("tag") => {
+                    Meta(NameValue(ref m)) if m.path.is_ident("tag") => {
                         if let Str(ref lit) = m.lit {
                             tag = Some(lit.clone());
                         }
                     }
-                    Meta(NameValue(m)) if m.path.is_ident("extend_attrs") => {
+                    Meta(NameValue(ref m)) if m.path.is_ident("extend_attrs") => {
                         if let Str(ref lit) = m.lit {
                             extend_attrs = Some(Ident::new(&lit.value(), Span::call_site()));
                         }
@@ -112,26 +112,26 @@ impl Element {
                 };
 
                 match meta_item {
-                    Meta(NameValue(m)) if m.path.is_ident("attr") => {
-                        if let Str(lit) = m.lit {
+                    Meta(NameValue(ref m)) if m.path.is_ident("attr") => {
+                        if let Str(ref lit) = m.lit {
                             attributes.push((field, bytes_str!(lit.clone())));
                         }
                     }
-                    Meta(Path(p)) if p.is_ident("text") => {
+                    Meta(Path(ref p)) if p.is_ident("text") => {
                         text_field = Some(field);
                     }
-                    Meta(NameValue(m)) if m.path.is_ident("child") => {
-                        if let Str(lit) = m.lit {
+                    Meta(NameValue(ref m)) if m.path.is_ident("child") => {
+                        if let Str(ref lit) = m.lit {
                             children.push((field, bytes_str!(lit.clone())));
                         }
                     }
-                    Meta(NameValue(m)) if m.path.is_ident("leaf_child") => {
-                        if let Str(lit) = m.lit {
+                    Meta(NameValue(ref m)) if m.path.is_ident("leaf_child") => {
+                        if let Str(ref lit) = m.lit {
                             leaf_children.push((field, bytes_str!(lit.clone())));
                         }
                     }
-                    Meta(NameValue(m)) if m.path.is_ident("flatten_text") => {
-                        if let Str(lit) = m.lit {
+                    Meta(NameValue(ref m)) if m.path.is_ident("flatten_text") => {
+                        if let Str(ref lit) = m.lit {
                             flatten_text.push((field, bytes_str!(lit.clone())));
                         }
                     }
@@ -194,8 +194,8 @@ impl Element {
             {
                 use NestedMeta::Meta;
                 match meta_item {
-                    Meta(NameValue(m)) if m.path.is_ident("tag") => {
-                        if let Str(lit) = m.lit {
+                    Meta(NameValue(ref m)) if m.path.is_ident("tag") => {
+                        if let Str(ref lit) = m.lit {
                             elements.push((
                                 Variant {
                                     name: name.clone(),
