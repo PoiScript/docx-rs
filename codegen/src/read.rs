@@ -161,7 +161,7 @@ pub fn impl_read(element: &Element) -> TokenStream {
                                     String::from_utf8_lossy(tag),
                                     stringify!(#name)
                                 );
-                                r.read_to_end(tag, &mut Vec::new());
+                                r.read_to_end(tag, &mut Vec::new())?;
                             }
                         }
                         Event::End(bs) => {
