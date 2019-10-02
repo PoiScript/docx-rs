@@ -2,11 +2,14 @@
 //!
 //! The corresponding ZIP item is `/docProps/app.xml`.
 
+use docx_codegen::Xml;
 use quick_xml::events::BytesStart;
 use std::default::Default;
 
-use crate::errors::{Error, Result};
-use crate::schema::{SCHEMAS_EXTENDED, SCHEMA_DOC_PROPS_V_TYPES};
+use crate::{
+    error::{Error, Result},
+    schema::{SCHEMAS_EXTENDED, SCHEMA_DOC_PROPS_V_TYPES},
+};
 
 #[derive(Debug, Xml)]
 #[xml(tag = "Properties")]

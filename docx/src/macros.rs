@@ -1,4 +1,5 @@
-macro_rules! string_enum {
+#[macro_export]
+macro_rules! __string_enum {
     ($name:ident { $($variant:ident = $value:expr, )* }) => {
         impl std::convert::AsRef<[u8]> for $name {
             fn as_ref(&self) -> &[u8] {
@@ -15,7 +16,7 @@ macro_rules! string_enum {
                 match s {
                     $($value => Ok($name::$variant),)*
                     s => Err(Error::UnknownValue {
-                        expected: stringify!($($value,)*),
+                        expected: std::stringify!($($value,)*),
                         found: String::from(s),
                     })
                 }
@@ -24,7 +25,8 @@ macro_rules! string_enum {
     }
 }
 
-macro_rules! w_val_element {
+#[macro_export]
+macro_rules! __w_val_element {
     ($name: ident, $tag:literal, $ty:ty) => {
         #[derive(Debug, Xml)]
         #[xml(tag = $tag)]

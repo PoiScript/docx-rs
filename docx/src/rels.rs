@@ -2,9 +2,13 @@
 //!
 //! The corresponding ZIP item is `/_rels/.rels` (package-relationship) or `/word/_rels/document.xml.rels` (part-relationship).
 
-use crate::errors::{Error, Result};
-use crate::schema::SCHEMA_RELATIONSHIPS;
+use docx_codegen::Xml;
 use quick_xml::events::BytesStart;
+
+use crate::{
+    error::{Error, Result},
+    schema::SCHEMA_RELATIONSHIPS,
+};
 
 #[derive(Debug, Default, Xml)]
 #[xml(tag = "Relationships")]

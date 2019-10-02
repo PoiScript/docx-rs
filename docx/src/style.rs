@@ -2,10 +2,15 @@
 //!
 //! The corresponding ZIP item is `/word/styles.xml`.
 
-use crate::errors::{Error, Result};
-use crate::schema::SCHEMA_MAIN;
+use docx_codegen::Xml;
 use quick_xml::events::BytesStart;
 use std::borrow::Borrow;
+
+use crate::{
+    __string_enum, __w_val_element,
+    error::{Error, Result},
+    schema::SCHEMA_MAIN,
+};
 
 /// The root element of the styles of the document
 ///
@@ -85,7 +90,7 @@ pub struct Style {
     pub char: Option<CharStyle>,
 }
 
-w_val_element!(StyleName, "w:name", String);
+__w_val_element!(StyleName, "w:name", String);
 
 #[inline]
 fn style_extend_attrs(s: &Style, start: &mut BytesStart) {
@@ -146,13 +151,13 @@ pub struct CharStyle {
     pub underline: Option<Underline>,
 }
 
-w_val_element!(Color, "w:color", String);
-w_val_element!(Size, "w:sz", usize);
-w_val_element!(Bold, "w:bold", bool);
-w_val_element!(Italics, "w:i", bool);
-w_val_element!(Strike, "w:strike", bool);
-w_val_element!(Dstrike, "w:dstrike", bool);
-w_val_element!(Outline, "w:outline", bool);
+__w_val_element!(Color, "w:color", String);
+__w_val_element!(Size, "w:sz", usize);
+__w_val_element!(Bold, "w:bold", bool);
+__w_val_element!(Italics, "w:i", bool);
+__w_val_element!(Strike, "w:strike", bool);
+__w_val_element!(Dstrike, "w:dstrike", bool);
+__w_val_element!(Outline, "w:outline", bool);
 
 impl CharStyle {
     pub fn sz(&mut self, sz: usize) -> &mut Self {
@@ -277,7 +282,7 @@ pub enum UnderlineStyle {
     Words,
 }
 
-string_enum! {
+__string_enum! {
     UnderlineStyle {
         Dash = "dash",
         DashDotDotHeavy = "dashDotDotHeavy",
@@ -314,8 +319,8 @@ pub struct ParaStyle {
     pub num: Option<Numbers>,
 }
 
-w_val_element!(ParaStyleId, "w:pStyle", String);
-w_val_element!(Jc, "w:jc", Justification);
+__w_val_element!(ParaStyleId, "w:pStyle", String);
+__w_val_element!(Jc, "w:jc", Justification);
 
 impl ParaStyle {
     pub fn jc(&mut self, jc: Justification) -> &mut Self {
@@ -350,7 +355,7 @@ pub enum Justification {
     Left,
 }
 
-string_enum! {
+__string_enum! {
     Justification {
         Start = "start",
         End = "end",
@@ -488,7 +493,7 @@ pub enum BoarderStyle {
     Wave,
 }
 
-string_enum! {
+__string_enum! {
     BoarderStyle {
         Single = "single",
         DashDotStroked = "dashDotStroked",
@@ -531,5 +536,5 @@ pub struct Numbers {
     pub level: NumLvl,
 }
 
-w_val_element!(NumId, "w:numId", usize);
-w_val_element!(NumLvl, "w:ilvl", usize);
+__w_val_element!(NumId, "w:numId", usize);
+__w_val_element!(NumLvl, "w:ilvl", usize);

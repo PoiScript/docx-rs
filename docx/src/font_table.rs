@@ -2,9 +2,14 @@
 //!
 //! The corresponding ZIP item is `/word/fontTable.xml`.
 
-use crate::errors::{Error, Result};
-use crate::schema::{SCHEMA_MAIN, SCHEMA_RELATIONSHIPS};
+use docx_codegen::Xml;
 use quick_xml::events::BytesStart;
+
+use crate::{
+    __w_val_element,
+    error::{Error, Result},
+    schema::{SCHEMA_MAIN, SCHEMA_RELATIONSHIPS},
+};
 
 #[derive(Debug, Default, Xml)]
 #[xml(tag = "w:fonts")]
@@ -33,6 +38,6 @@ pub struct Font {
     pub pitch: Option<Pitch>,
 }
 
-w_val_element!(Charset, "w:charset", String);
-w_val_element!(Family, "w:fmaily", String);
-w_val_element!(Pitch, "w:pitch", String);
+__w_val_element!(Charset, "w:charset", String);
+__w_val_element!(Family, "w:fmaily", String);
+__w_val_element!(Pitch, "w:pitch", String);

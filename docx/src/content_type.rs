@@ -2,9 +2,13 @@
 //!
 //! The corresponding ZIP item is `/[Content_Types].xml`.
 
-use crate::errors::{Error, Result};
-use crate::schema::SCHEMA_CONTENT_TYPES;
+use docx_codegen::Xml;
 use quick_xml::events::BytesStart;
+
+use crate::{
+    error::{Error, Result},
+    schema::SCHEMA_CONTENT_TYPES,
+};
 
 const CONTENT_TYPE_XML: &str = "application/xml";
 const CONTENT_TYPE_CORE: &str = "application/vnd.openxmlformats-package.core-properties+xml";

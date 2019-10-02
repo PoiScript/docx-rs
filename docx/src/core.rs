@@ -2,9 +2,13 @@
 //!
 //! The corresponding ZIP item is `/docProps/core.xml`.
 
-use crate::errors::{Error, Result};
-use crate::schema::SCHEMA_CORE;
+use docx_codegen::Xml;
 use quick_xml::events::BytesStart;
+
+use crate::{
+    error::{Error, Result},
+    schema::SCHEMA_CORE,
+};
 
 #[derive(Debug, Default, Xml)]
 #[xml(tag = "cp:coreProperties")]

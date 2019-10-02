@@ -2,10 +2,15 @@
 //!
 //! The corresponding ZIP item is `/word/document.xml`.
 
-use crate::errors::{Error, Result};
-use crate::schema::SCHEMA_MAIN;
-use crate::style::{CharStyle, ParaStyle};
+use docx_codegen::Xml;
 use quick_xml::events::BytesStart;
+
+use crate::{
+    __string_enum,
+    error::{Error, Result},
+    schema::SCHEMA_MAIN,
+    style::{CharStyle, ParaStyle},
+};
 
 /// The root element of the main document part.
 #[derive(Debug, Default, Xml)]
@@ -254,7 +259,7 @@ pub enum TextSpace {
     Preserve,
 }
 
-string_enum! {
+__string_enum! {
     TextSpace {
         Default = "default",
         Preserve = "preserve",
@@ -284,7 +289,7 @@ pub enum BreakType {
     TextWrapping,
 }
 
-string_enum! {
+__string_enum! {
     BreakType {
         Column = "column",
         Page = "page",

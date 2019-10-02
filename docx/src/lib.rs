@@ -79,14 +79,6 @@
 //! docx.insert_para(para);
 //! ```
 
-#[macro_use]
-extern crate docx_codegen;
-#[macro_use]
-extern crate log;
-extern crate quick_xml;
-extern crate zip;
-
-#[macro_use]
 mod macros;
 
 pub mod app;
@@ -94,7 +86,7 @@ pub mod content_type;
 pub mod core;
 pub mod document;
 mod docx;
-pub mod errors;
+mod error;
 pub mod font_table;
 pub mod rels;
 mod schema;
@@ -109,4 +101,4 @@ pub mod prelude {
 }
 
 pub use crate::docx::Docx;
-pub use crate::errors::{Error, Result};
+pub use crate::error::{Error, Result};

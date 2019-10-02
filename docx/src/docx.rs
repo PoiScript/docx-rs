@@ -12,7 +12,7 @@ use crate::{
     content_type::ContentTypes,
     core::Core,
     document::{BodyContent, Document, Para},
-    errors::{Error, Result},
+    error::{Error, Result},
     font_table::FontTable,
     rels::Relationships,
     schema::*,
