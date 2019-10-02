@@ -1,6 +1,10 @@
 //! A Rust library for parsing and generating docx files.
 //!
-//! ## Example
+//! # Usage
+//!
+//! ```toml
+//! docx = "0.1.3"
+//! ```
 //!
 //! Using methods [`from_file`] and [`write_file`] for reading from and writing to file directly.
 //!
@@ -14,8 +18,9 @@
 //! // reading docx from file
 //! let mut docx = Docx::from_file("demo.docx").unwrap();
 //!
-//! // do what you want to do…
-//! // for example, appending something
+//! // do whatever you want...
+//!
+//! // for example, appending text
 //! let mut para = Para::default();
 //! para.text("Lorem Ipsum");
 //! docx.insert_para(para);
@@ -41,18 +46,18 @@
 //! * Run(Character): non-block region of text
 //! * Style: a set of paragraph and character properties which can be applied to text
 //!
-//! ## Note
+//! # Note
 //!
-//! ### Toggle Properties
+//! ## Toggle Properties
 //!
-//! Some fields in this crate (e.g. [`bold`] and [`italics`]) are declared as `Option<bool>` and this is not redundant at all.
+//! Some fields in this crate (e.g. [`bold`] and [`italics`]) are declared as `Option<bool>` instead of `bool`.
 //!
-//! This indicates that they are **toggle properties** which can be **inherited** from style (`None`) or **disabled/enabled explicitly** (`Some`).
+//! This indicates that they are **toggle properties** which can be **inherited** (`None`) or **disabled/enabled explicitly** (`Some`).
 //!
 //! [`bold`]: style/struct.CharStyle.html#structfield.bold
 //! [`italics`]: style/struct.CharStyle.html#structfield.italics
 //!
-//! For example, you can disable bold of a run within a paragraph specifies bold by setting it to `Some(false)`:
+//! For example, you can disable bold of a run within a paragraph specified bold by setting `bold` to `Some(false)`:
 //!
 //! ```rust
 //! use docx::Docx;
@@ -70,9 +75,10 @@
 //! let mut para = Para::default();
 //! para.prop().name("Normal");
 //!
+//! // inherited from its parent
 //! para.text("I'm bold and italics.").text_break();
 //!
-//! let mut run = Run::text("poi");
+//! let mut run = Run::text("But I'm not.");
 //! run.prop().bold(false).italics(false);
 //! para.run(run);
 //!
