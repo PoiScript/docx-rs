@@ -3,8 +3,7 @@ use quote::quote;
 use std::iter::once;
 use syn::{Ident, LitByteStr};
 
-use crate::types::Field;
-use crate::types::*;
+use crate::types::{Element, EnumElement, Field, TypeExt};
 
 pub fn impl_read(element: &Element) -> TokenStream {
     match element {

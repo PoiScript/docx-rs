@@ -6,12 +6,10 @@ mod read;
 mod types;
 mod write;
 
+use crate::{read::impl_read, types::Element, write::impl_write};
 use proc_macro::TokenStream;
 use quote::quote;
-use read::impl_read;
 use syn::{parse_macro_input, DeriveInput};
-use types::Element;
-use write::impl_write;
 
 #[proc_macro_derive(Xml, attributes(xml))]
 pub fn derive_xml(input: TokenStream) -> TokenStream {

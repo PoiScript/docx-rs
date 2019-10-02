@@ -2,8 +2,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::LitByteStr;
 
-use crate::types::Field;
-use crate::types::*;
+use crate::types::{Element, Field, TypeExt};
 
 pub fn impl_write(element: &Element) -> TokenStream {
     match element {

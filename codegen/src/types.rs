@@ -8,7 +8,7 @@ macro_rules! bytes_str {
     };
 }
 
-#[cfg_attr(feature = "cargo-clippy", allow(large_enum_variant))]
+#[allow(clippy::large_enum_variant)]
 pub enum Element {
     Enum(EnumElement),
     Leaf(LeafElement),
@@ -75,15 +75,15 @@ impl Element {
             for meta_item in meta_items {
                 use NestedMeta::Meta;
                 match meta_item {
-                    Meta(Word(ref w)) if w == "leaf" => {
+                    Meta(Path(p)) if p.is_ident("leaf") => {
                         leaf = true;
                     }
-                    Meta(NameValue(ref m)) if m.ident == "tag" => {
+                    Meta(NameValue(m)) if m.path.is_ident("tag") => {
                         if let Str(ref lit) = m.lit {
                             tag = Some(lit.clone());
                         }
                     }
-                    Meta(NameValue(ref m)) if m.ident == "extend_attrs" => {
+                    Meta(NameValue(m)) if m.path.is_ident("extend_attrs") => {
                         if let Str(ref lit) = m.lit {
                             extend_attrs = Some(Ident::new(&lit.value(), Span::call_site()));
                         }
@@ -112,26 +112,26 @@ impl Element {
                 };
 
                 match meta_item {
-                    Meta(NameValue(ref m)) if m.ident == "attr" => {
-                        if let Str(ref lit) = m.lit {
+                    Meta(NameValue(m)) if m.path.is_ident("attr") => {
+                        if let Str(lit) = m.lit {
                             attributes.push((field, bytes_str!(lit.clone())));
                         }
                     }
-                    Meta(Word(ref w)) if w == "text" => {
+                    Meta(Path(p)) if p.is_ident("text") => {
                         text_field = Some(field);
                     }
-                    Meta(NameValue(ref m)) if m.ident == "child" => {
-                        if let Str(ref lit) = m.lit {
+                    Meta(NameValue(m)) if m.path.is_ident("child") => {
+                        if let Str(lit) = m.lit {
                             children.push((field, bytes_str!(lit.clone())));
                         }
                     }
-                    Meta(NameValue(ref m)) if m.ident == "leaf_child" => {
-                        if let Str(ref lit) = m.lit {
+                    Meta(NameValue(m)) if m.path.is_ident("leaf_child") => {
+                        if let Str(lit) = m.lit {
                             leaf_children.push((field, bytes_str!(lit.clone())));
                         }
                     }
-                    Meta(NameValue(ref m)) if m.ident == "flatten_text" => {
-                        if let Str(ref lit) = m.lit {
+                    Meta(NameValue(m)) if m.path.is_ident("flatten_text") => {
+                        if let Str(lit) = m.lit {
                             flatten_text.push((field, bytes_str!(lit.clone())));
                         }
                     }
@@ -194,8 +194,8 @@ impl Element {
             {
                 use NestedMeta::Meta;
                 match meta_item {
-                    Meta(NameValue(ref m)) if m.ident == "tag" => {
-                        if let Str(ref lit) = m.lit {
+                    Meta(NameValue(m)) if m.path.is_ident("tag") => {
+                        if let Str(lit) = m.lit {
                             elements.push((
                                 Variant {
                                     name: name.clone(),
@@ -219,8 +219,8 @@ impl Element {
 
 fn get_xml_meta_items(attr: &Attribute) -> Option<Vec<NestedMeta>> {
     if attr.path.segments.len() == 1 && attr.path.segments[0].ident == "xml" {
-        match attr.interpret_meta() {
-            Some(Meta::List(ref meta)) => Some(meta.nested.iter().cloned().collect()),
+        match attr.parse_meta() {
+            Ok(Meta::List(meta)) => Some(meta.nested.iter().cloned().collect()),
             _ => None,
         }
     } else {
@@ -242,19 +242,14 @@ pub trait TypeExt {
 impl TypeExt for Type {
     fn is_option(&self) -> Option<&Self> {
         let path = match self {
-            Type::Path(ref ty) => &ty.path,
+            Type::Path(ty) => &ty.path,
             _ => {
                 return None;
             }
         };
-        let seg = match path.segments.last() {
-            Some(seg) => seg.into_value(),
-            None => {
-                return None;
-            }
-        };
-        let args = match seg.arguments {
-            PathArguments::AngleBracketed(ref bracketed) => &bracketed.args,
+        let seg = path.segments.last()?;
+        let args = match &seg.arguments {
+            PathArguments::AngleBracketed(bracketed) => &bracketed.args,
             _ => {
                 return None;
             }
@@ -271,19 +266,14 @@ impl TypeExt for Type {
 
     fn is_vec(&self) -> Option<&Self> {
         let path = match self {
-            Type::Path(ref ty) => &ty.path,
+            Type::Path(ty) => &ty.path,
             _ => {
                 return None;
             }
         };
-        let seg = match path.segments.last() {
-            Some(seg) => seg.into_value(),
-            None => {
-                return None;
-            }
-        };
-        let args = match seg.arguments {
-            PathArguments::AngleBracketed(ref bracketed) => &bracketed.args,
+        let seg = path.segments.last()?;
+        let args = match &seg.arguments {
+            PathArguments::AngleBracketed(bracketed) => &bracketed.args,
             _ => {
                 return None;
             }
@@ -340,12 +330,8 @@ impl TypeExt for Type {
 
     fn get_ident(&self) -> Option<Ident> {
         match self {
-            Type::Path(ref ty) => ty
-                .path
-                .segments
-                .last()
-                .map(|seg| seg.into_value().ident.clone()),
-            Type::Reference(ref ty) => ty.elem.get_ident(),
+            Type::Path(ty) => ty.path.segments.last().map(|seg| seg.ident.clone()),
+            Type::Reference(ty) => ty.elem.get_ident(),
             _ => None,
         }
     }

@@ -12,8 +12,8 @@ proc-macro = true
 
 [dependencies]
 docx = "0.1.2"
-log = "0.4.6"
-proc-macro2 = "0.4"
-quick-xml = "0.14.0"
-quote = "0.6"
-syn = { version = "0.15", features = ["extra-traits"] }
+log = "0.4.8"
+proc-macro2 = "1.0.4"
+quick-xml = "0.16.1"
+quote = "1.0.2"
+syn = { version = "1.0.5", features = ["extra-traits"] }
