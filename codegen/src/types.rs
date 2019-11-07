@@ -1,12 +1,6 @@
-use proc_macro2::{Span, TokenStream};
-use quote::quote;
-use syn::{Lit::*, Meta::*, *};
+use proc_macro2::Span;
 
-macro_rules! bytes_str {
-    ($t:expr) => {
-        LitByteStr::new($t.value().as_bytes(), ::proc_macro2::Span::call_site())
-    };
-}
+use syn::{Lit::*, Meta::*, *};
 
 #[allow(clippy::large_enum_variant)]
 pub enum Element {
@@ -16,45 +10,43 @@ pub enum Element {
     Parent(ParentElement),
 }
 
-pub struct EnumElement {
-    pub name: Ident,
-    pub elements: Vec<(Variant, LitByteStr)>,
-}
-
 pub struct Variant {
     pub name: Ident,
+    pub ty: syn::Type,
+}
+
+pub struct Field {
+    pub name: Ident,
     pub ty: Type,
+}
+
+pub struct EnumElement {
+    pub name: Ident,
+    pub elements: Vec<(LitStr, Variant)>,
 }
 
 pub struct LeafElement {
     pub name: Ident,
-    pub tag: LitByteStr,
+    pub tag: LitStr,
     pub extend_attrs: Option<Ident>,
-    pub attributes: Vec<(Field, LitByteStr)>,
+    pub attributes: Vec<(LitStr, Field)>,
 }
 
 pub struct TextElement {
     pub name: Ident,
-    pub tag: LitByteStr,
+    pub tag: LitStr,
     pub extend_attrs: Option<Ident>,
-    pub attributes: Vec<(Field, LitByteStr)>,
-    pub text_field: Field,
+    pub attributes: Vec<(LitStr, Field)>,
+    pub text: Field,
 }
 
 pub struct ParentElement {
     pub name: Ident,
-    pub tag: LitByteStr,
+    pub tag: LitStr,
     pub extend_attrs: Option<Ident>,
-    pub attributes: Vec<(Field, LitByteStr)>,
-    pub children: Vec<(Field, LitByteStr)>,
-    pub leaf_children: Vec<(Field, LitByteStr)>,
-    pub flatten_text: Vec<(Field, LitByteStr)>,
-}
-
-#[derive(Clone)]
-pub struct Field {
-    pub name: Ident,
-    pub ty: Type,
+    pub attributes: Vec<(LitStr, Field)>,
+    pub children: Vec<(LitStr, Field)>,
+    pub flatten_text: Vec<(LitStr, Field)>,
 }
 
 impl Element {
@@ -71,68 +63,63 @@ impl Element {
         let mut tag = None;
         let mut extend_attrs = None;
 
-        for meta_items in attrs.iter().filter_map(get_xml_meta_items) {
-            for meta_item in meta_items {
-                use NestedMeta::Meta;
-                match meta_item {
-                    Meta(Path(ref p)) if p.is_ident("leaf") => {
-                        leaf = true;
-                    }
-                    Meta(NameValue(ref m)) if m.path.is_ident("tag") => {
-                        if let Str(ref lit) = m.lit {
-                            tag = Some(lit.clone());
-                        }
-                    }
-                    Meta(NameValue(ref m)) if m.path.is_ident("extend_attrs") => {
-                        if let Str(ref lit) = m.lit {
-                            extend_attrs = Some(Ident::new(&lit.value(), Span::call_site()));
-                        }
-                    }
-                    item => panic!("Unsupported attrs: {:?}", item),
+        for meta in attrs.iter().filter_map(get_xml_meta).flatten() {
+            match meta {
+                NestedMeta::Meta(Path(ref p)) if p.is_ident("leaf") => {
+                    leaf = true;
                 }
+                NestedMeta::Meta(NameValue(ref m)) if m.path.is_ident("tag") => {
+                    if let Str(ref lit) = m.lit {
+                        tag = Some(lit.clone());
+                    }
+                }
+                NestedMeta::Meta(NameValue(ref m)) if m.path.is_ident("extend_attrs") => {
+                    if let Str(ref lit) = m.lit {
+                        extend_attrs = Some(Ident::new(&lit.value(), Span::call_site()));
+                    }
+                }
+                item => panic!("Unsupported attrs: {:?}.", item),
             }
         }
 
         let mut attributes = Vec::new();
-        let mut text_field = None;
+        let mut text = None;
         let mut children = Vec::new();
-        let mut leaf_children = Vec::new();
+        // let mut leaf_children = Vec::new();
         let mut flatten_text = Vec::new();
 
         for field in data.fields.iter() {
             let name = &field.ident;
             let ty = &field.ty;
 
-            for meta_item in field.attrs.iter().filter_map(get_xml_meta_items).flatten() {
-                use NestedMeta::Meta;
-
+            for meta in field.attrs.iter().filter_map(get_xml_meta).flatten() {
                 let field = Field {
                     name: name.clone().unwrap(),
-                    ty: ty.clone(),
+                    ty: ty.into(),
                 };
 
-                match meta_item {
-                    Meta(NameValue(ref m)) if m.path.is_ident("attr") => {
+                match meta {
+                    NestedMeta::Meta(NameValue(ref m)) if m.path.is_ident("attr") => {
                         if let Str(ref lit) = m.lit {
-                            attributes.push((field, bytes_str!(lit.clone())));
+                            attributes.push((lit.clone(), field));
                         }
                     }
-                    Meta(Path(ref p)) if p.is_ident("text") => {
-                        text_field = Some(field);
+                    NestedMeta::Meta(Path(ref p)) if p.is_ident("text") => {
+                        text = Some(field);
                     }
-                    Meta(NameValue(ref m)) if m.path.is_ident("child") => {
+                    NestedMeta::Meta(NameValue(ref m)) if m.path.is_ident("child") => {
                         if let Str(ref lit) = m.lit {
-                            children.push((field, bytes_str!(lit.clone())));
+                            children.push((lit.clone(), field));
                         }
                     }
-                    Meta(NameValue(ref m)) if m.path.is_ident("leaf_child") => {
+                    // NestedMeta::Meta(NameValue(ref m)) if m.path.is_ident("leaf_child") => {
+                    //     if let Str(ref lit) = m.lit {
+                    //         leaf_children.push((bytes_str!(lit.clone()), field));
+                    //     }
+                    // }
+                    NestedMeta::Meta(NameValue(ref m)) if m.path.is_ident("flatten_text") => {
                         if let Str(ref lit) = m.lit {
-                            leaf_children.push((field, bytes_str!(lit.clone())));
-                        }
-                    }
-                    Meta(NameValue(ref m)) if m.path.is_ident("flatten_text") => {
-                        if let Str(ref lit) = m.lit {
-                            flatten_text.push((field, bytes_str!(lit.clone())));
+                            flatten_text.push((lit.clone(), field));
                         }
                     }
                     meta => panic!(
@@ -143,25 +130,27 @@ impl Element {
             }
         }
 
+        let tag = tag.expect(&format!("Struct doesn't have tag attribute."));
+
         if leaf {
-            if text_field.is_none() && children.is_empty() {
+            if text.is_none() && children.is_empty() {
                 Element::Leaf(LeafElement {
                     name: ident.clone(),
-                    tag: bytes_str!(tag.unwrap()),
+                    tag,
                     extend_attrs,
                     attributes,
                 })
             } else {
                 panic!("Invalid LeafElement: {}", ident.clone());
             }
-        } else if text_field.is_some() {
+        } else if let Some(text) = text {
             if children.is_empty() {
                 Element::Text(TextElement {
                     name: ident.clone(),
-                    tag: bytes_str!(tag.unwrap()),
+                    tag,
                     extend_attrs,
                     attributes,
-                    text_field: text_field.unwrap(),
+                    text,
                 })
             } else {
                 panic!("Invalid TextElement: {}", ident.clone());
@@ -169,11 +158,10 @@ impl Element {
         } else {
             Element::Parent(ParentElement {
                 name: ident.clone(),
-                tag: bytes_str!(tag.unwrap()),
+                tag,
                 extend_attrs,
                 attributes,
                 children,
-                leaf_children,
                 flatten_text,
             })
         }
@@ -186,22 +174,16 @@ impl Element {
             let name = &variant.ident;
             let ty = &variant.fields.iter().nth(0).unwrap().ty;
 
-            for meta_item in variant
-                .attrs
-                .iter()
-                .filter_map(get_xml_meta_items)
-                .flatten()
-            {
-                use NestedMeta::Meta;
-                match meta_item {
-                    Meta(NameValue(ref m)) if m.path.is_ident("tag") => {
+            for meta in variant.attrs.iter().filter_map(get_xml_meta).flatten() {
+                match meta {
+                    NestedMeta::Meta(NameValue(ref m)) if m.path.is_ident("tag") => {
                         if let Str(ref lit) = m.lit {
                             elements.push((
+                                lit.clone(),
                                 Variant {
                                     name: name.clone(),
                                     ty: ty.clone(),
                                 },
-                                bytes_str!(lit.clone()),
                             ));
                         }
                     }
@@ -217,7 +199,7 @@ impl Element {
     }
 }
 
-fn get_xml_meta_items(attr: &Attribute) -> Option<Vec<NestedMeta>> {
+fn get_xml_meta(attr: &Attribute) -> Option<Vec<NestedMeta>> {
     if attr.path.segments.len() == 1 && attr.path.segments[0].ident == "xml" {
         match attr.parse_meta() {
             Ok(Meta::List(meta)) => Some(meta.nested.iter().cloned().collect()),
@@ -228,111 +210,141 @@ fn get_xml_meta_items(attr: &Attribute) -> Option<Vec<NestedMeta>> {
     }
 }
 
-pub trait TypeExt {
-    fn is_option(&self) -> Option<&Self>;
-    fn is_vec(&self) -> Option<&Self>;
-    fn is_bool(&self) -> bool;
-    fn is_string(&self) -> bool;
-    fn is_usize(&self) -> bool;
-    fn init_value(&self) -> TokenStream;
-    fn parse_attr_value(&self) -> TokenStream;
-    fn get_ident(&self) -> Option<Ident>;
+pub enum Type {
+    // Vec<Cow<'a, str>>, flatten_text
+    VecCowStr,
+    // Vec<T>, children
+    VecT(syn::Type),
+    // Option<T>, children, attr
+    OptionT(syn::Type),
+    // Option<Cow<'a, str>>, flatten_text, attr
+    OptionCowStr,
+    // Option<bool>, attr
+    OptionBool,
+    // Option<usize>, attr
+    OptionUsize,
+    // Cow<'a, str>, flatten_text
+    CowStr,
+    // bool, attr
+    Bool,
+    // usize, attr
+    Usize,
+    // T, child, attr
+    T(syn::Type),
 }
 
-impl TypeExt for Type {
-    fn is_option(&self) -> Option<&Self> {
-        let path = match self {
-            Type::Path(ty) => &ty.path,
-            _ => {
-                return None;
+impl From<&syn::Type> for Type {
+    fn from(ty: &syn::Type) -> Self {
+        if let Some(ty) = is_vec(ty) {
+            if is_cow_str(ty) {
+                Type::VecCowStr
+            } else {
+                Type::VecT(ty.clone())
             }
-        };
-        let seg = path.segments.last()?;
-        let args = match &seg.arguments {
-            PathArguments::AngleBracketed(bracketed) => &bracketed.args,
-            _ => {
-                return None;
+        } else if let Some(ty) = is_option(ty) {
+            if is_cow_str(ty) {
+                Type::OptionCowStr
+            } else if is_bool(ty) {
+                Type::OptionBool
+            } else if is_usize(ty) {
+                Type::OptionUsize
+            } else {
+                Type::OptionT(ty.clone())
             }
-        };
-        if seg.ident == "Option" && args.len() == 1 {
-            match args[0] {
-                GenericArgument::Type(ref arg) => Some(arg),
-                _ => None,
-            }
+        } else if is_cow_str(ty) {
+            Type::CowStr
+        } else if is_usize(ty) {
+            Type::Usize
+        } else if is_bool(ty) {
+            Type::Bool
         } else {
-            None
+            Type::T(ty.clone())
         }
     }
+}
 
-    fn is_vec(&self) -> Option<&Self> {
-        let path = match self {
-            Type::Path(ty) => &ty.path,
-            _ => {
-                return None;
-            }
-        };
-        let seg = path.segments.last()?;
-        let args = match &seg.arguments {
-            PathArguments::AngleBracketed(bracketed) => &bracketed.args,
-            _ => {
-                return None;
-            }
-        };
-        if seg.ident == "Vec" && args.len() == 1 {
-            match args[0] {
-                GenericArgument::Type(ref arg) => Some(arg),
-                _ => None,
-            }
-        } else {
-            None
-        }
-    }
-
-    // Specifies how to initialize this field by its type
-    fn init_value(&self) -> TokenStream {
-        if self.is_vec().is_some() {
-            quote!(Vec::new())
-        } else if self.is_bool() {
-            quote!(false)
-        } else {
-            quote!(None)
-        }
-    }
-
-    // Specifies how to parse attributes value (attr.value) by its type
-    fn parse_attr_value(&self) -> TokenStream {
-        let ty = self.is_option().unwrap_or(&self);
-
-        if ty.is_string() {
-            quote!(String::from_utf8(attr.value.into_owned().to_vec())?)
-        } else if ty.is_bool() {
-            quote! {{
-                let value = ::std::str::from_utf8(attr.value.borrow())?;
-                bool::from_str(value).or(usize::from_str(value).map(|v| v != 0))?
-            }}
-        } else {
-            let ty = ty.get_ident();
-            quote!( #ty::from_str(::std::str::from_utf8(attr.value.borrow())?)? )
-        }
-    }
-
-    fn is_string(&self) -> bool {
-        self.get_ident().map_or(false, |ty| ty == "String")
-    }
-
-    fn is_bool(&self) -> bool {
-        self.get_ident().map_or(false, |ty| ty == "bool")
-    }
-
-    fn is_usize(&self) -> bool {
-        self.get_ident().map_or(false, |ty| ty == "usize")
-    }
-
-    fn get_ident(&self) -> Option<Ident> {
-        match self {
-            Type::Path(ty) => ty.path.segments.last().map(|seg| seg.ident.clone()),
-            Type::Reference(ty) => ty.elem.get_ident(),
+fn is_vec(ty: &syn::Type) -> Option<&syn::Type> {
+    let path = match ty {
+        syn::Type::Path(ty) => &ty.path,
+        _ => return None,
+    };
+    let seg = path.segments.last()?;
+    let args = match &seg.arguments {
+        PathArguments::AngleBracketed(bracketed) => &bracketed.args,
+        _ => return None,
+    };
+    if seg.ident == "Vec" && args.len() == 1 {
+        match args[0] {
+            GenericArgument::Type(ref arg) => Some(arg),
             _ => None,
         }
+    } else {
+        None
     }
+}
+
+fn is_option(ty: &syn::Type) -> Option<&syn::Type> {
+    let path = match ty {
+        syn::Type::Path(ty) => &ty.path,
+        _ => return None,
+    };
+    let seg = path.segments.last()?;
+    let args = match &seg.arguments {
+        PathArguments::AngleBracketed(bracketed) => &bracketed.args,
+        _ => return None,
+    };
+    if seg.ident == "Option" && args.len() == 1 {
+        match args[0] {
+            GenericArgument::Type(ref arg) => Some(arg),
+            _ => None,
+        }
+    } else {
+        None
+    }
+}
+
+fn is_cow_str(ty: &syn::Type) -> bool {
+    let path = match ty {
+        syn::Type::Path(ty) => &ty.path,
+        _ => return false,
+    };
+    let seg = match path.segments.last() {
+        Some(seg) => seg,
+        None => return false,
+    };
+    let args = match &seg.arguments {
+        PathArguments::AngleBracketed(bracketed) => &bracketed.args,
+        _ => return false,
+    };
+    if seg.ident == "Cow" && args.len() == 2 {
+        match &args[1] {
+            GenericArgument::Type(syn::Type::Path(ty)) => ty.path.is_ident("str"),
+            _ => false,
+        }
+    } else {
+        false
+    }
+}
+
+fn is_bool(ty: &syn::Type) -> bool {
+    match ty {
+        syn::Type::Path(ty) => ty.path.is_ident("bool"),
+        _ => false,
+    }
+}
+
+fn is_usize(ty: &syn::Type) -> bool {
+    match ty {
+        syn::Type::Path(ty) => ty.path.is_ident("usize"),
+        _ => false,
+    }
+}
+
+pub fn trim_lifetime(ty: &syn::Type) -> Option<&Ident> {
+    let path = match ty {
+        syn::Type::Path(ty) => &ty.path,
+        _ => return None,
+    };
+    let seg = path.segments.last()?;
+    Some(&seg.ident)
 }

@@ -2,53 +2,97 @@
 
 extern crate proc_macro;
 
-mod read;
+mod into_owned;
 mod types;
-mod write;
+mod xml_read;
+mod xml_write;
 
-use crate::{read::impl_read, types::Element, write::impl_write};
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput};
+use syn::{parse_macro_input, DeriveInput, GenericParam};
 
-#[proc_macro_derive(Xml, attributes(xml))]
-pub fn derive_xml(input: TokenStream) -> TokenStream {
+use crate::{types::Element, xml_read::read, xml_write::write};
+
+#[proc_macro_derive(XmlRead, attributes(xml))]
+pub fn derive_xml_read(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
-
-    let element = Element::parse(&input);
 
     let name = &input.ident;
     let generics = &input.generics;
 
-    let impl_write = impl_write(&element);
-    let impl_read = impl_read(&element);
+    let lifetime = match &generics.params.last() {
+        Some(GenericParam::Lifetime(lt)) => Some(lt),
+        _ => None,
+    };
+
+    let element = Element::parse(&input);
+
+    let impl_read = read(&element);
 
     let gen = quote! {
         impl #generics #name #generics {
-            pub(crate) fn write<W>(&self, w: &mut ::quick_xml::Writer<W>) -> Result<()>
-            where
-                W: ::std::io::Write,
-            {
-                use quick_xml::events::*;
+            pub(crate) fn from_str(string: & #lifetime str) -> Result<#name #generics> {
+                let mut reader = xmlparser::Tokenizer::from(string).peekable();
+                Self::from_reader(&mut reader)
+            }
 
+            pub(crate) fn from_reader(
+                reader: &mut std::iter::Peekable<xmlparser::Tokenizer #generics>
+            ) -> Result<#name #generics> {
+                use xmlparser::{ElementEnd, Token, Tokenizer};
+
+                #impl_read
+            }
+        }
+    };
+
+    gen.into()
+}
+
+#[proc_macro_derive(XmlWrite, attributes(xml))]
+pub fn derive_xml_write(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+
+    let name = &input.ident;
+    let generics = &input.generics;
+
+    let element = Element::parse(&input);
+
+    let impl_write = write(&element);
+
+    let gen = quote! {
+        impl #generics #name #generics {
+            pub(crate) fn write<W: std::io::Write>(&self, mut writer: W) -> Result<()> {
                 #impl_write
 
                 Ok(())
             }
+        }
+    };
 
-            pub(crate) fn read<B>(
-                r: &mut ::quick_xml::Reader<B>,
-                bs: Option<::quick_xml::events::BytesStart>,
-            ) -> Result<Self>
-            where
-                B: ::std::io::BufRead,
-            {
-                use quick_xml::events::*;
-                use std::borrow::Borrow;
-                use std::convert::AsRef;
-                use std::str::FromStr;
+    gen.into()
+}
 
-                #impl_read
+#[proc_macro_derive(IntoOwned)]
+pub fn derive_into_owned(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+
+    let name = &input.ident;
+    let generics = &input.generics;
+
+    let element = Element::parse(&input);
+
+    let impl_into_owned = into_owned::impl_into_owned(&element);
+
+    let lifetime = match &generics.params.last() {
+        Some(GenericParam::Lifetime(_)) => Some(quote!( <'static> )),
+        _ => None,
+    };
+
+    let gen = quote! {
+        impl #generics #name #generics {
+            pub fn into_owned(self) -> #name #lifetime {
+                #impl_into_owned
             }
         }
     };
