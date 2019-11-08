@@ -22,4 +22,4 @@ xmlparser = "0.10.0"
 zip = "0.5.3"
 
 [dev-dependencies]
-env_logger = "0.7.0"
+env_logger = "0.7.1"
