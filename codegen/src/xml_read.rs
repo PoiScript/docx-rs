@@ -190,7 +190,6 @@ fn read_parent_element(parent_ele: &ParentElement) -> TokenStream {
     let flatten_text = &parent_ele.flatten_text;
 
     let mut children_fields = children.iter().map(|e| &e.1).collect::<Vec<_>>();
-    children_fields.sort_by_key(|f| &f.name);
     children_fields.dedup_by_key(|f| &f.name);
 
     let init_attrs = attrs.iter().map(|e| init_value(&e.1));

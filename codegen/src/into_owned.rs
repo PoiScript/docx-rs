@@ -48,7 +48,6 @@ pub fn impl_into_owned(element: &Element) -> TokenStream {
 
             let mut children = children.iter().map(|e| &e.1).collect::<Vec<_>>();
 
-            children.sort_by_key(|f| &f.name);
             children.dedup_by_key(|f| &f.name);
 
             let attrs_into_owned = attrs.iter().map(|e| into_owned(&e.1, true));

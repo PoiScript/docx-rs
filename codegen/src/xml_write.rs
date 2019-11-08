@@ -82,7 +82,6 @@ fn write_parent_ele(parent_ele: &ParentElement) -> TokenStream {
     let children = &parent_ele.children;
 
     let mut children = children.iter().map(|e| &e.1).collect::<Vec<_>>();
-    children.sort_by_key(|f| &f.name);
     children.dedup_by_key(|f| &f.name);
 
     let extend_attrs = if let Some(extend_attrs) = &parent_ele.extend_attrs {
