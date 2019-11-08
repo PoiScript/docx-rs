@@ -60,7 +60,7 @@
 //!     let docx_file = DocxFile::from_file("foo.docx").unwrap();
 //!     let mut docx = docx_file.parse().unwrap();
 //!     docx_option = Some(docx);
-//!     // `docx_file` gets dropped here
+//!     // `docx_file` gets dropped here and code fails to compile
 //! }
 //! docx_option.unwrap().write_file("foo.docx").unwrap();
 //! ```
