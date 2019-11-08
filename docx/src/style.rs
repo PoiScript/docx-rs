@@ -95,7 +95,7 @@ pub struct Style<'a> {
 fn style_extend_attrs<W: Write>(s: &Style, mut w: W) -> Result<()> {
     write!(w, " w:type=\"paragraph\"")?;
     if let Some(ref name) = s.name {
-        write!(w, " w:type=\"{}\"", name.value)?;
+        write!(w, " w:styleId=\"{}\"", name.value)?;
     }
     Ok(())
 }
