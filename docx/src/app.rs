@@ -2,78 +2,79 @@
 //!
 //! The corresponding ZIP item is `/docProps/app.xml`.
 
-use docx_codegen::Xml;
-use quick_xml::events::BytesStart;
-use std::default::Default;
+use docx_codegen::{IntoOwned, XmlRead, XmlWrite};
+use std::borrow::Cow;
+use std::io::Write;
 
 use crate::{
     error::{Error, Result},
     schema::{SCHEMAS_EXTENDED, SCHEMA_DOC_PROPS_V_TYPES},
 };
 
-#[derive(Debug, Xml)]
+#[derive(Debug, XmlRead, XmlWrite, IntoOwned)]
 #[xml(tag = "Properties")]
 #[xml(extend_attrs = "app_extend_attrs")]
-pub struct App {
+pub struct App<'a> {
     #[xml(flatten_text = "Template")]
-    pub template: Option<String>,
+    pub template: Option<Cow<'a, str>>,
     #[xml(flatten_text = "TotalTime")]
-    pub total_time: Option<String>,
+    pub total_time: Option<Cow<'a, str>>,
     #[xml(flatten_text = "Pages")]
-    pub pages: Option<String>,
+    pub pages: Option<Cow<'a, str>>,
     #[xml(flatten_text = "Words")]
-    pub words: Option<String>,
+    pub words: Option<Cow<'a, str>>,
     #[xml(flatten_text = "Characters")]
-    pub characters: Option<String>,
+    pub characters: Option<Cow<'a, str>>,
     #[xml(flatten_text = "Application")]
-    pub application: Option<String>,
+    pub application: Option<Cow<'a, str>>,
     #[xml(flatten_text = "DocSecurity")]
-    pub doc_security: Option<String>,
+    pub doc_security: Option<Cow<'a, str>>,
     #[xml(flatten_text = "Lines")]
-    pub lines: Option<String>,
+    pub lines: Option<Cow<'a, str>>,
     #[xml(flatten_text = "Paragraphs")]
-    pub paragraphs: Option<String>,
+    pub paragraphs: Option<Cow<'a, str>>,
     #[xml(flatten_text = "ScaleCrop")]
-    pub scale_crop: Option<String>,
+    pub scale_crop: Option<Cow<'a, str>>,
     #[xml(flatten_text = "Company")]
-    pub company: Option<String>,
+    pub company: Option<Cow<'a, str>>,
     #[xml(flatten_text = "LinksUpToDate")]
-    pub links_up_to_date: Option<String>,
+    pub links_up_to_date: Option<Cow<'a, str>>,
     #[xml(flatten_text = "CharactersWithSpaces")]
-    pub characters_with_spaces: Option<String>,
+    pub characters_with_spaces: Option<Cow<'a, str>>,
     #[xml(flatten_text = "SharedDoc")]
-    pub shared_doc: Option<String>,
+    pub shared_doc: Option<Cow<'a, str>>,
     #[xml(flatten_text = "HyperlinksChanged")]
-    pub hyperlinks_changed: Option<String>,
+    pub hyperlinks_changed: Option<Cow<'a, str>>,
     #[xml(flatten_text = "AppVersion")]
-    pub app_version: Option<String>,
-}
-
-impl Default for App {
-    fn default() -> App {
-        App {
-            template: Some("Normal.dotm".to_string()),
-            total_time: Some("1".to_string()),
-            pages: Some("1".to_string()),
-            words: Some("0".to_string()),
-            characters: Some("0".to_string()),
-            application: Some("docx-rs".to_string()),
-            doc_security: Some("0".to_string()),
-            lines: Some("0".to_string()),
-            paragraphs: Some("1".to_string()),
-            scale_crop: Some("false".to_string()),
-            company: Some("MS".to_string()),
-            links_up_to_date: Some("false".to_string()),
-            characters_with_spaces: Some("25".to_string()),
-            shared_doc: Some("false".to_string()),
-            hyperlinks_changed: Some("false".to_string()),
-            app_version: Some("12.0000".to_string()),
-        }
-    }
+    pub app_version: Option<Cow<'a, str>>,
 }
 
 #[inline]
-fn app_extend_attrs(_: &App, start: &mut BytesStart) {
-    start.push_attribute(("xmlns", SCHEMAS_EXTENDED));
-    start.push_attribute(("xmlns:vt", SCHEMA_DOC_PROPS_V_TYPES));
+fn app_extend_attrs<W: Write>(_: &App, mut w: W) -> Result<()> {
+    write!(&mut w, " xmlns=\"{}\"", SCHEMAS_EXTENDED)?;
+    write!(&mut w, " xmlns:vt=\"{}\"", SCHEMA_DOC_PROPS_V_TYPES)?;
+    Ok(())
+}
+
+impl Default for App<'static> {
+    fn default() -> App<'static> {
+        App {
+            template: Some("Normal.dotm".into()),
+            total_time: Some("1".into()),
+            pages: Some("1".into()),
+            words: Some("0".into()),
+            characters: Some("0".into()),
+            application: Some("docx-rs".into()),
+            doc_security: Some("0".into()),
+            lines: Some("0".into()),
+            paragraphs: Some("1".into()),
+            scale_crop: Some("false".into()),
+            company: Some("MS".into()),
+            links_up_to_date: Some("false".into()),
+            characters_with_spaces: Some("25".into()),
+            shared_doc: Some("false".into()),
+            hyperlinks_changed: Some("false".into()),
+            app_version: Some("12.0000".into()),
+        }
+    }
 }

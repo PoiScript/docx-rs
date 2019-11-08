@@ -1,12 +1,11 @@
 use std::{
-    fmt,
     io::Error as IOError,
     num::ParseIntError,
     str::{ParseBoolError, Utf8Error},
     string::FromUtf8Error,
 };
 
-use quick_xml::Error as XmlError;
+use xmlparser::Error as XmlError;
 use zip::result::ZipError;
 
 /// Error type of docx-rs
@@ -19,52 +18,12 @@ pub enum Error {
     ParseInt(ParseIntError),
     ParseBool(ParseBoolError),
     UnexpectedEof,
-    UnexpectedTag {
-        expected: &'static str,
-        found: String,
-    },
-    UnexpectedEvent {
-        expected: &'static str,
-        found: &'static str,
-    },
-    MissingField {
-        name: &'static str,
-        field: &'static str,
-    },
-    UnknownValue {
-        expected: &'static str,
-        found: String,
-    },
-}
-
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> ::std::result::Result<(), fmt::Error> {
-        match *self {
-            Error::IO(ref err) => write!(f, "{}", err),
-            Error::Xml(ref err) => write!(f, "{}", err),
-            Error::Zip(ref err) => write!(f, "{}", err),
-            Error::Utf8(ref err) => write!(f, "{}", err),
-            Error::ParseInt(ref err) => write!(f, "{}", err),
-            Error::ParseBool(ref err) => write!(f, "{}", err),
-            Error::UnexpectedEof => write!(f, "Unexpected Eof"),
-            Error::UnexpectedTag {
-                ref expected,
-                ref found,
-            } => write!(f, "Expecting </{}> found </{}>", expected, found),
-            Error::UnexpectedEvent {
-                ref expected,
-                ref found,
-            } => write!(f, "Expecting {} event found {} event", expected, found),
-            Error::MissingField {
-                ref name,
-                ref field,
-            } => write!(f, "Missing field '{}' when parsing {}.", field, name),
-            Error::UnknownValue {
-                ref expected,
-                ref found,
-            } => write!(f, "Unknown value '{}' when parsing {}.", expected, found),
-        }
-    }
+    UnexpectedToken { token: String },
+    TagMismatch { expected: String, found: String },
+    MissingField { name: String, field: String },
+    UnknownValue { expected: String, found: String },
+    UnterminatedEntity { entity: String },
+    UnrecognizedSymbol { symbol: String },
 }
 
 impl From<IOError> for Error {

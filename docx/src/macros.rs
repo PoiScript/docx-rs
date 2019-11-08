@@ -1,10 +1,10 @@
 #[macro_export]
 macro_rules! __string_enum {
     ($name:ident { $($variant:ident = $value:expr, )* }) => {
-        impl std::convert::AsRef<[u8]> for $name {
-            fn as_ref(&self) -> &[u8] {
+        impl std::fmt::Display for $name {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 match *self {
-                    $( $name::$variant => $value.as_bytes(), )*
+                    $( $name::$variant => write!(f, $value), )*
                 }
             }
         }
@@ -16,30 +16,11 @@ macro_rules! __string_enum {
                 match s {
                     $($value => Ok($name::$variant),)*
                     s => Err(Error::UnknownValue {
-                        expected: std::stringify!($($value,)*),
+                        expected: stringify!($($value,)*).to_owned(),
                         found: String::from(s),
                     })
                 }
             }
         }
     }
-}
-
-#[macro_export]
-macro_rules! __w_val_element {
-    ($name: ident, $tag:literal, $ty:ty) => {
-        #[derive(Debug, Xml)]
-        #[xml(tag = $tag)]
-        #[xml(leaf)]
-        pub struct $name {
-            #[xml(attr = "w:val")]
-            pub value: $ty,
-        }
-
-        impl $name {
-            pub fn new(value: $ty) -> Self {
-                $name { value }
-            }
-        }
-    };
 }

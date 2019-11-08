@@ -2,35 +2,37 @@
 //!
 //! The corresponding ZIP item is `/docProps/core.xml`.
 
-use docx_codegen::Xml;
-use quick_xml::events::BytesStart;
+use docx_codegen::{IntoOwned, XmlRead, XmlWrite};
+use std::borrow::Cow;
+use std::io::Write;
 
 use crate::{
     error::{Error, Result},
     schema::SCHEMA_CORE,
 };
 
-#[derive(Debug, Default, Xml)]
+#[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
 #[xml(tag = "cp:coreProperties")]
 #[xml(extend_attrs = "core_extend_attrs")]
-pub struct Core {
+pub struct Core<'a> {
     #[xml(flatten_text = "dc:title")]
-    pub title: Option<String>,
+    pub title: Option<Cow<'a, str>>,
     #[xml(flatten_text = "dc:subject")]
-    pub subject: Option<String>,
+    pub subject: Option<Cow<'a, str>>,
     #[xml(flatten_text = "dc:creator")]
-    pub creator: Option<String>,
+    pub creator: Option<Cow<'a, str>>,
     #[xml(flatten_text = "cp:keywords")]
-    pub keywords: Option<String>,
+    pub keywords: Option<Cow<'a, str>>,
     #[xml(flatten_text = "dc:description")]
-    pub description: Option<String>,
+    pub description: Option<Cow<'a, str>>,
     #[xml(flatten_text = "cp:lastModifiedBy")]
-    pub last_modified_by: Option<String>,
+    pub last_modified_by: Option<Cow<'a, str>>,
     #[xml(flatten_text = "cp:revision")]
-    pub revision: Option<String>,
+    pub revision: Option<Cow<'a, str>>,
 }
 
 #[inline]
-fn core_extend_attrs(_: &Core, start: &mut BytesStart) {
-    start.push_attribute(("xmlns:cp", SCHEMA_CORE));
+fn core_extend_attrs<W: Write>(_: &Core, mut w: W) -> Result<()> {
+    write!(w, " xmlns:cp=\"{}\"", SCHEMA_CORE)?;
+    Ok(())
 }

@@ -2,8 +2,9 @@
 //!
 //! The corresponding ZIP item is `/[Content_Types].xml`.
 
-use docx_codegen::Xml;
-use quick_xml::events::BytesStart;
+use docx_codegen::{IntoOwned, XmlRead, XmlWrite};
+use std::borrow::Cow;
+use std::io::Write;
 
 use crate::{
     error::{Error, Result},
@@ -20,70 +21,71 @@ const CONTENT_TYPE_DOCUMENT: &str =
 const CONTENT_TYPE_STYLES: &str =
     "application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml";
 
-#[derive(Debug, Xml)]
+#[derive(Debug, XmlRead, XmlWrite, IntoOwned)]
 #[xml(tag = "Types")]
 #[xml(extend_attrs = "content_types_extend_attrs")]
-pub struct ContentTypes {
+pub struct ContentTypes<'a> {
     #[xml(child = "Default")]
-    pub defaults: Vec<DefaultContentType>,
+    pub defaults: Vec<DefaultContentType<'a>>,
     #[xml(child = "Override")]
-    pub overrides: Vec<OverrideContentType>,
+    pub overrides: Vec<OverrideContentType<'a>>,
 }
 
 #[inline]
-fn content_types_extend_attrs(_: &ContentTypes, start: &mut BytesStart) {
-    start.push_attribute(("xmlns", SCHEMA_CONTENT_TYPES));
+fn content_types_extend_attrs<W: Write>(_: &ContentTypes, mut w: W) -> Result<()> {
+    write!(w, " xmlns=\"{}\"", SCHEMA_CONTENT_TYPES)?;
+    Ok(())
 }
 
-impl Default for ContentTypes {
-    fn default() -> ContentTypes {
-        macro_rules! default_ct {
-            ($e:expr, $t:expr) => {
-                DefaultContentType {
-                    ext: $e.to_string(),
-                    ty: $t.to_string(),
-                }
-            };
-        }
-        macro_rules! override_ct {
-            ($p:expr, $t:expr) => {
-                OverrideContentType {
-                    part: $p.to_string(),
-                    ty: $t.to_string(),
-                }
-            };
-        }
+impl Default for ContentTypes<'static> {
+    fn default() -> ContentTypes<'static> {
         ContentTypes {
             defaults: vec![
-                default_ct!("rels", CONTENT_TYPE_RELATIONSHIP),
-                default_ct!("xml", CONTENT_TYPE_XML),
+                DefaultContentType {
+                    ext: "rels".into(),
+                    ty: CONTENT_TYPE_RELATIONSHIP.into(),
+                },
+                DefaultContentType {
+                    ext: "xml".into(),
+                    ty: CONTENT_TYPE_XML.into(),
+                },
             ],
             overrides: vec![
-                override_ct!("/docProps/app.xml", CONTENT_TYPE_EXTENDED),
-                override_ct!("/docProps/core.xml", CONTENT_TYPE_CORE),
-                override_ct!("/word/document.xml", CONTENT_TYPE_DOCUMENT),
-                override_ct!("/word/styles.xml", CONTENT_TYPE_STYLES),
+                OverrideContentType {
+                    part: "/docProps/app.xml".into(),
+                    ty: CONTENT_TYPE_EXTENDED.into(),
+                },
+                OverrideContentType {
+                    part: "/docProps/core.xml".into(),
+                    ty: CONTENT_TYPE_CORE.into(),
+                },
+                OverrideContentType {
+                    part: "/word/document.xml".into(),
+                    ty: CONTENT_TYPE_DOCUMENT.into(),
+                },
+                OverrideContentType {
+                    part: "/word/styles.xml".into(),
+                    ty: CONTENT_TYPE_STYLES.into(),
+                },
             ],
         }
     }
 }
 
-#[derive(Debug, Xml)]
-#[xml(tag = "Default")]
-#[xml(leaf)]
-pub struct DefaultContentType {
+#[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
+#[xml(leaf, tag = "Default")]
+pub struct DefaultContentType<'a> {
     #[xml(attr = "Extension")]
-    pub ext: String,
+    pub ext: Cow<'a, str>,
     #[xml(attr = "ContentType")]
-    pub ty: String,
+    pub ty: Cow<'a, str>,
 }
 
-#[derive(Debug, Xml)]
-#[xml(tag = "Override")]
-#[xml(leaf)]
-pub struct OverrideContentType {
+#[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
+#[xml(leaf, tag = "Override")]
+pub struct OverrideContentType<'a> {
     #[xml(attr = "PartName")]
-    pub part: String,
+    pub part: Cow<'a, str>,
     #[xml(attr = "ContentType")]
-    pub ty: String,
+    pub ty: Cow<'a, str>,
 }

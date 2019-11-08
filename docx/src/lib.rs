@@ -1,89 +1,95 @@
 //! A Rust library for parsing and generating docx files.
 //!
-//! # Usage
+//! # Create a new document
 //!
-//! ```toml
-//! docx = "0.1.3"
-//! ```
+//! Use `Docx::default` to create a new empty `Docx`, then use
+//! [`Docx::write_file`] for saving it to a file.
 //!
-//! Using methods [`from_file`] and [`write_file`] for reading from and writing to file directly.
-//!
-//! [`from_file`]: struct.Docx.html#method.from_file
-//! [`write_file`]: struct.Docx.html#method.write_file
+//! [`Docx::write_file`]: struct.Docx.html#method.write_file
 //!
 //! ```no_run
-//! use docx::Docx;
-//! use docx::document::Para;
-//!
-//! // reading docx from file
-//! let mut docx = Docx::from_file("demo.docx").unwrap();
-//!
-//! // do whatever you want...
-//!
-//! // for example, appending text
+//! # use docx::document::Para;
+//! # use docx::Docx;
+//! #
+//! let mut docx = Docx::default();
 //! let mut para = Para::default();
+//!
+//! // create a new paragraph and insert it
 //! para.text("Lorem Ipsum");
 //! docx.insert_para(para);
 //!
-//! // writing back to the original file
 //! docx.write_file("demo.docx").unwrap();
 //! ```
 //!
-//! Alternatively, you can use [`parse`] (accepts [`Read`] + [`Seek`]) and [`generate`] (accepts [`Write`] + [`Seek`]).
+//! Also see: [`Docx::write`].
 //!
-//! [`parse`]: struct.Docx.html#method.parse
-//! [`generate`]: struct.Docx.html#method.generate
-//! [`Read`]: std::io::Read
-//! [`Write`]: std::io::Write
-//! [`Seek`]: std::io::Seek
+//! [`Docx::write`]: struct.Docx.html#method.write
 //!
-//! ## Glossary
+//! # Reading from files
 //!
-//! Some terms used in this crate.
+//! Use [`DocxFile::from_file`] to extract content from docx files, then use
+//! [`DocxFile::parse`] to generate a `Docx` struct.
 //!
-//! * Body: main surface for editing
-//! * Paragraph: block-level container of content, begins with a new line
-//! * Run(Character): non-block region of text
-//! * Style: a set of paragraph and character properties which can be applied to text
+//! [`DocxFile::from_file`]: struct.DocxFile.html#method.from_file
+//! [`DocxFile::parse`]: struct.DocxFile.html#method.parse
 //!
-//! # Note
-//!
-//! ## Toggle Properties
-//!
-//! Some fields in this crate (e.g. [`bold`] and [`italics`]) are declared as `Option<bool>` instead of `bool`.
-//!
-//! This indicates that they are **toggle properties** which can be **inherited** (`None`) or **disabled/enabled explicitly** (`Some`).
-//!
-//! [`bold`]: style/struct.CharStyle.html#structfield.bold
-//! [`italics`]: style/struct.CharStyle.html#structfield.italics
-//!
-//! For example, you can disable bold of a run within a paragraph specified bold by setting `bold` to `Some(false)`:
-//!
-//! ```rust
-//! use docx::Docx;
-//! use docx::document::{Para, Run};
-//!
-//! let mut docx = Docx::default();
-//!
-//! docx
-//!   .create_style()
-//!   .name("Normal")
-//!   .char()
-//!   .bold(true)
-//!   .italics(true);
-//!
+//! ```no_run
+//! # use docx::document::Para;
+//! # use docx::DocxFile;
+//! #
+//! let docx = DocxFile::from_file("origin.docx").unwrap();
+//! let mut docx = docx.parse().unwrap();
 //! let mut para = Para::default();
-//! para.prop().name("Normal");
 //!
-//! // inherited from its parent
-//! para.text("I'm bold and italics.").text_break();
-//!
-//! let mut run = Run::text("But I'm not.");
-//! run.prop().bold(false).italics(false);
-//! para.run(run);
-//!
+//! para.text("Lorem Ipsum");
 //! docx.insert_para(para);
+//!
+//! docx.write_file("origin_appended.docx").unwrap();
 //! ```
+//!
+//! To reduce allocations, `DocxFile::parse` returns a `Docx` struct contains
+//! references to `DocxFile` itself. It means you have to make sure that
+//! `DocxFile` lives as long as its returned `Docx`:
+//!
+//! ```compile_fail
+//! # use docx::document::Para;
+//! # use docx::DocxFile;
+//! #
+//! let mut docx_option = None;
+//! {
+//!     let docx_file = DocxFile::from_file("foo.docx").unwrap();
+//!     let mut docx = docx_file.parse().unwrap();
+//!     docx_option = Some(docx);
+//!     // `docx_file` gets dropped here
+//! }
+//! docx_option.unwrap().write_file("foo.docx").unwrap();
+//! ```
+//!
+//! Or you can use [`Docx::into_owned`] to convert it into `Docx<'static>`:
+//!
+//! [`Docx::into_owned`]: struct.Docx.html#method.into_owned
+//!
+//! ```no_run
+//! # use docx::document::Para;
+//! # use docx::DocxFile;
+//! #
+//! let mut docx_option = None;
+//! {
+//!     let docx_file = DocxFile::from_file("foo.docx").unwrap();
+//!     let mut docx = docx_file.parse().unwrap();
+//!     docx_option = Some(docx.into_owned());
+//! }
+//! docx_option.unwrap().write_file("foo.docx").unwrap();
+//! ```
+//!
+//! Also see: [`DocxFile::from_reader`].
+//!
+//! [`DoxFile::from_reader`]: struct.DocxFile.html#method.from_reader
+//!
+//! # License
+//!
+//! MIT
+//!
 
 mod macros;
 
@@ -97,6 +103,7 @@ pub mod font_table;
 pub mod rels;
 mod schema;
 pub mod style;
+mod xml;
 
 pub mod prelude {
     //! Prelude module
@@ -106,5 +113,5 @@ pub mod prelude {
     pub use crate::style::Style;
 }
 
-pub use crate::docx::Docx;
+pub use crate::docx::{Docx, DocxFile};
 pub use crate::error::{Error, Result};

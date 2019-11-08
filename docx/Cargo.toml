@@ -14,8 +14,11 @@ travis-ci = { repository = "PoiScript/docx-rs" }
 
 [dependencies]
 docx-codegen = { version = "0.1.4", path = "../codegen/" }
+jetscii = "0.4.4"
+lazy_static = "1.4.0"
 log = "0.4.8"
-quick-xml = "0.16.1"
+memchr = "2.2.1"
+xmlparser = "0.10.0"
 zip = "0.5.3"
 
 [dev-dependencies]

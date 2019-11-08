@@ -1,35 +1,38 @@
 //! Relationship item
 //!
-//! The corresponding ZIP item is `/_rels/.rels` (package-relationship) or `/word/_rels/document.xml.rels` (part-relationship).
+//! The corresponding ZIP item is `/_rels/.rels` (package-relationship) or
+//! `/word/_rels/document.xml.rels` (part-relationship).
 
-use docx_codegen::Xml;
-use quick_xml::events::BytesStart;
+use docx_codegen::{IntoOwned, XmlRead, XmlWrite};
+use std::borrow::Cow;
+use std::io::Write;
 
 use crate::{
     error::{Error, Result},
     schema::SCHEMA_RELATIONSHIPS,
 };
 
-#[derive(Debug, Default, Xml)]
+#[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
 #[xml(tag = "Relationships")]
 #[xml(extend_attrs = "relationships_extend_attrs")]
-pub struct Relationships {
+pub struct Relationships<'a> {
     #[xml(child = "Relationship")]
-    pub relationships: Vec<Relationship>,
+    pub relationships: Vec<Relationship<'a>>,
 }
 
 #[inline]
-fn relationships_extend_attrs(_: &Relationships, start: &mut BytesStart) {
-    start.push_attribute(("xmlns", SCHEMA_RELATIONSHIPS));
+fn relationships_extend_attrs<W: Write>(_: &Relationships, mut w: W) -> Result<()> {
+    write!(w, " xmlns=\"{}\"", SCHEMA_RELATIONSHIPS)?;
+    Ok(())
 }
 
-impl Relationships {
-    pub fn add_rel(&mut self, schema: &str, target: &str) {
+impl<'a> Relationships<'a> {
+    pub fn add_rel(&mut self, schema: &'a str, target: &'a str) {
         let len = self.relationships.len();
         self.relationships.push(Relationship {
-            id: format!("rId{}", len),
-            target: target.to_owned(),
-            ty: schema.to_owned(),
+            id: format!("rId{}", len).into(),
+            target: target.into(),
+            ty: schema.into(),
         });
     }
 
@@ -41,14 +44,13 @@ impl Relationships {
     }
 }
 
-#[derive(Debug, Xml)]
-#[xml(tag = "Relationship")]
-#[xml(leaf)]
-pub struct Relationship {
+#[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
+#[xml(leaf, tag = "Relationship")]
+pub struct Relationship<'a> {
     #[xml(attr = "Id")]
-    pub id: String,
+    pub id: Cow<'a, str>,
     #[xml(attr = "Target")]
-    pub target: String,
+    pub target: Cow<'a, str>,
     #[xml(attr = "Type")]
-    pub ty: String,
+    pub ty: Cow<'a, str>,
 }
