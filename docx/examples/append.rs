@@ -1,5 +1,4 @@
-use docx::prelude::*;
-use docx::Result;
+use docx::{document::Para, Docx, DocxFile, Result};
 
 fn main() -> Result<()> {
     let mut docx = Docx::default();
@@ -10,7 +9,8 @@ fn main() -> Result<()> {
 
     docx.write_file("origin.docx")?;
 
-    let mut docx = Docx::from_file("origin.docx")?;
+    let docx = DocxFile::from_file("origin.docx")?;
+    let mut docx = docx.parse()?;
 
     let mut para = Para::default();
     para.text("world, hello");
