@@ -1,6 +1,6 @@
 [package]
 name = "docx"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["PoiScript <poiscript@gmail.com>"]
 edition = "2018"
 license = "MIT"
@@ -13,7 +13,7 @@ keywords = ["docx", "generator", "openxml", "parser"]
 travis-ci = { repository = "PoiScript/docx-rs" }
 
 [dependencies]
-docx-codegen = { version = "0.2.0", path = "../codegen/" }
+docx-codegen = { version = "0.2.1", path = "../codegen/" }
 jetscii = "0.4.4"
 lazy_static = "1.4.0"
 log = "0.4.8"
