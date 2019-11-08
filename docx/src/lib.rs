@@ -105,6 +105,9 @@ mod schema;
 pub mod style;
 mod xml;
 
+#[cfg(test)]
+mod codgen_tests;
+
 pub mod prelude {
     //! Prelude module
 
