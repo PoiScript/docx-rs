@@ -24,7 +24,7 @@ script:
   - dotnet run --project validator/ hello_world.docx
 env:
   global:
-    - DOTNET_CLI_TELEMETRY_OPTOUT=0
+    - DOTNET_CLI_TELEMETRY_OPTOUT=1
 notifications:
   email:
     on_failure: change
