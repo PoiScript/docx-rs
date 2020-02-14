@@ -1,9 +1,9 @@
-use docx::{document::Para, Docx, DocxFile, Result};
+use docx::{document::Paragraph, Docx, DocxFile, Result};
 
 fn main() -> Result<()> {
     let mut docx = Docx::default();
 
-    let mut para = Para::default();
+    let mut para = Paragraph::default();
     para.text("hello, world");
     docx.insert_para(para);
 
@@ -12,7 +12,7 @@ fn main() -> Result<()> {
     let docx = DocxFile::from_file("origin.docx")?;
     let mut docx = docx.parse()?;
 
-    let mut para = Para::default();
+    let mut para = Paragraph::default();
     para.text("world, hello");
     docx.insert_para(para);
 

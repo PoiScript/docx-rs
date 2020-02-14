@@ -7,7 +7,7 @@ use crate::{
     app::App,
     content_type::ContentTypes,
     core::Core,
-    document::{BodyContent, Document, Para},
+    document::{BodyContent, Document, Paragraph},
     error::Result,
     font_table::FontTable,
     rels::Relationships,
@@ -117,8 +117,11 @@ impl<'a> Docx<'a> {
     }
 
     #[inline]
-    pub fn insert_para(&mut self, para: Para<'a>) -> &mut Self {
-        self.document.body.content.push(BodyContent::Para(para));
+    pub fn insert_para(&mut self, paragraph: Paragraph<'a>) -> &mut Self {
+        self.document
+            .body
+            .content
+            .push(BodyContent::Paragraph(paragraph));
         self
     }
 

@@ -8,11 +8,11 @@
 //! [`Docx::write_file`]: struct.Docx.html#method.write_file
 //!
 //! ```no_run
-//! # use docx::document::Para;
+//! # use docx::document::Paragraph;
 //! # use docx::Docx;
 //! #
 //! let mut docx = Docx::default();
-//! let mut para = Para::default();
+//! let mut para = Paragraph::default();
 //!
 //! // create a new paragraph and insert it
 //! para.text("Lorem Ipsum");
@@ -34,12 +34,12 @@
 //! [`DocxFile::parse`]: struct.DocxFile.html#method.parse
 //!
 //! ```no_run
-//! # use docx::document::Para;
+//! # use docx::document::Paragraph;
 //! # use docx::DocxFile;
 //! #
 //! let docx = DocxFile::from_file("origin.docx").unwrap();
 //! let mut docx = docx.parse().unwrap();
-//! let mut para = Para::default();
+//! let mut para = Paragraph::default();
 //!
 //! para.text("Lorem Ipsum");
 //! docx.insert_para(para);
@@ -52,7 +52,6 @@
 //! `DocxFile` lives as long as its returned `Docx`:
 //!
 //! ```compile_fail
-//! # use docx::document::Para;
 //! # use docx::DocxFile;
 //! #
 //! let mut docx_option = None;
@@ -70,7 +69,6 @@
 //! [`Docx::into_owned`]: struct.Docx.html#method.into_owned
 //!
 //! ```no_run
-//! # use docx::document::Para;
 //! # use docx::DocxFile;
 //! #
 //! let mut docx_option = None;
@@ -111,7 +109,7 @@ mod codgen_tests;
 pub mod prelude {
     //! Prelude module
 
-    pub use crate::document::{Para, Run};
+    pub use crate::document::{Paragraph, Run};
     pub use crate::docx::Docx;
     pub use crate::style::Style;
 }
