@@ -10,10 +10,8 @@ pub struct Charset<'a> {
     pub value: Cow<'a, str>,
 }
 
-impl<'a> Charset<'a> {
-    pub fn new<S: Into<Cow<'a, str>>>(value: S) -> Self {
-        Charset {
-            value: value.into(),
-        }
+impl<'a, S: Into<Cow<'a, str>>> From<S> for Charset<'a> {
+    fn from(s: S) -> Self {
+        Charset { value: s.into() }
     }
 }

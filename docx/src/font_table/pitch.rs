@@ -10,10 +10,8 @@ pub struct Pitch<'a> {
     pub value: Cow<'a, str>,
 }
 
-impl<'a> Pitch<'a> {
-    pub fn new<S: Into<Cow<'a, str>>>(value: S) -> Self {
-        Pitch {
-            value: value.into(),
-        }
+impl<'a, S: Into<Cow<'a, str>>> From<S> for Pitch<'a> {
+    fn from(s: S) -> Self {
+        Pitch { value: s.into() }
     }
 }

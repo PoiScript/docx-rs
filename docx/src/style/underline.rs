@@ -15,6 +15,51 @@ pub struct Underline<'a> {
     pub val: Option<UnderlineStyle>,
 }
 
+impl From<String> for Underline<'_> {
+    fn from(val: String) -> Self {
+        Underline {
+            color: Some(val.into()),
+            val: None,
+        }
+    }
+}
+
+impl<'a> From<&'a str> for Underline<'a> {
+    fn from(val: &'a str) -> Self {
+        Underline {
+            color: Some(val.into()),
+            val: None,
+        }
+    }
+}
+
+impl From<UnderlineStyle> for Underline<'_> {
+    fn from(val: UnderlineStyle) -> Self {
+        Underline {
+            color: None,
+            val: Some(val),
+        }
+    }
+}
+
+impl From<(String, UnderlineStyle)> for Underline<'_> {
+    fn from(val: (String, UnderlineStyle)) -> Self {
+        Underline {
+            color: Some(val.0.into()),
+            val: Some(val.1),
+        }
+    }
+}
+
+impl<'a> From<(&'a str, UnderlineStyle)> for Underline<'a> {
+    fn from(val: (&'a str, UnderlineStyle)) -> Self {
+        Underline {
+            color: Some(val.0.into()),
+            val: Some(val.1),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum UnderlineStyle {
     Dash,

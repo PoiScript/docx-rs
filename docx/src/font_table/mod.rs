@@ -7,7 +7,7 @@ mod family;
 mod font;
 mod pitch;
 
-pub use self::{charset::Charset, family::Family, font::Font, pitch::Pitch};
+pub use self::{charset::*, family::*, font::*, pitch::*};
 
 use docx_codegen::{IntoOwned, XmlRead, XmlWrite};
 use std::io::Write;

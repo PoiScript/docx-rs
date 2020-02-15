@@ -9,8 +9,8 @@ pub struct Size {
     pub value: usize,
 }
 
-impl Size {
-    pub fn new(value: usize) -> Self {
-        Size { value }
+impl<T: Into<usize>> From<T> for Size {
+    fn from(val: T) -> Self {
+        Size { value: val.into() }
     }
 }

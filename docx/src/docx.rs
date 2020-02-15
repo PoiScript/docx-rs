@@ -7,14 +7,14 @@ use crate::{
     app::App,
     content_type::ContentTypes,
     core::Core,
-    document::{BodyContent, Document, Paragraph},
+    document::Document,
     error::Result,
     font_table::FontTable,
     rels::Relationships,
     schema::{
         SCHEMA_CORE, SCHEMA_FONT_TABLE, SCHEMA_OFFICE_DOCUMENT, SCHEMA_REL_EXTENDED, SCHEMA_STYLES,
     },
-    style::{Style, Styles},
+    style::Styles,
 };
 
 /// A WordprocessingML package
@@ -31,7 +31,7 @@ pub struct Docx<'a> {
     /// Specifies the font table part
     pub font_table: Option<FontTable<'a>>,
     /// Specifies the style definitions part
-    pub styles: Option<Styles<'a>>,
+    pub styles: Styles<'a>,
     /// Specifies the package-level relationship to the main document part
     pub rels: Relationships<'a>,
     /// Specifies the part-level relationship to the main document part
@@ -89,7 +89,7 @@ impl<'a> Docx<'a> {
             "word/document.xml",
             self.rels, SCHEMA_OFFICE_DOCUMENT, "word/document.xml"
         );
-        option_write!(
+        write!(
             self.styles,
             "word/styles.xml",
             self.document_rels.get_or_insert(Relationships::default()),
@@ -116,30 +116,6 @@ impl<'a> Docx<'a> {
         self.write(file)
     }
 
-    #[inline]
-    pub fn insert_para(&mut self, paragraph: Paragraph<'a>) -> &mut Self {
-        self.document
-            .body
-            .content
-            .push(BodyContent::Paragraph(paragraph));
-        self
-    }
-
-    #[inline]
-    pub fn insert_style(&mut self, style: Style<'a>) -> &mut Self {
-        self.styles
-            .get_or_insert(Styles::default())
-            .styles
-            .push(style);
-        self
-    }
-
-    /// Creates a style, and returns it.
-    #[inline]
-    pub fn create_style(&mut self) -> &mut Style<'a> {
-        self.styles.get_or_insert(Styles::default()).create_style()
-    }
-
     pub fn into_owned(self) -> Docx<'static> {
         Docx {
             app: self.app.map(|x| x.into_owned()),
@@ -149,7 +125,7 @@ impl<'a> Docx<'a> {
             document_rels: self.document_rels.map(|x| x.into_owned()),
             font_table: self.font_table.map(|x| x.into_owned()),
             rels: self.rels.into_owned(),
-            styles: self.styles.map(|x| x.into_owned()),
+            styles: self.styles.into_owned(),
         }
     }
 }
@@ -253,11 +229,12 @@ impl DocxFile {
 
         let rels = Relationships::from_str(&self.rels)?;
 
-        let styles = if let Some(content) = &self.styles {
-            Some(Styles::from_str(content)?)
-        } else {
-            None
-        };
+        let styles = self
+            .styles
+            .as_ref()
+            .map(|content| Styles::from_str(&content))
+            .transpose()?
+            .unwrap_or_default();
 
         Ok(Docx {
             app,

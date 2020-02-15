@@ -7,19 +7,19 @@ use crate::{
 
 #[derive(Debug, XmlRead, XmlWrite, IntoOwned)]
 #[xml(leaf, tag = "w:jc")]
-pub struct Jc {
+pub struct Justification {
     #[xml(attr = "w:val")]
-    pub value: Justification,
+    pub value: JustificationVal,
 }
 
-impl Jc {
-    pub fn new(value: Justification) -> Self {
-        Jc { value }
+impl From<JustificationVal> for Justification {
+    fn from(value: JustificationVal) -> Self {
+        Justification { value }
     }
 }
 
 #[derive(Debug)]
-pub enum Justification {
+pub enum JustificationVal {
     Start,
     End,
     Center,
@@ -30,7 +30,7 @@ pub enum Justification {
 }
 
 __string_enum! {
-    Justification {
+    JustificationVal {
         Start = "start",
         End = "end",
         Center = "center",

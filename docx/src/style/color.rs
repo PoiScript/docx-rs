@@ -3,17 +3,15 @@ use std::borrow::Cow;
 
 use crate::error::{Error, Result};
 
-#[derive(Debug, XmlRead, XmlWrite, IntoOwned)]
+#[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
 #[xml(leaf, tag = "w:color")]
 pub struct Color<'a> {
     #[xml(attr = "w:val")]
     pub value: Cow<'a, str>,
 }
 
-impl<'a> Color<'a> {
-    pub fn new<S: Into<Cow<'a, str>>>(value: S) -> Self {
-        Color {
-            value: value.into(),
-        }
+impl<'a, S: Into<Cow<'a, str>>> From<S> for Color<'a> {
+    fn from(val: S) -> Self {
+        Color { value: val.into() }
     }
 }

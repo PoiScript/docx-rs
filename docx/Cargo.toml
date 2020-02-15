@@ -13,6 +13,7 @@ keywords = ["docx", "generator", "openxml", "parser"]
 travis-ci = { repository = "PoiScript/docx-rs" }
 
 [dependencies]
+derive_more = "0.99.2"
 docx-codegen = { version = "0.2.1", path = "../codegen/" }
 jetscii = "0.4.4"
 lazy_static = "1.4.0"

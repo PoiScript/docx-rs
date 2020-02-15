@@ -1,13 +1,12 @@
 use docx_codegen::{IntoOwned, XmlRead, XmlWrite};
 use std::borrow::Cow;
 
-use crate::error::{Error, Result};
-
-use super::{
-    border::Borders,
-    jc::{Jc, Justification},
-    numbers::Numbers,
+use crate::{
+    __setter,
+    error::{Error, Result},
 };
+
+use super::{border::Borders, justification::Justification, numbers::Numbers};
 
 /// The root element of a set of paragraph properties
 #[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
@@ -16,7 +15,7 @@ pub struct ParagraphStyle<'a> {
     #[xml(child = "w:pStyle")]
     pub name: Option<ParagraphStyleId<'a>>,
     #[xml(child = "w:jc")]
-    pub jc: Option<Jc>,
+    pub justification: Option<Justification>,
     #[xml(child = "w:pBdr")]
     pub border: Option<Borders<'a>>,
     #[xml(child = "w:numBdr")]
@@ -24,25 +23,10 @@ pub struct ParagraphStyle<'a> {
 }
 
 impl<'a> ParagraphStyle<'a> {
-    pub fn jc(&mut self, jc: Justification) -> &mut Self {
-        self.jc = Some(Jc::new(jc));
-        self
-    }
-
-    pub fn reset_jc(&mut self) -> &mut Self {
-        self.jc = None;
-        self
-    }
-
-    pub fn name(&mut self, name: &str) -> &mut Self {
-        self.name = Some(ParagraphStyleId::new(name.to_owned()));
-        self
-    }
-
-    pub fn reset_name(&mut self) -> &mut Self {
-        self.name = None;
-        self
-    }
+    __setter!(name: Option<ParagraphStyleId<'a>>);
+    __setter!(justification: Option<Justification>);
+    __setter!(border: Option<Borders<'a>>);
+    __setter!(num: Option<Numbers>);
 }
 
 #[derive(Debug, XmlRead, XmlWrite, IntoOwned)]
@@ -52,10 +36,8 @@ pub struct ParagraphStyleId<'a> {
     pub value: Cow<'a, str>,
 }
 
-impl<'a> ParagraphStyleId<'a> {
-    pub fn new<S: Into<Cow<'a, str>>>(value: S) -> Self {
-        ParagraphStyleId {
-            value: value.into(),
-        }
+impl<'a, T: Into<Cow<'a, str>>> From<T> for ParagraphStyleId<'a> {
+    fn from(val: T) -> Self {
+        ParagraphStyleId { value: val.into() }
     }
 }

@@ -10,10 +10,8 @@ pub struct Family<'a> {
     pub value: Cow<'a, str>,
 }
 
-impl<'a> Family<'a> {
-    pub fn new<S: Into<Cow<'a, str>>>(value: S) -> Self {
-        Family {
-            value: value.into(),
-        }
+impl<'a, S: Into<Cow<'a, str>>> From<S> for Family<'a> {
+    fn from(s: S) -> Self {
+        Family { value: s.into() }
     }
 }

@@ -9,8 +9,10 @@ pub struct Italics {
     pub value: bool,
 }
 
-impl Italics {
-    pub fn new(value: bool) -> Self {
-        Italics { value }
+impl<T: Into<bool>> From<T> for Italics {
+    fn from(value: T) -> Self {
+        Italics {
+            value: value.into(),
+        }
     }
 }

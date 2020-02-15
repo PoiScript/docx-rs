@@ -10,15 +10,7 @@ mod paragraph;
 mod run;
 mod text;
 
-pub use self::{
-    body::{Body, BodyContent},
-    bookmark::{BookmarkEnd, BookmarkStart},
-    hyperlink::Hyperlink,
-    paragraph::Paragraph,
-    r#break::{Break, BreakType},
-    run::{Run, RunContent},
-    text::{Text, TextSpace},
-};
+pub use self::{body::*, bookmark::*, hyperlink::*, paragraph::*, r#break::*, run::*, text::*};
 
 use docx_codegen::{IntoOwned, XmlRead, XmlWrite};
 use std::io::Write;
@@ -36,6 +28,13 @@ pub struct Document<'a> {
     /// Specifies the body of the docment.
     #[xml(child = "w:body")]
     pub body: Body<'a>,
+}
+
+impl<'a> Document<'a> {
+    pub fn push<T: Into<BodyContent<'a>>>(&mut self, content: T) -> &mut Self {
+        self.body.push(content);
+        self
+    }
 }
 
 #[inline]

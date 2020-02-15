@@ -20,9 +20,9 @@ pub struct NumId {
     pub value: usize,
 }
 
-impl NumId {
-    pub fn new(value: usize) -> Self {
-        NumId { value }
+impl<T: Into<usize>> From<T> for NumId {
+    fn from(val: T) -> Self {
+        NumId { value: val.into() }
     }
 }
 
@@ -33,8 +33,8 @@ pub struct NumLvl {
     pub value: usize,
 }
 
-impl NumLvl {
-    pub fn new(value: usize) -> Self {
-        NumLvl { value }
+impl<T: Into<usize>> From<T> for NumLvl {
+    fn from(val: T) -> Self {
+        NumLvl { value: val.into() }
     }
 }

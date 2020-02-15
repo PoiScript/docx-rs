@@ -18,20 +18,38 @@ pub struct Text<'a> {
     pub text: Cow<'a, str>,
 }
 
-impl<'a> Text<'a> {
-    pub fn new<S: Into<Cow<'a, str>>>(text: S, space: Option<TextSpace>) -> Self {
+impl From<String> for Text<'_> {
+    fn from(val: String) -> Self {
         Text {
-            text: text.into(),
-            space,
+            text: val.into(),
+            space: None,
         }
     }
 }
 
 impl<'a> From<&'a str> for Text<'a> {
-    fn from(text: &'a str) -> Self {
+    fn from(val: &'a str) -> Self {
         Text {
+            text: val.into(),
             space: None,
-            text: text.into(),
+        }
+    }
+}
+
+impl From<(String, TextSpace)> for Text<'_> {
+    fn from(val: (String, TextSpace)) -> Self {
+        Text {
+            text: val.0.into(),
+            space: Some(val.1),
+        }
+    }
+}
+
+impl<'a> From<(&'a str, TextSpace)> for Text<'a> {
+    fn from(val: (&'a str, TextSpace)) -> Self {
+        Text {
+            text: val.0.into(),
+            space: Some(val.1),
         }
     }
 }
@@ -42,12 +60,6 @@ pub enum TextSpace {
     Default,
     /// Using the W3C space preservation rules
     Preserve,
-}
-
-impl Default for TextSpace {
-    fn default() -> Self {
-        TextSpace::Default
-    }
 }
 
 __string_enum! {

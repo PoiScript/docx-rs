@@ -1,34 +1,65 @@
-use docx::prelude::*;
-use docx::style::Justification;
-use docx::Result;
+use docx::{
+    document::{Paragraph, Run, TextSpace},
+    style::{CharacterStyle, DefaultStyle, JustificationVal, ParagraphStyle, Style},
+    Docx, Result,
+};
 
 fn main() -> Result<()> {
     let mut docx = Docx::default();
 
-    let mut test_style = Style::default();
-    test_style.name("TestStyle").char().sz(42).color("ff0000");
-    docx.insert_style(test_style);
+    docx.styles.default(
+        DefaultStyle::default().char(CharacterStyle::default().sz(42usize).color("00ff00")),
+    );
 
-    let mut para = Paragraph::default();
-    para.prop().name("TestStyle").jc(Justification::Start);
-    let mut run = Run::text("hello, world");
-    run.prop().bold(true);
-    para.run(run);
-    docx.insert_para(para);
+    docx.styles.push(
+        // create a new style called `TestStyle`
+        Style::default()
+            .name("TestStyle")
+            .char(CharacterStyle::default().color("ff0000")), // override default font color
+    );
 
-    let mut para = Paragraph::default();
-    para.prop().name("TestStyle").jc(Justification::Center);
-    let mut run = Run::text("hello, world");
-    run.prop().outline(true);
-    para.run(run);
-    docx.insert_para(para);
+    let para = Paragraph::default()
+        .prop(
+            ParagraphStyle::default()
+                .name("TestStyle") // inherite from `TestStyle`
+                .justification(JustificationVal::Start),
+        )
+        .push(
+            Run::default()
+                .prop(CharacterStyle::default().bold(true))
+                .push_text("hello, world"),
+        );
 
-    let mut para = Paragraph::default();
-    para.prop().name("TestStyle").jc(Justification::End);
-    let mut run = Run::text("hello, world");
-    run.prop().strike(true);
-    para.run(run);
-    docx.insert_para(para);
+    docx.document.push(para);
+
+    let para = Paragraph::default()
+        .prop(
+            ParagraphStyle::default()
+                .name("TestStyle")
+                .justification(JustificationVal::Center),
+        )
+        .push(
+            Run::default()
+                .prop(CharacterStyle::default().outline(true))
+                .push_text("hello, world"),
+        );
+
+    docx.document.push(para);
+
+    let para = Paragraph::default()
+        .prop(
+            ParagraphStyle::default()
+                .name("TestStyle")
+                .justification(JustificationVal::End),
+        )
+        .push(
+            Run::default()
+                .prop(CharacterStyle::default().italics(true))
+                .push_text(("hello, ", TextSpace::Preserve))
+                .push_text("world"),
+        );
+
+    docx.document.push(para);
 
     docx.write_file("hello_world.docx")?;
 

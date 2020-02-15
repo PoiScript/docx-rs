@@ -9,8 +9,8 @@ pub struct Dstrike {
     pub value: bool,
 }
 
-impl Dstrike {
-    pub fn new(value: bool) -> Self {
-        Dstrike { value }
+impl<T: Into<bool>> From<T> for Dstrike {
+    fn from(val: T) -> Self {
+        Dstrike { value: val.into() }
     }
 }

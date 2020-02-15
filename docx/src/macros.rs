@@ -24,3 +24,21 @@ macro_rules! __string_enum {
         }
     }
 }
+
+#[macro_export]
+macro_rules! __setter {
+    ($field:ident: Option<$ty:ty>) => {
+        #[inline(always)]
+        pub fn $field<T: Into<$ty>>(mut self, value: T) -> Self {
+            self.$field = Some(value.into());
+            self
+        }
+    };
+    ($field:ident: $ty:ty) => {
+        #[inline(always)]
+        pub fn $field<T: Into<$ty>>(mut self, value: T) -> Self {
+            self.$field = value.into();
+            self
+        }
+    };
+}

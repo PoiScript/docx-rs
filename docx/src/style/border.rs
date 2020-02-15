@@ -2,7 +2,7 @@ use docx_codegen::{IntoOwned, XmlRead, XmlWrite};
 use std::borrow::Cow;
 
 use crate::{
-    __string_enum,
+    __setter, __string_enum,
     error::{Error, Result},
 };
 
@@ -21,6 +21,14 @@ pub struct Borders<'a> {
     pub between: Option<BetweenBorder<'a>>,
 }
 
+impl<'a> Borders<'a> {
+    __setter!(top: Option<TopBorder<'a>>);
+    __setter!(botton: Option<BottomBorder<'a>>);
+    __setter!(left: Option<LeftBorder<'a>>);
+    __setter!(right: Option<RightBorder<'a>>);
+    __setter!(between: Option<BetweenBorder<'a>>);
+}
+
 #[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
 #[xml(leaf, tag = "w:top")]
 pub struct TopBorder<'a> {
@@ -34,6 +42,14 @@ pub struct TopBorder<'a> {
     pub size: Option<usize>,
     #[xml(attr = "w:val")]
     pub style: Option<BorderStyle>,
+}
+
+impl<'a> TopBorder<'a> {
+    __setter!(color: Option<Cow<'a, str>>);
+    __setter!(shadow: Option<bool>);
+    __setter!(space: Option<usize>);
+    __setter!(size: Option<usize>);
+    __setter!(style: Option<BorderStyle>);
 }
 
 #[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
@@ -51,6 +67,14 @@ pub struct BottomBorder<'a> {
     pub style: Option<BorderStyle>,
 }
 
+impl<'a> BottomBorder<'a> {
+    __setter!(color: Option<Cow<'a, str>>);
+    __setter!(shadow: Option<bool>);
+    __setter!(space: Option<usize>);
+    __setter!(size: Option<usize>);
+    __setter!(style: Option<BorderStyle>);
+}
+
 #[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
 #[xml(leaf, tag = "w:left")]
 pub struct LeftBorder<'a> {
@@ -64,6 +88,14 @@ pub struct LeftBorder<'a> {
     pub size: Option<usize>,
     #[xml(attr = "w:val")]
     pub style: Option<BorderStyle>,
+}
+
+impl<'a> LeftBorder<'a> {
+    __setter!(color: Option<Cow<'a, str>>);
+    __setter!(shadow: Option<bool>);
+    __setter!(space: Option<usize>);
+    __setter!(size: Option<usize>);
+    __setter!(style: Option<BorderStyle>);
 }
 
 #[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
@@ -81,6 +113,14 @@ pub struct RightBorder<'a> {
     pub style: Option<BorderStyle>,
 }
 
+impl<'a> RightBorder<'a> {
+    __setter!(color: Option<Cow<'a, str>>);
+    __setter!(shadow: Option<bool>);
+    __setter!(space: Option<usize>);
+    __setter!(size: Option<usize>);
+    __setter!(style: Option<BorderStyle>);
+}
+
 #[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
 #[xml(leaf, tag = "w:between")]
 pub struct BetweenBorder<'a> {
@@ -94,6 +134,14 @@ pub struct BetweenBorder<'a> {
     pub size: Option<usize>,
     #[xml(attr = "w:val")]
     pub style: Option<BorderStyle>,
+}
+
+impl<'a> BetweenBorder<'a> {
+    __setter!(color: Option<Cow<'a, str>>);
+    __setter!(shadow: Option<bool>);
+    __setter!(space: Option<usize>);
+    __setter!(size: Option<usize>);
+    __setter!(style: Option<BorderStyle>);
 }
 
 #[derive(Debug)]

@@ -9,8 +9,8 @@ pub struct Strike {
     pub value: bool,
 }
 
-impl Strike {
-    pub fn new(value: bool) -> Self {
-        Strike { value }
+impl<T: Into<bool>> From<T> for Strike {
+    fn from(val: T) -> Self {
+        Strike { value: val.into() }
     }
 }

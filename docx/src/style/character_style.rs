@@ -1,16 +1,13 @@
 use docx_codegen::{IntoOwned, XmlRead, XmlWrite};
 
-use crate::error::{Error, Result};
+use crate::{
+    __setter,
+    error::{Error, Result},
+};
 
 use super::{
-    bold::Bold,
-    color::Color,
-    dstrike::Dstrike,
-    italics::Italics,
-    outline::Outline,
-    size::Size,
-    strike::Strike,
-    underline::{Underline, UnderlineStyle},
+    bold::Bold, color::Color, dstrike::Dstrike, italics::Italics, outline::Outline, size::Size,
+    strike::Strike, underline::Underline,
 };
 
 /// The root element of a set of character properties
@@ -41,92 +38,12 @@ pub struct CharacterStyle<'a> {
 }
 
 impl<'a> CharacterStyle<'a> {
-    pub fn sz(&mut self, sz: usize) -> &mut Self {
-        self.sz = Some(Size::new(sz));
-        self
-    }
-
-    pub fn reset_sz(&mut self) -> &mut Self {
-        self.sz = None;
-        self
-    }
-
-    pub fn color(&mut self, color: &str) -> &mut Self {
-        self.color = Some(Color::new(color.to_owned()));
-        self
-    }
-
-    pub fn reset_color(&mut self) -> &mut Self {
-        self.color = None;
-        self
-    }
-
-    pub fn bold(&mut self, val: bool) -> &mut Self {
-        self.bold = Some(Bold::new(val));
-        self
-    }
-
-    pub fn reset_bold(&mut self) -> &mut Self {
-        self.bold = None;
-        self
-    }
-
-    pub fn italics(&mut self, val: bool) -> &mut Self {
-        self.italics = Some(Italics::new(val));
-        self
-    }
-
-    pub fn reset_italics(&mut self) -> &mut Self {
-        self.italics = None;
-        self
-    }
-
-    pub fn strike(&mut self, val: bool) -> &mut Self {
-        self.strike = Some(Strike::new(val));
-        if let Some(Dstrike { value: true }) = self.dstrike {
-            self.dstrike = None;
-        }
-        self
-    }
-
-    pub fn reset_strike(&mut self) -> &mut Self {
-        self.strike = None;
-        self
-    }
-
-    pub fn dstrike(&mut self, val: bool) -> &mut Self {
-        self.dstrike = Some(Dstrike::new(val));
-        if let Some(Strike { value: true }) = self.strike {
-            self.strike = None;
-        }
-        self
-    }
-
-    pub fn reset_dstrike(&mut self) -> &mut Self {
-        self.dstrike = None;
-        self
-    }
-
-    pub fn outline(&mut self, val: bool) -> &mut Self {
-        self.outline = Some(Outline::new(val));
-        self
-    }
-
-    pub fn reset_outline(&mut self) -> &mut Self {
-        self.outline = None;
-        self
-    }
-
-    pub fn underline(&mut self, color: Option<&'a str>, ty: Option<UnderlineStyle>) -> &mut Self {
-        self.underline = Some(Underline {
-            color: color.map(Into::into),
-            val: ty,
-        });
-        self
-    }
-
-    pub fn reset_underline(&mut self) -> &mut Self {
-        self.underline = None;
-        self
-    }
+    __setter!(color: Option<Color<'a>>);
+    __setter!(bold: Option<Bold>);
+    __setter!(dstrike: Option<Dstrike>);
+    __setter!(italics: Option<Italics>);
+    __setter!(outline: Option<Outline>);
+    __setter!(strike: Option<Strike>);
+    __setter!(sz: Option<Size>);
+    __setter!(underline: Option<Underline<'a>>);
 }

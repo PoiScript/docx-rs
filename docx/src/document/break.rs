@@ -14,6 +14,12 @@ pub struct Break {
     pub ty: Option<BreakType>,
 }
 
+impl<T: Into<Option<BreakType>>> From<T> for Break {
+    fn from(val: T) -> Self {
+        Break { ty: val.into() }
+    }
+}
+
 /// Specifies the break type of a break
 ///
 /// The default value is TextWrapping.

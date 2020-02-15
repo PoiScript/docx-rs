@@ -1,7 +1,10 @@
 use docx_codegen::{IntoOwned, XmlRead, XmlWrite};
 use std::borrow::Cow;
 
-use crate::error::{Error, Result};
+use crate::{
+    __setter,
+    error::{Error, Result},
+};
 
 use super::run::Run;
 
@@ -17,4 +20,10 @@ pub struct Hyperlink<'a> {
     pub anchor: Option<Cow<'a, str>>,
     #[xml(child = "w:r")]
     pub content: Run<'a>,
+}
+
+impl<'a> Hyperlink<'a> {
+    __setter!(id: Option<Cow<'a, str>>);
+    __setter!(anchor: Option<Cow<'a, str>>);
+    __setter!(content: Run<'a>);
 }

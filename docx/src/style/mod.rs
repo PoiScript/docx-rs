@@ -9,7 +9,7 @@ mod color;
 mod default_style;
 mod dstrike;
 mod italics;
-mod jc;
+mod justification;
 mod numbers;
 mod outline;
 mod paragraph_style;
@@ -18,13 +18,8 @@ mod strike;
 mod underline;
 
 pub use self::{
-    border::{
-        BetweenBorder, BorderStyle, Borders, BottomBorder, LeftBorder, RightBorder, TopBorder,
-    },
-    character_style::CharacterStyle,
-    default_style::DefaultStyle,
-    jc::Justification,
-    paragraph_style::ParagraphStyle,
+    bold::*, border::*, character_style::*, color::*, default_style::*, dstrike::*, italics::*,
+    justification::*, numbers::*, outline::*, paragraph_style::*, size::*, strike::*, underline::*,
 };
 
 use docx_codegen::{IntoOwned, XmlRead, XmlWrite};
@@ -32,6 +27,7 @@ use std::borrow::Cow;
 use std::io::Write;
 
 use crate::{
+    __setter,
     error::{Error, Result},
     schema::SCHEMA_MAIN,
 };
@@ -58,10 +54,14 @@ fn styles_extend_attrs<W: Write>(_: &Styles, mut w: W) -> Result<()> {
 }
 
 impl<'a> Styles<'a> {
-    /// Appends a style to the back of the styles, and returns it.
-    pub fn create_style(&mut self) -> &mut Style<'a> {
-        self.styles.push(Style::default());
-        self.styles.last_mut().unwrap()
+    pub fn default(&mut self, style: DefaultStyle<'a>) -> &mut Self {
+        self.default = Some(style);
+        self
+    }
+
+    pub fn push(&mut self, style: Style<'a>) -> &mut Self {
+        self.styles.push(style);
+        self
     }
 }
 
@@ -85,6 +85,12 @@ pub struct Style<'a> {
     pub char: Option<CharacterStyle<'a>>,
 }
 
+impl<'a> Style<'a> {
+    __setter!(name: Option<StyleName<'a>>);
+    __setter!(para: Option<ParagraphStyle<'a>>);
+    __setter!(char: Option<CharacterStyle<'a>>);
+}
+
 #[inline]
 fn style_extend_attrs<W: Write>(s: &Style, mut w: W) -> Result<()> {
     write!(w, " w:type=\"paragraph\"")?;
@@ -101,34 +107,8 @@ pub struct StyleName<'a> {
     pub value: Cow<'a, str>,
 }
 
-impl<'a> StyleName<'a> {
-    pub fn new<S: Into<Cow<'a, str>>>(value: S) -> Self {
-        StyleName {
-            value: value.into(),
-        }
-    }
-}
-
-impl<'a> Style<'a> {
-    /// Setting the name of this style
-    pub fn name(&mut self, name: &str) -> &mut Self {
-        self.name = Some(StyleName::new(name.to_owned()));
-        self
-    }
-
-    /// Resetting the name of this style
-    pub fn reset_name(&mut self) -> &mut Self {
-        self.name = None;
-        self
-    }
-
-    /// Returns the paragraph properties
-    pub fn para(&mut self) -> &mut ParagraphStyle<'a> {
-        self.para.get_or_insert(ParagraphStyle::default())
-    }
-
-    /// Returns the character properties
-    pub fn char(&mut self) -> &mut CharacterStyle<'a> {
-        self.char.get_or_insert(CharacterStyle::default())
+impl<'a, S: Into<Cow<'a, str>>> From<S> for StyleName<'a> {
+    fn from(val: S) -> Self {
+        StyleName { value: val.into() }
     }
 }

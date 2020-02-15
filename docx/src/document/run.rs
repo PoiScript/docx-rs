@@ -1,6 +1,9 @@
+use derive_more::From;
 use docx_codegen::{IntoOwned, XmlRead, XmlWrite};
+use std::borrow::Cow;
 
 use crate::{
+    __setter,
     error::{Error, Result},
     style::CharacterStyle,
 };
@@ -24,28 +27,37 @@ pub struct Run<'a> {
 }
 
 impl<'a> Run<'a> {
-    /// Creates a new run containing the given text
-    pub fn text<T: Into<Text<'a>>>(t: T) -> Self {
-        Run {
-            prop: None,
-            content: vec![RunContent::Text(t.into())],
-        }
-    }
+    __setter!(prop: Option<CharacterStyle<'a>>);
 
-    /// Returns the properties of this run.
-    pub fn prop(&mut self) -> &mut CharacterStyle<'a> {
-        self.prop.get_or_insert(CharacterStyle::default())
-    }
-
-    /// Appends a break to the back of this run.
-    pub fn text_break(&mut self) -> &mut Self {
-        self.content.push(RunContent::Break(Break { ty: None }));
+    #[inline(always)]
+    pub fn push<T: Into<RunContent<'a>>>(mut self, content: T) -> Self {
+        self.content.push(content.into());
         self
+    }
+
+    #[inline(always)]
+    pub fn push_text<T: Into<Text<'a>>>(mut self, content: T) -> Self {
+        self.content.push(RunContent::Text(content.into()));
+        self
+    }
+
+    pub fn iter_text(&self) -> impl Iterator<Item = &Cow<'a, str>> {
+        self.content.iter().filter_map(|content| match content {
+            RunContent::Text(Text { text, .. }) => Some(text),
+            RunContent::Break(_) => None,
+        })
+    }
+
+    pub fn iter_text_mut(&mut self) -> impl Iterator<Item = &mut Cow<'a, str>> {
+        self.content.iter_mut().filter_map(|content| match content {
+            RunContent::Text(Text { text, .. }) => Some(text),
+            RunContent::Break(_) => None,
+        })
     }
 }
 
 /// A set of elements that can be contained as the content of a run.
-#[derive(Debug, XmlRead, XmlWrite, IntoOwned)]
+#[derive(Debug, From, XmlRead, XmlWrite, IntoOwned)]
 pub enum RunContent<'a> {
     #[xml(tag = "w:t")]
     Text(Text<'a>),

@@ -12,11 +12,10 @@
 //! # use docx::Docx;
 //! #
 //! let mut docx = Docx::default();
-//! let mut para = Paragraph::default();
 //!
 //! // create a new paragraph and insert it
-//! para.text("Lorem Ipsum");
-//! docx.insert_para(para);
+//! let para = Paragraph::default().push_text("Lorem Ipsum");
+//! docx.document.push(para);
 //!
 //! docx.write_file("demo.docx").unwrap();
 //! ```
@@ -39,10 +38,9 @@
 //! #
 //! let docx = DocxFile::from_file("origin.docx").unwrap();
 //! let mut docx = docx.parse().unwrap();
-//! let mut para = Paragraph::default();
 //!
-//! para.text("Lorem Ipsum");
-//! docx.insert_para(para);
+//! let para = Paragraph::default().push_text("Lorem Ipsum");
+//! docx.document.push(para);
 //!
 //! docx.write_file("origin_appended.docx").unwrap();
 //! ```
