@@ -23,7 +23,7 @@ impl<'a> TableCell<'a> {
     pub fn pargraph<T: Into<Paragraph<'a>>>(par: T) -> Self {
         TableCell {
             prop: None,
-            content: TableCellContent::Pargraph(par.into()),
+            content: TableCellContent::Paragraph(par.into()),
         }
     }
 }
