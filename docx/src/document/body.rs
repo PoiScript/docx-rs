@@ -3,7 +3,7 @@ use docx_codegen::{IntoOwned, XmlRead, XmlWrite};
 use std::borrow::Cow;
 
 use crate::{
-    document::Paragraph,
+    document::{Paragraph, Table},
     error::{Error, Result},
 };
 
@@ -14,7 +14,7 @@ use crate::{
 #[xml(tag = "w:body")]
 pub struct Body<'a> {
     /// Specifies the contents of the body of the document.
-    #[xml(child = "w:p")]
+    #[xml(child = "w:p", child = "w:tbl")]
     pub content: Vec<BodyContent<'a>>,
 }
 
@@ -48,6 +48,7 @@ impl<'a> Body<'a> {
 pub enum BodyContent<'a> {
     #[xml(tag = "w:p")]
     Paragraph(Paragraph<'a>),
-    // Table,
+    #[xml(tag = "w:tbl")]
+    Table(Table<'a>),
     // SecProp,
 }

@@ -5,12 +5,20 @@
 mod body;
 mod bookmark;
 mod r#break;
+mod grid_column;
 mod hyperlink;
 mod paragraph;
 mod run;
+mod table;
+mod table_cell;
+mod table_grid;
+mod table_row;
 mod text;
 
-pub use self::{body::*, bookmark::*, hyperlink::*, paragraph::*, r#break::*, run::*, text::*};
+pub use self::{
+    body::*, bookmark::*, grid_column::*, hyperlink::*, paragraph::*, r#break::*, run::*, table::*,
+    table::*, table_cell::*, table_grid::*, table_row::*, text::*,
+};
 
 use docx_codegen::{IntoOwned, XmlRead, XmlWrite};
 use std::io::Write;
