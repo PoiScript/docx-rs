@@ -6,8 +6,19 @@ use crate::{
     error::{Error, Result},
 };
 
-/// The root element of a literal text that shall be displayed in the document
+/// Literal Text
+///
+/// A literal text that shall be displayed in the document.
+///
+/// ```rust
+/// use docx::document::{Text, TextSpace};
+///
+/// let _: Text = "text".into();
+/// let _: Text = String::from("text").into();
+/// let _: Text = ("text", TextSpace::Preserve).into();
+/// ```
 #[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
+#[cfg_attr(test, derive(PartialEq))]
 #[xml(tag = "w:t")]
 pub struct Text<'a> {
     /// Specifies how to handle whitespace
@@ -54,9 +65,13 @@ impl<'a> From<(&'a str, TextSpace)> for Text<'a> {
     }
 }
 
-/// Specifies how whitespace should be handled
+/// Text Space Rules
+///
+/// Specifies how whitespace should be handled in a literal text.
 #[derive(Debug)]
+#[cfg_attr(test, derive(PartialEq))]
 pub enum TextSpace {
+    /// Default rules
     Default,
     /// Using the W3C space preservation rules
     Preserve,
@@ -66,5 +81,42 @@ __string_enum! {
     TextSpace {
         Default = "default",
         Preserve = "preserve",
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_convert() {
+        assert_eq!(
+            Text {
+                text: Cow::Borrowed("text"),
+                space: None,
+            },
+            "text".into(),
+        );
+        assert_eq!(
+            Text {
+                text: Cow::Borrowed("text"),
+                space: None,
+            },
+            String::from("text").into(),
+        );
+        assert_eq!(
+            Text {
+                text: Cow::Borrowed("text"),
+                space: Some(TextSpace::Preserve)
+            },
+            ("text", TextSpace::Preserve).into(),
+        );
+        assert_eq!(
+            Text {
+                text: Cow::Borrowed("text"),
+                space: Some(TextSpace::Default)
+            },
+            (String::from("text"), TextSpace::Default).into(),
+        );
     }
 }

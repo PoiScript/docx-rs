@@ -96,21 +96,14 @@ pub mod document;
 mod docx;
 mod error;
 pub mod font_table;
+pub mod formatting;
 pub mod rels;
 mod schema;
-pub mod style;
+pub mod styles;
 mod xml;
 
 #[cfg(test)]
 mod codgen_tests;
-
-pub mod prelude {
-    //! Prelude module
-
-    pub use crate::document::{Paragraph, Run};
-    pub use crate::docx::Docx;
-    pub use crate::style::Style;
-}
 
 pub use crate::docx::{Docx, DocxFile};
 pub use crate::error::{Error, Result};

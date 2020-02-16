@@ -1,6 +1,7 @@
 use docx::{
     document::{Paragraph, Run, TextSpace},
-    style::{CharacterStyle, DefaultStyle, JustificationVal, ParagraphStyle, Style},
+    formatting::{CharacterProperty, JustificationVal, ParagraphProperty},
+    styles::{DefaultStyle, Style},
     Docx, Result,
 };
 
@@ -8,25 +9,27 @@ fn main() -> Result<()> {
     let mut docx = Docx::default();
 
     docx.styles.default(
-        DefaultStyle::default().char(CharacterStyle::default().sz(42usize).color("00ff00")),
+        DefaultStyle::default().char(
+            CharacterProperty::default()
+                .size(42usize)
+                .color((0x00, 0xff, 0x00)),
+        ),
     );
 
     docx.styles.push(
-        // create a new style called `TestStyle`
-        Style::default()
-            .name("TestStyle")
-            .char(CharacterStyle::default().color("ff0000")), // override default font color
+        // create a new paragraph style called `TestStyle`
+        Style::paragraph("TestStyle").char(CharacterProperty::default().color(0xff0000)), // override default font color
     );
 
     let para = Paragraph::default()
         .prop(
-            ParagraphStyle::default()
-                .name("TestStyle") // inherite from `TestStyle`
+            ParagraphProperty::default()
+                .style_id("TestStyle") // inherite from `TestStyle`
                 .justification(JustificationVal::Start),
         )
         .push(
             Run::default()
-                .prop(CharacterStyle::default().bold(true))
+                .prop(CharacterProperty::default().bold(true))
                 .push_text("hello, world"),
         );
 
@@ -34,13 +37,13 @@ fn main() -> Result<()> {
 
     let para = Paragraph::default()
         .prop(
-            ParagraphStyle::default()
-                .name("TestStyle")
+            ParagraphProperty::default()
+                .style_id("TestStyle")
                 .justification(JustificationVal::Center),
         )
         .push(
             Run::default()
-                .prop(CharacterStyle::default().outline(true))
+                .prop(CharacterProperty::default().outline(true))
                 .push_text("hello, world"),
         );
 
@@ -48,13 +51,13 @@ fn main() -> Result<()> {
 
     let para = Paragraph::default()
         .prop(
-            ParagraphStyle::default()
-                .name("TestStyle")
+            ParagraphProperty::default()
+                .style_id("TestStyle")
                 .justification(JustificationVal::End),
         )
         .push(
             Run::default()
-                .prop(CharacterStyle::default().italics(true))
+                .prop(CharacterProperty::default().italics(true))
                 .push_text(("hello, ", TextSpace::Preserve))
                 .push_text("world"),
         );

@@ -12,10 +12,10 @@ use super::{
 use crate::{
     __setter,
     error::{Error, Result},
-    style::ParagraphStyle,
+    formatting::ParagraphProperty,
 };
 
-/// The root element of a paragraph
+/// Paragraph
 ///
 /// Paragraph is the main block-level container for content.
 /// Paragraph begins with a new line.
@@ -26,7 +26,7 @@ pub struct Paragraph<'a> {
     ///
     /// This information is applied to all the contents of the paragraph.
     #[xml(child = "w:pPr")]
-    pub prop: Option<ParagraphStyle<'a>>,
+    pub prop: Option<ParagraphProperty<'a>>,
     /// Specifes the run contents of a paragraph
     ///
     /// Run is a region of text with properties. Each paragraph containes one or more runs.
@@ -35,7 +35,7 @@ pub struct Paragraph<'a> {
 }
 
 impl<'a> Paragraph<'a> {
-    __setter!(prop: Option<ParagraphStyle<'a>>);
+    __setter!(prop: Option<ParagraphProperty<'a>>);
 
     #[inline(always)]
     pub fn push<T: Into<ParagraphContent<'a>>>(mut self, content: T) -> Self {

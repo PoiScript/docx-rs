@@ -14,7 +14,7 @@ use crate::{
     schema::{
         SCHEMA_CORE, SCHEMA_FONT_TABLE, SCHEMA_OFFICE_DOCUMENT, SCHEMA_REL_EXTENDED, SCHEMA_STYLES,
     },
-    style::Styles,
+    styles::Styles,
 };
 
 /// A WordprocessingML package

@@ -1,7 +1,10 @@
 use docx_codegen::{IntoOwned, XmlRead, XmlWrite};
 use std::borrow::Cow;
 
-use crate::error::{Error, Result};
+use crate::{
+    __setter,
+    error::{Error, Result},
+};
 
 use super::{charset::Charset, family::Family, pitch::Pitch};
 
@@ -16,4 +19,11 @@ pub struct Font<'a> {
     pub family: Option<Family<'a>>,
     #[xml(child = "w:pitch")]
     pub pitch: Option<Pitch<'a>>,
+}
+
+impl<'a> Font<'a> {
+    __setter!(name: Cow<'a, str>);
+    __setter!(charset: Option<Charset<'a>>);
+    __setter!(family: Option<Family<'a>>);
+    __setter!(pitch: Option<Pitch<'a>>);
 }

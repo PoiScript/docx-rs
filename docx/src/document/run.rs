@@ -5,12 +5,12 @@ use std::borrow::Cow;
 use crate::{
     __setter,
     error::{Error, Result},
-    style::CharacterStyle,
+    formatting::CharacterProperty,
 };
 
 use super::{r#break::Break, text::Text};
 
-/// The root element of a run within the paragraph
+/// Run
 ///
 /// Run is a non-block region of text with properties.
 #[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
@@ -20,14 +20,14 @@ pub struct Run<'a> {
     ///
     /// Just as paragraph, a run's properties is applied to all the contents of the run.
     #[xml(child = "w:rPr")]
-    pub prop: Option<CharacterStyle<'a>>,
+    pub prop: Option<CharacterProperty<'a>>,
     #[xml(child = "w:t", child = "w:br")]
     /// Specifies the content of a run
     pub content: Vec<RunContent<'a>>,
 }
 
 impl<'a> Run<'a> {
-    __setter!(prop: Option<CharacterStyle<'a>>);
+    __setter!(prop: Option<CharacterProperty<'a>>);
 
     #[inline(always)]
     pub fn push<T: Into<RunContent<'a>>>(mut self, content: T) -> Self {

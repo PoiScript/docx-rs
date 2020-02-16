@@ -7,7 +7,7 @@ use crate::{
 };
 
 #[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
-#[xml(tag = "w:pPr")]
+#[xml(tag = "w:pBdr")]
 pub struct Borders<'a> {
     #[xml(child = "w:top")]
     pub top: Option<TopBorder<'a>>,
