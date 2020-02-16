@@ -4,11 +4,7 @@ use std::borrow::Cow;
 use crate::{
     __setter,
     error::{Error, Result},
-};
-
-use super::{
-    bold::Bold, color::Color, dstrike::Dstrike, italics::Italics, outline::Outline, size::Size,
-    strike::Strike, underline::Underline,
+    formatting::{Bold, Color, Dstrike, Italics, Outline, Size, Strike, Underline},
 };
 
 /// Character Property

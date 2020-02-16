@@ -4,11 +4,10 @@ use std::borrow::Cow;
 
 use crate::{
     __setter,
+    document::{r#break::Break, text::Text},
     error::{Error, Result},
     formatting::CharacterProperty,
 };
-
-use super::{r#break::Break, text::Text};
 
 /// Run
 ///

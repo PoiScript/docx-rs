@@ -2,15 +2,9 @@ use derive_more::From;
 use docx_codegen::{IntoOwned, XmlRead, XmlWrite};
 use std::borrow::Cow;
 
-use super::{
-    bookmark::{BookmarkEnd, BookmarkStart},
-    hyperlink::Hyperlink,
-    run::{Run, RunContent},
-    text::Text,
-};
-
 use crate::{
     __setter,
+    document::{BookmarkEnd, BookmarkStart, Hyperlink, Run, RunContent, Text},
     error::{Error, Result},
     formatting::ParagraphProperty,
 };

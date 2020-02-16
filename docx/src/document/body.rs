@@ -2,9 +2,10 @@ use derive_more::From;
 use docx_codegen::{IntoOwned, XmlRead, XmlWrite};
 use std::borrow::Cow;
 
-use crate::error::{Error, Result};
-
-use super::paragraph::Paragraph;
+use crate::{
+    document::Paragraph,
+    error::{Error, Result},
+};
 
 /// The root element of the body of the document.
 ///

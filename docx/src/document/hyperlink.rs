@@ -3,10 +3,9 @@ use std::borrow::Cow;
 
 use crate::{
     __setter,
+    document::Run,
     error::{Error, Result},
 };
-
-use super::run::Run;
 
 /// The root element of a hyperlink within the paragraph
 #[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]

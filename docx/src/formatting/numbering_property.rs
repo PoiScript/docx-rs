@@ -1,8 +1,9 @@
 use docx_codegen::{IntoOwned, XmlRead, XmlWrite};
 
-use crate::error::{Error, Result};
-
-use super::{indent_level::IndentLevel, numbering_id::NumberingId};
+use crate::{
+    error::{Error, Result},
+    formatting::{IndentLevel, NumberingId},
+};
 
 #[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
 #[cfg_attr(test, derive(PartialEq))]

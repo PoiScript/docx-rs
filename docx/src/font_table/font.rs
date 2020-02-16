@@ -4,9 +4,8 @@ use std::borrow::Cow;
 use crate::{
     __setter,
     error::{Error, Result},
+    font_table::{Charset, Family, Pitch},
 };
-
-use super::{charset::Charset, family::Family, pitch::Pitch};
 
 #[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
 #[xml(tag = "w:font")]

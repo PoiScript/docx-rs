@@ -4,9 +4,8 @@ use std::borrow::Cow;
 use crate::{
     __setter,
     error::{Error, Result},
+    formatting::{Borders, Justification, NumberingProperty},
 };
-
-use super::{border::Borders, justification::Justification, numbering_property::NumberingProperty};
 
 /// Paragraph Property
 ///
