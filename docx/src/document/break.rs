@@ -5,8 +5,15 @@ use crate::{
     error::{Error, Result},
 };
 
-/// The root element of a break
+/// Break
+///
+/// ```rust
+/// use docx::document::*;
+///
+/// let br = Break::from(BreakType::Page);
+/// ```
 #[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
+#[cfg_attr(test, derive(PartialEq))]
 #[xml(leaf, tag = "w:br")]
 pub struct Break {
     /// Specifies the break type of this break.
@@ -24,6 +31,7 @@ impl<T: Into<Option<BreakType>>> From<T> for Break {
 ///
 /// The default value is TextWrapping.
 #[derive(Debug)]
+#[cfg_attr(test, derive(PartialEq))]
 pub enum BreakType {
     /// Text restarts on the next column.
     Column,
@@ -39,4 +47,18 @@ __string_enum! {
         Page = "page",
         TextWrapping = "textWrapping",
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::__test_read_write;
+
+    __test_read_write!(
+        Break,
+        Break::default(),
+        r#"<w:br/>"#,
+        Break::from(BreakType::Page),
+        r#"<w:br type="page"/>"#,
+    );
 }

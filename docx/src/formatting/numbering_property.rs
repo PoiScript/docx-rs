@@ -5,6 +5,13 @@ use crate::{
     formatting::{IndentLevel, NumberingId},
 };
 
+/// Numbering Property
+///
+/// ```rust
+/// use docx::formatting::*;
+///
+/// let prop = NumberingProperty::from((20, 40));
+/// ```
 #[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
 #[cfg_attr(test, derive(PartialEq))]
 #[xml(tag = "w:numPr")]
@@ -29,15 +36,13 @@ impl From<(usize, usize)> for NumberingProperty {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::__test_read_write;
 
-    #[test]
-    fn test_convert() {
-        assert_eq!(
-            NumberingProperty {
-                id: NumberingId { value: 20 },
-                level: IndentLevel { value: 40 },
-            },
-            (20, 40).into(),
-        );
-    }
+    __test_read_write!(
+        NumberingProperty,
+        NumberingProperty::default(),
+        r#"<w:numPr><w:numId w:val="0"/><w:ilvl w:val="0"/></w:numPr>"#,
+        NumberingProperty::from((20, 40)),
+        r#"<w:numPr><w:numId w:val="20"/><w:ilvl w:val="40"/></w:numPr>"#,
+    );
 }

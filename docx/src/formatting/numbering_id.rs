@@ -2,6 +2,13 @@ use docx_codegen::{IntoOwned, XmlRead, XmlWrite};
 
 use crate::error::{Error, Result};
 
+/// Numbering Id
+///
+/// ```rust
+/// use docx::formatting::*;
+///
+/// let id = NumberingId::from(42usize);
+/// ```
 #[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
 #[cfg_attr(test, derive(PartialEq))]
 #[xml(leaf, tag = "w:numId")]
@@ -19,9 +26,11 @@ impl<T: Into<usize>> From<T> for NumberingId {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::__test_read_write;
 
-    #[test]
-    fn test_convert() {
-        assert_eq!(NumberingId { value: 40 }, 40usize.into());
-    }
+    __test_read_write!(
+        NumberingId,
+        NumberingId::from(40usize),
+        r#"<w:numId w:val="40"/>"#,
+    );
 }

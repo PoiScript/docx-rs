@@ -11,7 +11,17 @@ use crate::{
 ///
 /// A style that applied to a region of the document.
 ///
+/// ```rust
+/// use docx::formatting::*;
+/// use docx::styles::*;
+///
+/// let style = Style::paragraph("style_id")
+///     .name("Style Name")
+///     .para(ParagraphProperty::default())
+///     .char(CharacterProperty::default());
+/// ```
 #[derive(Debug, XmlRead, XmlWrite, IntoOwned)]
+#[cfg_attr(test, derive(PartialEq))]
 #[xml(tag = "w:style")]
 pub struct Style<'a> {
     /// Specifies the type of style.
@@ -81,6 +91,7 @@ impl<'a> Style<'a> {
 }
 
 #[derive(Debug, XmlRead, XmlWrite, IntoOwned)]
+#[cfg_attr(test, derive(PartialEq))]
 #[xml(leaf, tag = "w:name")]
 pub struct StyleName<'a> {
     #[xml(attr = "w:val")]
@@ -94,6 +105,7 @@ impl<'a, S: Into<Cow<'a, str>>> From<S> for StyleName<'a> {
 }
 
 #[derive(Debug)]
+#[cfg_attr(test, derive(PartialEq))]
 pub enum StyleType {
     Character,
     Paragraph,
@@ -108,4 +120,22 @@ __string_enum! {
         Table = "table",
         Numbering = "numbering",
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::__test_read_write;
+
+    __test_read_write!(
+        Style,
+        Style::numbering(""),
+        r#"<w:style w:type="numbering" w:styleId=""></w:style>"#,
+        Style::table("").name(""),
+        r#"<w:style w:type="table" w:styleId=""><w:name w:val=""/></w:style>"#,
+        Style::paragraph("").para(ParagraphProperty::default()),
+        r#"<w:style w:type="paragraph" w:styleId=""><w:pPr></w:pPr></w:style>"#,
+        Style::character("").char(CharacterProperty::default()),
+        r#"<w:style w:type="character" w:styleId=""><w:rPr></w:rPr></w:style>"#,
+    );
 }

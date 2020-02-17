@@ -5,9 +5,18 @@ use crate::{
     error::{Error, Result},
 };
 
-#[derive(Debug, XmlRead, XmlWrite, IntoOwned)]
+/// Table Width
+///
+/// ```rust
+/// use docx::formatting::*;
+///
+/// let width = TableWidth::from(42usize);
+/// let width = TableWidth::from(TableWidthUnit::Pct);
+/// let width = TableWidth::from((42, TableWidthUnit::Dxa));
+/// ```
+#[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
 #[cfg_attr(test, derive(PartialEq))]
-#[xml(leaf, tag = "w:sz")]
+#[xml(leaf, tag = "w:tblW")]
 pub struct TableWidth {
     #[xml(attr = "w:w")]
     pub value: Option<usize>,
@@ -63,29 +72,17 @@ __string_enum! {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::__test_read_write;
 
-    #[test]
-    fn test_convert() {
-        assert_eq!(
-            TableWidth {
-                value: Some(42),
-                unit: None
-            },
-            42.into(),
-        );
-        assert_eq!(
-            TableWidth {
-                value: None,
-                unit: Some(TableWidthUnit::Pct)
-            },
-            TableWidthUnit::Pct.into(),
-        );
-        assert_eq!(
-            TableWidth {
-                value: Some(42),
-                unit: Some(TableWidthUnit::Dxa)
-            },
-            (42, TableWidthUnit::Dxa).into(),
-        );
-    }
+    __test_read_write!(
+        TableWidth,
+        TableWidth::default(),
+        "<w:tblW/>",
+        TableWidth::from(42),
+        r#"<w:tblW w:w="42"/>"#,
+        TableWidth::from(TableWidthUnit::Pct),
+        r#"<w:tblW w:type="pct"/>"#,
+        TableWidth::from((42, TableWidthUnit::Dxa)),
+        r#"<w:tblW w:w="42" w:type="dxa"/>"#,
+    );
 }

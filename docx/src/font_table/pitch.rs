@@ -4,6 +4,7 @@ use std::borrow::Cow;
 use crate::error::{Error, Result};
 
 #[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
+#[cfg_attr(test, derive(PartialEq))]
 #[xml(leaf, tag = "w:pitch")]
 pub struct Pitch<'a> {
     #[xml(attr = "w:val")]

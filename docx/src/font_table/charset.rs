@@ -4,7 +4,8 @@ use std::borrow::Cow;
 use crate::error::{Error, Result};
 
 #[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
-#[xml(leaf, tag = "w:val")]
+#[cfg_attr(test, derive(PartialEq))]
+#[xml(leaf, tag = "w:charset")]
 pub struct Charset<'a> {
     #[xml(attr = "w:val")]
     pub value: Cow<'a, str>,

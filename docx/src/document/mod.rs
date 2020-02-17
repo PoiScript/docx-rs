@@ -3,7 +3,8 @@
 //! The corresponding ZIP item is `/word/document.xml`.
 
 mod body;
-mod bookmark;
+mod bookmark_end;
+mod bookmark_start;
 mod r#break;
 mod grid_column;
 mod hyperlink;
@@ -16,8 +17,8 @@ mod table_row;
 mod text;
 
 pub use self::{
-    body::*, bookmark::*, grid_column::*, hyperlink::*, paragraph::*, r#break::*, run::*, table::*,
-    table::*, table_cell::*, table_grid::*, table_row::*, text::*,
+    body::*, bookmark_end::*, bookmark_start::*, grid_column::*, hyperlink::*, paragraph::*,
+    r#break::*, run::*, table::*, table::*, table_cell::*, table_grid::*, table_row::*, text::*,
 };
 
 use docx_codegen::{IntoOwned, XmlRead, XmlWrite};
@@ -30,6 +31,7 @@ use crate::{
 
 /// The root element of the main document part.
 #[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
+#[cfg_attr(test, derive(PartialEq))]
 #[xml(tag = "w:document")]
 #[xml(extend_attrs = "document_extend_attrs")]
 pub struct Document<'a> {
@@ -47,6 +49,22 @@ impl<'a> Document<'a> {
 
 #[inline]
 fn document_extend_attrs<W: Write>(_: &Document, mut w: W) -> Result<()> {
-    write!(w, " xmlns:w=\"{}\"", SCHEMA_MAIN)?;
+    write!(w, r#" xmlns:w="{}""#, SCHEMA_MAIN)?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::__test_read_write;
+
+    __test_read_write!(
+        Document,
+        Document::default(),
+        format!(
+            r#"<w:document xmlns:w="{}"><w:body></w:body></w:document>"#,
+            SCHEMA_MAIN
+        )
+        .as_str(),
+    );
 }

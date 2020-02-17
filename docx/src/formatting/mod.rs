@@ -5,6 +5,7 @@
 
 mod bold;
 mod border;
+mod borders;
 mod character_property;
 mod color;
 mod dstrike;
@@ -28,8 +29,9 @@ mod underline;
 
 // re-export
 pub use self::{
-    bold::*, border::*, character_property::*, color::*, dstrike::*, indent_level::*, italics::*,
-    justification::*, numbering_id::*, numbering_property::*, outline::*, paragraph_property::*,
-    size::*, strike::*, table_borders::*, table_cell_property::*, table_indent::*,
-    table_justification::*, table_property::*, table_row_property::*, table_width::*, underline::*,
+    bold::*, border::*, borders::*, character_property::*, color::*, dstrike::*, indent_level::*,
+    italics::*, justification::*, numbering_id::*, numbering_property::*, outline::*,
+    paragraph_property::*, size::*, strike::*, table_borders::*, table_cell_property::*,
+    table_indent::*, table_justification::*, table_property::*, table_row_property::*,
+    table_width::*, underline::*,
 };

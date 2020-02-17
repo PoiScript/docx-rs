@@ -1,0 +1,68 @@
+use crate::{
+    __string_enum,
+    error::{Error, Result},
+};
+
+#[derive(Debug)]
+#[cfg_attr(test, derive(PartialEq))]
+pub enum BorderStyle {
+    Single,
+    DashDotStroked,
+    Dashed,
+    DashSmallGap,
+    DotDash,
+    DotDotDash,
+    Dotted,
+    Double,
+    DoubleWave,
+    Inset,
+    Nil,
+    None,
+    Outset,
+    Thick,
+    ThickThinLargeGap,
+    ThickThinMediumGap,
+    ThickThinSmallGap,
+    ThinThickLargeGap,
+    ThinThickMediumGap,
+    ThinThickSmallGap,
+    ThinThickThinLargeGap,
+    ThinThickThinMediumGap,
+    ThinThickThinSmallGap,
+    ThreeDEmboss,
+    ThreeDEngrave,
+    Triple,
+    Wave,
+}
+
+__string_enum! {
+    BorderStyle {
+        Single = "single",
+        DashDotStroked = "dashDotStroked",
+        Dashed = "dashed",
+        DashSmallGap = "dashSmallGap",
+        DotDash = "dotDash",
+        DotDotDash = "dotDotDash",
+        Dotted = "dotted",
+        Double = "double",
+        DoubleWave = "doubleWave",
+        Inset = "inset",
+        Nil = "nil",
+        None = "none",
+        Outset = "outset",
+        Thick = "thick",
+        ThickThinLargeGap = "thickThinLargeGap",
+        ThickThinMediumGap = "thickThinMediumGap",
+        ThickThinSmallGap = "thickThinSmallGap",
+        ThinThickLargeGap = "thinThickLargeGap",
+        ThinThickMediumGap = "thinThickMediumGap",
+        ThinThickSmallGap = "thinThickSmallGap",
+        ThinThickThinLargeGap = "thinThickThinLargeGap",
+        ThinThickThinMediumGap = "thinThickThinMediumGap",
+        ThinThickThinSmallGap = "thinThickThinSmallGap",
+        ThreeDEmboss = "threeDEmboss",
+        ThreeDEngrave = "threeDEngrave",
+        Triple = "triple",
+        Wave = "wave",
+    }
+}

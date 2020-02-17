@@ -10,10 +10,10 @@ use crate::error::{Error, Result};
 /// ```rust
 /// use docx::formatting::Color;
 ///
-/// let _: Color = "000000".into();
-/// let _: Color = String::from("000000").into();
-/// let _: Color = 0u32.into(); // "000000"
-/// let _: Color = (0u8, 0u8, 0u8).into(); // "000000"
+/// let color = Color::from("000000");
+/// let color = Color::from(String::from("000000"));
+/// let color = Color::from(0u32); // "000000"
+/// let color = Color::from((0u8, 0u8, 0u8)); // "000000"
 /// ```
 #[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
 #[cfg_attr(test, derive(PartialEq))]
@@ -58,32 +58,15 @@ impl From<(u8, u8, u8)> for Color<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::__test_read_write;
 
-    #[test]
-    fn test_convert() {
-        assert_eq!(
-            Color {
-                value: Cow::Borrowed("000000")
-            },
-            "000000".into(),
-        );
-        assert_eq!(
-            Color {
-                value: Cow::Borrowed("000000")
-            },
-            String::from("000000").into(),
-        );
-        assert_eq!(
-            Color {
-                value: Cow::Borrowed("000000")
-            },
-            0u32.into(),
-        );
-        assert_eq!(
-            Color {
-                value: Cow::Borrowed("000000")
-            },
-            (0u8, 0u8, 0u8).into(),
-        );
-    }
+    __test_read_write!(
+        Color,
+        Color::from("000000"),
+        r#"<w:color w:val="000000"/>"#,
+        Color::from(0u32),
+        r#"<w:color w:val="000000"/>"#,
+        Color::from((0u8, 0u8, 0u8)),
+        r#"<w:color w:val="000000"/>"#,
+    );
 }

@@ -5,7 +5,16 @@ use crate::{
     error::{Error, Result},
 };
 
-#[derive(Debug, XmlRead, XmlWrite, IntoOwned)]
+/// Table Indent
+///
+/// ```rust
+/// use docx::formatting::*;
+///
+/// let ind = TableIndent::from(42);
+/// let ind = TableIndent::from(TableIndentUnit::Pct);
+/// let ind = TableIndent::from((42, TableIndentUnit::Dxa));
+/// ```
+#[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
 #[cfg_attr(test, derive(PartialEq))]
 #[xml(leaf, tag = "w:tblInd")]
 pub struct TableIndent {
@@ -63,29 +72,17 @@ __string_enum! {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::__test_read_write;
 
-    #[test]
-    fn test_convert() {
-        assert_eq!(
-            TableIndent {
-                value: Some(42),
-                unit: None
-            },
-            42.into(),
-        );
-        assert_eq!(
-            TableIndent {
-                value: None,
-                unit: Some(TableIndentUnit::Pct)
-            },
-            TableIndentUnit::Pct.into(),
-        );
-        assert_eq!(
-            TableIndent {
-                value: Some(42),
-                unit: Some(TableIndentUnit::Dxa)
-            },
-            (42, TableIndentUnit::Dxa).into(),
-        );
-    }
+    __test_read_write!(
+        TableIndent,
+        TableIndent::default(),
+        "<w:tblInd/>",
+        TableIndent::from(42),
+        r#"<w:tblInd w:w="42"/>"#,
+        TableIndent::from(TableIndentUnit::Pct),
+        r#"<w:tblInd w:type="pct"/>"#,
+        TableIndent::from((42, TableIndentUnit::Dxa)),
+        r#"<w:tblInd w:w="42" w:type="dxa"/>"#,
+    );
 }

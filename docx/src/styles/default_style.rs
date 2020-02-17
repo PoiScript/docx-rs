@@ -9,7 +9,17 @@ use crate::{
 /// Default Style
 ///
 /// This style is inherited by every paragraph and run.
+///
+/// ```rust
+/// use docx::formatting::*;
+/// use docx::styles::*;
+///
+/// let style = DefaultStyle::default()
+///     .char(CharacterProperty::default())
+///     .para(ParagraphProperty::default());
+/// ```
 #[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
+#[cfg_attr(test, derive(PartialEq))]
 #[xml(tag = "w:docDefaults")]
 pub struct DefaultStyle<'a> {
     #[xml(child = "w:rPrDefault")]
@@ -25,6 +35,7 @@ impl<'a> DefaultStyle<'a> {
 
 /// Default Character Properties
 #[derive(Debug, XmlRead, XmlWrite, IntoOwned)]
+#[cfg_attr(test, derive(PartialEq))]
 #[xml(tag = "w:rPrDefault")]
 pub struct DefaultCharacterProperty<'a> {
     /// character properties
@@ -40,6 +51,7 @@ impl<'a, T: Into<CharacterProperty<'a>>> From<T> for DefaultCharacterProperty<'a
 
 /// Default Paragraph Properties
 #[derive(Debug, XmlRead, XmlWrite, IntoOwned)]
+#[cfg_attr(test, derive(PartialEq))]
 #[xml(tag = "w:pPrDefault")]
 pub struct DefaultParagraphProperty<'a> {
     /// paragraph properties
@@ -51,4 +63,20 @@ impl<'a, T: Into<ParagraphProperty<'a>>> From<T> for DefaultParagraphProperty<'a
     fn from(val: T) -> Self {
         DefaultParagraphProperty { inner: val.into() }
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::__test_read_write;
+
+    __test_read_write!(
+        DefaultStyle,
+        DefaultStyle::default(),
+        r#"<w:docDefaults></w:docDefaults>"#,
+        DefaultStyle::default().char(CharacterProperty::default()),
+        r#"<w:docDefaults><w:rPrDefault><w:rPr></w:rPr></w:rPrDefault></w:docDefaults>"#,
+        DefaultStyle::default().para(ParagraphProperty::default()),
+        r#"<w:docDefaults><w:pPrDefault><w:pPr></w:pPr></w:pPrDefault></w:docDefaults>"#,
+    );
 }

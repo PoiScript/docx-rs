@@ -6,7 +6,18 @@ use crate::{
     error::{Error, Result},
 };
 
+/// Underline
+///
+/// ```rust
+/// use docx::formatting::*;
+///
+/// let udl = Underline::from("00ff00");
+/// let udl = Underline::from(String::from("ff0000"));
+/// let udl = Underline::from(("00ff00", UnderlineStyle::Dash));
+/// let udl = Underline::from((String::from("ff0000"), UnderlineStyle::DotDash));
+/// ```
 #[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
+#[cfg_attr(test, derive(PartialEq))]
 #[xml(leaf, tag = "w:u")]
 pub struct Underline<'a> {
     #[xml(attr = "w:color")]
@@ -61,6 +72,7 @@ impl<'a> From<(&'a str, UnderlineStyle)> for Underline<'a> {
 }
 
 #[derive(Debug)]
+#[cfg_attr(test, derive(PartialEq))]
 pub enum UnderlineStyle {
     Dash,
     DashDotDotHeavy,
@@ -103,4 +115,24 @@ __string_enum! {
         WavyHeavy = "wavyHeavy",
         Words = "words",
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::__test_read_write;
+
+    __test_read_write!(
+        Underline,
+        Underline::default(),
+        r#"<w:u/>"#,
+        Underline::from("00ff00"),
+        r#"<w:u w:color="00ff00"/>"#,
+        Underline::from(String::from("ff0000")),
+        r#"<w:u w:color="ff0000"/>"#,
+        Underline::from(("00ff00", UnderlineStyle::Dash)),
+        r#"<w:u w:color="00ff00" w:val="dash"/>"#,
+        Underline::from((String::from("ff0000"), UnderlineStyle::DotDash)),
+        r#"<w:u w:color="ff0000" w:val="dotDash"/>"#,
+    );
 }

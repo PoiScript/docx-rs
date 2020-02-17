@@ -6,8 +6,9 @@ use crate::{
     error::{Error, Result},
 };
 
-/// The empty element that defines the beginning of a bookmark
+/// Beginning of bookmark
 #[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
+#[cfg_attr(test, derive(PartialEq))]
 #[xml(leaf, tag = "w:bookmarkStart")]
 pub struct BookmarkStart<'a> {
     /// Specifies a unique identifier for the bookmark.
@@ -23,15 +24,18 @@ impl<'a> BookmarkStart<'a> {
     __setter!(name: Option<Cow<'a, str>>);
 }
 
-/// The empty element that defines the end of a bookmark
-#[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
-#[xml(leaf, tag = "w:bookmarkEnd")]
-pub struct BookmarkEnd<'a> {
-    /// Specifies a unique identifier for the bookmark.
-    #[xml(attr = "w:id")]
-    pub id: Option<Cow<'a, str>>,
-}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::__test_read_write;
 
-impl<'a> BookmarkEnd<'a> {
-    __setter!(id: Option<Cow<'a, str>>);
+    __test_read_write!(
+        BookmarkStart,
+        BookmarkStart::default(),
+        r#"<w:bookmarkStart/>"#,
+        BookmarkStart::default().id(""),
+        r#"<w:bookmarkStart w:id=""/>"#,
+        BookmarkStart::default().name(""),
+        r#"<w:bookmarkStart w:name=""/>"#,
+    );
 }

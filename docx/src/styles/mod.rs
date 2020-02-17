@@ -15,10 +15,19 @@ use crate::{
     schema::SCHEMA_MAIN,
 };
 
-/// The root element of the styles of the document
+/// Styles of the document
 ///
 /// Styles are predefined sets of properties which can be applied to text.
+///
+/// ```rust
+/// use docx::styles::*;
+///
+/// let style = Styles::new()
+///     .default(DefaultStyle::default())
+///     .push(Style::paragraph("style_id"));
+/// ```
 #[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
+#[cfg_attr(test, derive(PartialEq))]
 #[xml(tag = "w:styles")]
 #[xml(extend_attrs = "styles_extend_attrs")]
 pub struct Styles<'a> {
@@ -37,6 +46,10 @@ fn styles_extend_attrs<W: Write>(_: &Styles, mut w: W) -> Result<()> {
 }
 
 impl<'a> Styles<'a> {
+    pub fn new() -> Self {
+        <Styles as Default>::default()
+    }
+
     pub fn default(&mut self, style: DefaultStyle<'a>) -> &mut Self {
         self.default = Some(style);
         self
@@ -46,4 +59,34 @@ impl<'a> Styles<'a> {
         self.styles.push(style);
         self
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::__test_read_write;
+
+    __test_read_write!(
+        Styles,
+        Styles::new(),
+        format!(r#"<w:styles xmlns:w="{}"></w:styles>"#, SCHEMA_MAIN).as_str(),
+        Styles {
+            default: Some(DefaultStyle::default()),
+            styles: vec![]
+        },
+        format!(
+            r#"<w:styles xmlns:w="{}"><w:docDefaults></w:docDefaults></w:styles>"#,
+            SCHEMA_MAIN
+        )
+        .as_str(),
+        Styles {
+            default: None,
+            styles: vec![Style::paragraph("")]
+        },
+        format!(
+            r#"<w:styles xmlns:w="{}"><w:style w:type="paragraph" w:styleId=""></w:style></w:styles>"#,
+            SCHEMA_MAIN
+        )
+        .as_str(),
+    );
 }

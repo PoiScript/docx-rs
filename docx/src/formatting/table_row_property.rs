@@ -11,10 +11,11 @@ use crate::{
 /// ```rust
 /// use docx::formatting::{TableRowProperty, TableJustificationVal};
 ///
-/// TableRowProperty::default()
+/// let prop = TableRowProperty::default()
 ///     .justification(TableJustificationVal::Start);
 /// ```
 #[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
+#[cfg_attr(test, derive(PartialEq))]
 #[xml(tag = "w:trPr")]
 pub struct TableRowProperty {
     /// Specifies the alignment of the row with respect to the text margins in the section.
@@ -24,4 +25,19 @@ pub struct TableRowProperty {
 
 impl TableRowProperty {
     __setter!(justification: Option<TableJustification>);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::__test_read_write;
+    use crate::formatting::TableJustificationVal;
+
+    __test_read_write!(
+        TableRowProperty,
+        TableRowProperty::default(),
+        r#"<w:trPr></w:trPr>"#,
+        TableRowProperty::default().justification(TableJustificationVal::Start),
+        r#"<w:trPr><w:jc w:val="start"/></w:trPr>"#,
+    );
 }

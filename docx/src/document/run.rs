@@ -12,7 +12,20 @@ use crate::{
 /// Run
 ///
 /// Run is a non-block region of text with properties.
+///
+/// ```rust
+/// use docx::document::*;
+/// use docx::formatting::*;
+///
+/// let run = Run::default()
+///     .prop(CharacterProperty::default())
+///     .push_text("text")
+///     .push_break(None)
+///     .push_text((" text ", TextSpace::Preserve))
+///     .push_break(BreakType::Column);
+/// ```
 #[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
+#[cfg_attr(test, derive(PartialEq))]
 #[xml(tag = "w:r")]
 pub struct Run<'a> {
     /// Specifies the properties of a run
@@ -40,6 +53,12 @@ impl<'a> Run<'a> {
         self
     }
 
+    #[inline(always)]
+    pub fn push_break<T: Into<Break>>(mut self, br: T) -> Self {
+        self.content.push(RunContent::Break(br.into()));
+        self
+    }
+
     pub fn iter_text(&self) -> impl Iterator<Item = &Cow<'a, str>> {
         self.content.iter().filter_map(|content| match content {
             RunContent::Text(Text { text, .. }) => Some(text),
@@ -57,9 +76,28 @@ impl<'a> Run<'a> {
 
 /// A set of elements that can be contained as the content of a run.
 #[derive(Debug, From, XmlRead, XmlWrite, IntoOwned)]
+#[cfg_attr(test, derive(PartialEq))]
 pub enum RunContent<'a> {
     #[xml(tag = "w:t")]
     Text(Text<'a>),
     #[xml(tag = "w:br")]
     Break(Break),
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::__test_read_write;
+
+    __test_read_write!(
+        Run,
+        Run::default(),
+        r#"<w:r></w:r>"#,
+        Run::default().prop(CharacterProperty::default()),
+        r#"<w:r><w:rPr></w:rPr></w:r>"#,
+        Run::default().push_break(None),
+        r#"<w:r><w:br/></w:r>"#,
+        Run::default().push_text(""),
+        r#"<w:r><w:t></w:t></w:r>"#,
+    );
 }

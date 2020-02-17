@@ -12,8 +12,21 @@ use crate::{
 /// Paragraph
 ///
 /// Paragraph is the main block-level container for content.
-/// Paragraph begins with a new line.
+///
+/// ```rust
+/// use docx::document::*;
+/// use docx::formatting::*;
+///
+/// let par = Paragraph::default()
+///     .prop(ParagraphProperty::default())
+///     .push_text("hello,")
+///     .push_text((" world.", TextSpace::Preserve))
+///     .push(Run::default())
+///     .push(BookmarkStart::default())
+///     .push(BookmarkEnd::default());
+/// ```
 #[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
+#[cfg_attr(test, derive(PartialEq))]
 #[xml(tag = "w:p")]
 pub struct Paragraph<'a> {
     /// Specifies the properties of a paragraph
@@ -24,7 +37,12 @@ pub struct Paragraph<'a> {
     /// Specifes the run contents of a paragraph
     ///
     /// Run is a region of text with properties. Each paragraph containes one or more runs.
-    #[xml(child = "w:r", child = "w:hyperlink")]
+    #[xml(
+        child = "w:r",
+        child = "w:hyperlink",
+        child = "w:bookmarkStart",
+        child = "w:bookmarkEnd"
+    )]
     pub content: Vec<ParagraphContent<'a>>,
 }
 
@@ -71,6 +89,7 @@ impl<'a> Paragraph<'a> {
 
 /// A set of elements that can be contained as the content of a paragraph.
 #[derive(Debug, From, XmlRead, XmlWrite, IntoOwned)]
+#[cfg_attr(test, derive(PartialEq))]
 pub enum ParagraphContent<'a> {
     #[xml(tag = "w:r")]
     Run(Run<'a>),
@@ -80,4 +99,26 @@ pub enum ParagraphContent<'a> {
     BookmarkStart(BookmarkStart<'a>),
     #[xml(tag = "w:bookmarkEnd")]
     BookmarkEnd(BookmarkEnd<'a>),
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::__test_read_write;
+
+    __test_read_write!(
+        Paragraph,
+        Paragraph::default(),
+        r#"<w:p></w:p>"#,
+        Paragraph::default().prop(ParagraphProperty::default()),
+        r#"<w:p><w:pPr></w:pPr></w:p>"#,
+        Paragraph::default().push(Run::default()),
+        r#"<w:p><w:r></w:r></w:p>"#,
+        Paragraph::default().push(Hyperlink::default()),
+        r#"<w:p><w:hyperlink><w:r></w:r></w:hyperlink></w:p>"#,
+        Paragraph::default().push(BookmarkStart::default()),
+        r#"<w:p><w:bookmarkStart/></w:p>"#,
+        Paragraph::default().push(BookmarkEnd::default()),
+        r#"<w:p><w:bookmarkEnd/></w:p>"#,
+    );
 }

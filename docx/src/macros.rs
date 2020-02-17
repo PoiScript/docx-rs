@@ -42,3 +42,27 @@ macro_rules! __setter {
         }
     };
 }
+
+#[macro_export]
+macro_rules! __test_read_write {
+    ($type:tt, $($struct:expr, $string:expr,)*) => {
+        #[test]
+        fn test_read_write() -> Result<()> {
+            let _ = env_logger::builder()
+                .is_test(true)
+                .format_timestamp(None)
+                .try_init();
+
+            $(
+                // test writing
+                let mut writer = vec![];
+                ($struct).write(&mut writer)?;
+                assert_eq!($string, String::from_utf8(writer)?);
+                // test reading
+                assert_eq!($struct, $type::from_str($string)?);
+            )*
+
+            Ok(())
+        }
+    };
+}

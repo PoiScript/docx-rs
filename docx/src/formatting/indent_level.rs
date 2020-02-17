@@ -2,6 +2,13 @@ use docx_codegen::{IntoOwned, XmlRead, XmlWrite};
 
 use crate::error::{Error, Result};
 
+/// Indent Level
+///
+/// ```rust
+/// use docx::formatting::*;
+///
+/// let lvl = IndentLevel::from(42usize);
+/// ```
 #[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
 #[cfg_attr(test, derive(PartialEq))]
 #[xml(leaf, tag = "w:ilvl")]
@@ -19,9 +26,11 @@ impl<T: Into<usize>> From<T> for IndentLevel {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::__test_read_write;
 
-    #[test]
-    fn test_convert() {
-        assert_eq!(IndentLevel { value: 40 }, 40usize.into());
-    }
+    __test_read_write!(
+        IndentLevel,
+        IndentLevel::from(40usize),
+        r#"<w:ilvl w:val="40"/>"#,
+    );
 }

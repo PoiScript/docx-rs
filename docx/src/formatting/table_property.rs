@@ -12,13 +12,14 @@ use crate::{
 /// ```rust
 /// use docx::formatting::*;
 ///
-/// TableProperty::default()
+/// let prop = TableProperty::default()
 ///     .style_id("foo")
 ///     .justification(TableJustificationVal::Start)
 ///     .indent((50, TableIndentUnit::Pct))
 ///     .width((50, TableWidthUnit::Pct));
 /// ```
 #[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
+#[cfg_attr(test, derive(PartialEq))]
 #[xml(tag = "w:tblPr")]
 pub struct TableProperty<'a> {
     #[xml(child = "w:tblStyle")]
@@ -42,6 +43,7 @@ impl<'a> TableProperty<'a> {
 }
 
 #[derive(Debug, XmlRead, XmlWrite, IntoOwned)]
+#[cfg_attr(test, derive(PartialEq))]
 #[xml(leaf, tag = "w:tblStyle")]
 pub struct TableStyleId<'a> {
     #[xml(attr = "w:val")]
@@ -52,4 +54,27 @@ impl<'a, T: Into<Cow<'a, str>>> From<T> for TableStyleId<'a> {
     fn from(val: T) -> Self {
         TableStyleId { value: val.into() }
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::__test_read_write;
+    use crate::formatting::TableJustificationVal;
+
+    __test_read_write!(
+        TableProperty,
+        TableProperty::default(),
+        r#"<w:tblPr></w:tblPr>"#,
+        TableProperty::default().style_id(""),
+        r#"<w:tblPr><w:tblStyle w:val=""/></w:tblPr>"#,
+        TableProperty::default().justification(TableJustificationVal::Start),
+        r#"<w:tblPr><w:jc w:val="start"/></w:tblPr>"#,
+        TableProperty::default().borders(TableBorders::default()),
+        r#"<w:tblPr><w:tblBorders></w:tblBorders></w:tblPr>"#,
+        TableProperty::default().indent(TableIndent::default()),
+        r#"<w:tblPr><w:tblInd/></w:tblPr>"#,
+        TableProperty::default().width(TableWidth::default()),
+        r#"<w:tblPr><w:tblW/></w:tblPr>"#,
+    );
 }

@@ -12,7 +12,7 @@ use crate::{
 /// ```rust
 /// use docx::formatting::{CharacterProperty, UnderlineStyle};
 ///
-/// CharacterProperty::default()
+/// let prop = CharacterProperty::default()
 ///     .style_id("foo")
 ///     .color("00ff00")
 ///     .color(0xff0000)
@@ -27,6 +27,7 @@ use crate::{
 ///     .underline(("ff0000", UnderlineStyle::Dash));
 /// ```
 #[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
+#[cfg_attr(test, derive(PartialEq))]
 #[xml(tag = "w:rPr")]
 pub struct CharacterProperty<'a> {
     /// Specifies the style ID of the character style.
@@ -71,6 +72,7 @@ impl<'a> CharacterProperty<'a> {
 }
 
 #[derive(Debug, XmlRead, XmlWrite, IntoOwned)]
+#[cfg_attr(test, derive(PartialEq))]
 #[xml(leaf, tag = "w:rStyle")]
 pub struct CharacterStyleId<'a> {
     #[xml(attr = "w:val")]
@@ -81,4 +83,34 @@ impl<'a, T: Into<Cow<'a, str>>> From<T> for CharacterStyleId<'a> {
     fn from(val: T) -> Self {
         CharacterStyleId { value: val.into() }
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::__test_read_write;
+
+    __test_read_write!(
+        CharacterProperty,
+        CharacterProperty::default(),
+        r#"<w:rPr></w:rPr>"#,
+        CharacterProperty::default().style_id(""),
+        r#"<w:rPr><w:rStyle w:val=""/></w:rPr>"#,
+        CharacterProperty::default().color("00ff00"),
+        r#"<w:rPr><w:color w:val="00ff00"/></w:rPr>"#,
+        CharacterProperty::default().size(42usize),
+        r#"<w:rPr><w:sz w:val="42"/></w:rPr>"#,
+        CharacterProperty::default().bold(true),
+        r#"<w:rPr><w:b w:val="true"/></w:rPr>"#,
+        CharacterProperty::default().italics(false),
+        r#"<w:rPr><w:i w:val="false"/></w:rPr>"#,
+        CharacterProperty::default().outline(true),
+        r#"<w:rPr><w:outline w:val="true"/></w:rPr>"#,
+        CharacterProperty::default().strike(false),
+        r#"<w:rPr><w:strike w:val="false"/></w:rPr>"#,
+        CharacterProperty::default().dstrike(true),
+        r#"<w:rPr><w:dstrike w:val="true"/></w:rPr>"#,
+        CharacterProperty::default().underline(Underline::default()),
+        r#"<w:rPr><w:u/></w:rPr>"#,
+    );
 }

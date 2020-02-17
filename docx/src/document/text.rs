@@ -13,9 +13,9 @@ use crate::{
 /// ```rust
 /// use docx::document::{Text, TextSpace};
 ///
-/// let _: Text = "text".into();
-/// let _: Text = String::from("text").into();
-/// let _: Text = ("text", TextSpace::Preserve).into();
+/// let text = Text::from("text");
+/// let text = Text::from(String::from("text"));
+/// let text = Text::from(("text", TextSpace::Preserve));
 /// ```
 #[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
 #[cfg_attr(test, derive(PartialEq))]
@@ -87,36 +87,17 @@ __string_enum! {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::__test_read_write;
 
-    #[test]
-    fn test_convert() {
-        assert_eq!(
-            Text {
-                text: Cow::Borrowed("text"),
-                space: None,
-            },
-            "text".into(),
-        );
-        assert_eq!(
-            Text {
-                text: Cow::Borrowed("text"),
-                space: None,
-            },
-            String::from("text").into(),
-        );
-        assert_eq!(
-            Text {
-                text: Cow::Borrowed("text"),
-                space: Some(TextSpace::Preserve)
-            },
-            ("text", TextSpace::Preserve).into(),
-        );
-        assert_eq!(
-            Text {
-                text: Cow::Borrowed("text"),
-                space: Some(TextSpace::Default)
-            },
-            (String::from("text"), TextSpace::Default).into(),
-        );
-    }
+    __test_read_write!(
+        Text,
+        Text::from("text"),
+        "<w:t>text</w:t>",
+        Text::from(String::from("text")),
+        "<w:t>text</w:t>",
+        Text::from(("text", TextSpace::Preserve)),
+        r#"<w:t xml:space="preserve">text</w:t>"#,
+        Text::from((String::from("text"), TextSpace::Default)),
+        r#"<w:t xml:space="default">text</w:t>"#,
+    );
 }

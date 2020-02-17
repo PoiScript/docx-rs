@@ -1,16 +1,16 @@
 use derive_more::From;
 use docx_codegen::{IntoOwned, XmlRead, XmlWrite};
-use std::borrow::Cow;
 
 use crate::{
     document::{Paragraph, Table},
     error::{Error, Result},
 };
 
-/// The root element of the body of the document.
+/// Document Body
 ///
 /// This is the main document editing surface.
 #[derive(Debug, Default, XmlRead, XmlWrite, IntoOwned)]
+#[cfg_attr(test, derive(PartialEq))]
 #[xml(tag = "w:body")]
 pub struct Body<'a> {
     /// Specifies the contents of the body of the document.
@@ -24,31 +24,52 @@ impl<'a> Body<'a> {
         self
     }
 
-    pub fn iter_text(&self) -> impl Iterator<Item = &Cow<'a, str>> {
-        self.content
-            .iter()
-            .filter_map(|content| match content {
-                BodyContent::Paragraph(para) => Some(para.iter_text()),
-            })
-            .flatten()
-    }
+    // pub fn iter_text(&self) -> impl Iterator<Item = &Cow<'a, str>> {
+    //     self.content
+    //         .iter()
+    //         .filter_map(|content| match content {
+    //             BodyContent::Paragraph(para) => Some(para.iter_text()),
+    //         })
+    //         .flatten()
+    // }
 
-    pub fn iter_text_mut(&mut self) -> impl Iterator<Item = &mut Cow<'a, str>> {
-        self.content
-            .iter_mut()
-            .filter_map(|content| match content {
-                BodyContent::Paragraph(para) => Some(para.iter_text_mut()),
-            })
-            .flatten()
-    }
+    // pub fn iter_text_mut(&mut self) -> impl Iterator<Item = &mut Cow<'a, str>> {
+    //     self.content
+    //         .iter_mut()
+    //         .filter_map(|content| match content {
+    //             BodyContent::Paragraph(para) => Some(para.iter_text_mut()),
+    //         })
+    //         .flatten()
+    // }
 }
 
 /// A set of elements that can be contained in the body
 #[derive(Debug, From, XmlRead, XmlWrite, IntoOwned)]
+#[cfg_attr(test, derive(PartialEq))]
 pub enum BodyContent<'a> {
     #[xml(tag = "w:p")]
     Paragraph(Paragraph<'a>),
     #[xml(tag = "w:tbl")]
     Table(Table<'a>),
     // SecProp,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::__test_read_write;
+
+    __test_read_write!(
+        Body,
+        Body::default(),
+        r#"<w:body></w:body>"#,
+        Body {
+            content: vec![Paragraph::default().into()]
+        },
+        r#"<w:body><w:p></w:p></w:body>"#,
+        Body {
+            content: vec![Table::default().into()]
+        },
+        r#"<w:body><w:tbl></w:tbl></w:body>"#,
+    );
 }
