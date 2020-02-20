@@ -1,6 +1,4 @@
-/.idea
 /target/
-/codegen/target
 **/*.rs.bk
 *.docx
 Cargo.lock
