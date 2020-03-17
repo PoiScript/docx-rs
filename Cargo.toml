@@ -1,6 +1,6 @@
 [package]
 name = "docx"
-version = "0.2.1"
+version = "1.0.0"
 authors = ["PoiScript <poiscript@gmail.com>"]
 edition = "2018"
 license = "MIT"
@@ -9,14 +9,11 @@ repository = "https://github.com/PoiScript/docx-rs"
 description = "A Rust library for parsing and generating docx files."
 keywords = ["docx", "generator", "openxml", "parser"]
 
-[badges]
-travis-ci = { repository = "PoiScript/docx-rs" }
-
 [dependencies]
 derive_more = "0.99.3"
 log = "0.4.8"
 strong-xml = "0.2.0"
-zip = "0.5.4"
+zip = "0.5.5"
 
 [dev-dependencies]
 env_logger = "0.7.1"
