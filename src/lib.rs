@@ -8,9 +8,9 @@
 //! [`Docx::write_file`]: struct.Docx.html#method.write_file
 //!
 //! ```no_run
-//! # use docx::document::Paragraph;
-//! # use docx::Docx;
-//! #
+//! use docx::document::Paragraph;
+//! use docx::Docx;
+//!
 //! let mut docx = Docx::default();
 //!
 //! // create a new paragraph and insert it
@@ -33,9 +33,9 @@
 //! [`DocxFile::parse`]: struct.DocxFile.html#method.parse
 //!
 //! ```no_run
-//! # use docx::document::Paragraph;
-//! # use docx::DocxFile;
-//! #
+//! use docx::document::Paragraph;
+//! use docx::DocxFile;
+//!
 //! let docx = DocxFile::from_file("origin.docx").unwrap();
 //! let mut docx = docx.parse().unwrap();
 //!
@@ -50,8 +50,8 @@
 //! `DocxFile` lives as long as its returned `Docx`:
 //!
 //! ```compile_fail
-//! # use docx::DocxFile;
-//! #
+//! use docx::DocxFile;
+//!
 //! let mut docx_option = None;
 //! {
 //!     let docx_file = DocxFile::from_file("foo.docx").unwrap();
