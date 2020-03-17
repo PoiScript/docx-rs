@@ -1,5 +1,7 @@
 use strong_xml::{XmlRead, XmlWrite};
 
+use crate::__xml_test_suites;
+
 /// Outline
 ///
 /// ```rust
@@ -10,7 +12,7 @@ use strong_xml::{XmlRead, XmlWrite};
 /// ```
 #[derive(Debug, Default, XmlRead, XmlWrite)]
 #[cfg_attr(test, derive(PartialEq))]
-#[xml(leaf, tag = "w:outline")]
+#[xml(tag = "w:outline")]
 pub struct Outline {
     #[xml(attr = "w:val")]
     pub value: Option<bool>,
@@ -22,18 +24,12 @@ impl<T: Into<Option<bool>>> From<T> for Outline {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::__test_read_write;
-
-    __test_read_write!(
-        Outline,
-        Outline::default(),
-        r#"<w:outline/>"#,
-        Outline::from(false),
-        r#"<w:outline w:val="false"/>"#,
-        Outline::from(true),
-        r#"<w:outline w:val="true"/>"#,
-    );
-}
+__xml_test_suites!(
+    Outline,
+    Outline::default(),
+    r#"<w:outline/>"#,
+    Outline::from(false),
+    r#"<w:outline w:val="false"/>"#,
+    Outline::from(true),
+    r#"<w:outline w:val="true"/>"#,
+);

@@ -1,6 +1,6 @@
 use strong_xml::{XmlRead, XmlWrite};
 
-use crate::__string_enum;
+use crate::{__string_enum, __xml_test_suites};
 
 /// Justification
 ///
@@ -11,7 +11,7 @@ use crate::__string_enum;
 /// ```
 #[derive(Debug, XmlRead, XmlWrite)]
 #[cfg_attr(test, derive(PartialEq))]
-#[xml(leaf, tag = "w:jc")]
+#[xml(tag = "w:jc")]
 pub struct Justification {
     #[xml(attr = "w:val")]
     pub value: JustificationVal,
@@ -47,14 +47,8 @@ __string_enum! {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::__test_read_write;
-
-    __test_read_write!(
-        Justification,
-        Justification::from(JustificationVal::Start),
-        r#"<w:jc w:val="start"/>"#,
-    );
-}
+__xml_test_suites!(
+    Justification,
+    Justification::from(JustificationVal::Start),
+    r#"<w:jc w:val="start"/>"#,
+);

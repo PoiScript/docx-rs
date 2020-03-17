@@ -1,7 +1,7 @@
 use strong_xml::{XmlRead, XmlWrite};
 
 use crate::{
-    __setter,
+    __setter, __xml_test_suites,
     document::{TableGrid, TableRow},
     formatting::TableProperty,
 };
@@ -22,8 +22,8 @@ use crate::{
 #[cfg_attr(test, derive(PartialEq))]
 #[xml(tag = "w:tbl")]
 pub struct Table<'a> {
-    #[xml(child = "w:tblPr")]
-    pub prop: Option<TableProperty<'a>>,
+    #[xml(default, child = "w:tblPr")]
+    pub prop: TableProperty<'a>,
     #[xml(child = "w:tblGrid")]
     pub grids: Vec<TableGrid>,
     #[xml(child = "w:tr")]
@@ -31,7 +31,7 @@ pub struct Table<'a> {
 }
 
 impl<'a> Table<'a> {
-    __setter!(prop: Option<TableProperty<'a>>);
+    __setter!(prop: TableProperty<'a>);
 
     pub fn push_grid<T: Into<TableGrid>>(mut self, grid: T) -> Self {
         self.grids.push(grid.into());
@@ -44,20 +44,12 @@ impl<'a> Table<'a> {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::__test_read_write;
-
-    __test_read_write!(
-        Table,
-        Table::default(),
-        "<w:tbl></w:tbl>",
-        Table::default().prop(TableProperty::default()),
-        "<w:tbl><w:tblPr></w:tblPr></w:tbl>",
-        Table::default().push_grid(TableGrid::default()),
-        "<w:tbl><w:tblGrid></w:tblGrid></w:tbl>",
-        Table::default().push_row(TableRow::default()),
-        "<w:tbl><w:tr></w:tr></w:tbl>",
-    );
-}
+__xml_test_suites!(
+    Table,
+    Table::default(),
+    "<w:tbl><w:tblPr/></w:tbl>",
+    Table::default().push_grid(TableGrid::default()),
+    "<w:tbl><w:tblPr/><w:tblGrid/></w:tbl>",
+    Table::default().push_row(TableRow::default()),
+    "<w:tbl><w:tblPr/><w:tr><w:trPr/></w:tr></w:tbl>",
+);

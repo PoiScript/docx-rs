@@ -1,5 +1,7 @@
 use strong_xml::{XmlRead, XmlWrite};
 
+use crate::__xml_test_suites;
+
 /// Indent Level
 ///
 /// ```rust
@@ -9,7 +11,7 @@ use strong_xml::{XmlRead, XmlWrite};
 /// ```
 #[derive(Debug, Default, XmlRead, XmlWrite)]
 #[cfg_attr(test, derive(PartialEq))]
-#[xml(leaf, tag = "w:ilvl")]
+#[xml(tag = "w:ilvl")]
 pub struct IndentLevel {
     #[xml(attr = "w:val")]
     pub value: usize,
@@ -21,14 +23,8 @@ impl<T: Into<usize>> From<T> for IndentLevel {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::__test_read_write;
-
-    __test_read_write!(
-        IndentLevel,
-        IndentLevel::from(40usize),
-        r#"<w:ilvl w:val="40"/>"#,
-    );
-}
+__xml_test_suites!(
+    IndentLevel,
+    IndentLevel::from(40usize),
+    r#"<w:ilvl w:val="40"/>"#,
+);

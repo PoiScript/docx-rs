@@ -3,7 +3,7 @@ use std::borrow::Cow;
 use strong_xml::{XmlRead, XmlWrite};
 
 use crate::{
-    __setter,
+    __setter, __xml_test_suites,
     document::{BookmarkEnd, BookmarkStart, Hyperlink, Run, RunContent, Text},
     formatting::ParagraphProperty,
 };
@@ -31,8 +31,8 @@ pub struct Paragraph<'a> {
     /// Specifies the properties of a paragraph
     ///
     /// This information is applied to all the contents of the paragraph.
-    #[xml(child = "w:pPr")]
-    pub prop: Option<ParagraphProperty<'a>>,
+    #[xml(default, child = "w:pPr")]
+    pub prop: ParagraphProperty<'a>,
     /// Specifes the run contents of a paragraph
     ///
     /// Run is a region of text with properties. Each paragraph containes one or more runs.
@@ -46,7 +46,7 @@ pub struct Paragraph<'a> {
 }
 
 impl<'a> Paragraph<'a> {
-    __setter!(prop: Option<ParagraphProperty<'a>>);
+    __setter!(prop: ParagraphProperty<'a>);
 
     #[inline(always)]
     pub fn push<T: Into<ParagraphContent<'a>>>(mut self, content: T) -> Self {
@@ -100,24 +100,16 @@ pub enum ParagraphContent<'a> {
     BookmarkEnd(BookmarkEnd<'a>),
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::__test_read_write;
-
-    __test_read_write!(
-        Paragraph,
-        Paragraph::default(),
-        r#"<w:p></w:p>"#,
-        Paragraph::default().prop(ParagraphProperty::default()),
-        r#"<w:p><w:pPr></w:pPr></w:p>"#,
-        Paragraph::default().push(Run::default()),
-        r#"<w:p><w:r></w:r></w:p>"#,
-        Paragraph::default().push(Hyperlink::default()),
-        r#"<w:p><w:hyperlink><w:r></w:r></w:hyperlink></w:p>"#,
-        Paragraph::default().push(BookmarkStart::default()),
-        r#"<w:p><w:bookmarkStart/></w:p>"#,
-        Paragraph::default().push(BookmarkEnd::default()),
-        r#"<w:p><w:bookmarkEnd/></w:p>"#,
-    );
-}
+__xml_test_suites!(
+    Paragraph,
+    Paragraph::default(),
+    r#"<w:p><w:pPr/></w:p>"#,
+    Paragraph::default().push(Run::default()),
+    r#"<w:p><w:pPr/><w:r><w:rPr/></w:r></w:p>"#,
+    Paragraph::default().push(Hyperlink::default()),
+    r#"<w:p><w:pPr/><w:hyperlink><w:r><w:rPr/></w:r></w:hyperlink></w:p>"#,
+    Paragraph::default().push(BookmarkStart::default()),
+    r#"<w:p><w:pPr/><w:bookmarkStart/></w:p>"#,
+    Paragraph::default().push(BookmarkEnd::default()),
+    r#"<w:p><w:pPr/><w:bookmarkEnd/></w:p>"#,
+);

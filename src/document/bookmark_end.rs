@@ -1,12 +1,12 @@
 use std::borrow::Cow;
 use strong_xml::{XmlRead, XmlWrite};
 
-use crate::__setter;
+use crate::{__setter, __xml_test_suites};
 
 /// End of bookmark
 #[derive(Debug, Default, XmlRead, XmlWrite)]
 #[cfg_attr(test, derive(PartialEq))]
-#[xml(leaf, tag = "w:bookmarkEnd")]
+#[xml(tag = "w:bookmarkEnd")]
 pub struct BookmarkEnd<'a> {
     /// Specifies a unique identifier for the bookmark.
     #[xml(attr = "w:id")]
@@ -17,16 +17,10 @@ impl<'a> BookmarkEnd<'a> {
     __setter!(id: Option<Cow<'a, str>>);
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::__test_read_write;
-
-    __test_read_write!(
-        BookmarkEnd,
-        BookmarkEnd::default(),
-        r#"<w:bookmarkEnd/>"#,
-        BookmarkEnd::default().id(""),
-        r#"<w:bookmarkEnd w:id=""/>"#,
-    );
-}
+__xml_test_suites!(
+    BookmarkEnd,
+    BookmarkEnd::default(),
+    r#"<w:bookmarkEnd/>"#,
+    BookmarkEnd::default().id("id"),
+    r#"<w:bookmarkEnd w:id="id"/>"#,
+);

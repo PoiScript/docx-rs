@@ -1,11 +1,11 @@
 use std::borrow::Cow;
 use strong_xml::{XmlRead, XmlWrite};
 
-use crate::{__setter, formatting::BorderStyle};
+use crate::{__setter, __xml_test_suites, formatting::BorderStyle};
 
 #[derive(Debug, Default, XmlRead, XmlWrite)]
 #[cfg_attr(test, derive(PartialEq))]
-#[xml(leaf, tag = "w:bottom")]
+#[xml(tag = "w:bottom")]
 pub struct BottomBorder<'a> {
     #[xml(attr = "w:color")]
     pub color: Option<Cow<'a, str>>,
@@ -27,24 +27,18 @@ impl<'a> BottomBorder<'a> {
     __setter!(style: Option<BorderStyle>);
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::__test_read_write;
-
-    __test_read_write!(
-        BottomBorder,
-        BottomBorder::default(),
-        r#"<w:bottom/>"#,
-        BottomBorder::default().color("000000"),
-        r#"<w:bottom w:color="000000"/>"#,
-        BottomBorder::default().shadow(false),
-        r#"<w:bottom w:shadow="false"/>"#,
-        BottomBorder::default().space(40usize),
-        r#"<w:bottom w:space="40"/>"#,
-        BottomBorder::default().size(20usize),
-        r#"<w:bottom w:sz="20"/>"#,
-        BottomBorder::default().style(BorderStyle::Dotted),
-        r#"<w:bottom w:val="dotted"/>"#,
-    );
-}
+__xml_test_suites!(
+    BottomBorder,
+    BottomBorder::default(),
+    r#"<w:bottom/>"#,
+    BottomBorder::default().color("000000"),
+    r#"<w:bottom w:color="000000"/>"#,
+    BottomBorder::default().shadow(false),
+    r#"<w:bottom w:shadow="false"/>"#,
+    BottomBorder::default().space(40usize),
+    r#"<w:bottom w:space="40"/>"#,
+    BottomBorder::default().size(20usize),
+    r#"<w:bottom w:sz="20"/>"#,
+    BottomBorder::default().style(BorderStyle::Dotted),
+    r#"<w:bottom w:val="dotted"/>"#,
+);

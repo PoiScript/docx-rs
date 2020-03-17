@@ -3,7 +3,7 @@ use strong_xml::{XmlRead, XmlWrite};
 
 #[derive(Debug, Default, XmlRead, XmlWrite)]
 #[cfg_attr(test, derive(PartialEq))]
-#[xml(leaf, tag = "w:family")]
+#[xml(tag = "w:family")]
 pub struct Family<'a> {
     #[xml(attr = "w:val")]
     pub value: Cow<'a, str>,

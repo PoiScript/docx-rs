@@ -1,5 +1,6 @@
 use strong_xml::{XmlRead, XmlWrite};
 
+use crate::__xml_test_suites;
 use crate::formatting::{IndentLevel, NumberingId};
 
 /// Numbering Property
@@ -30,16 +31,10 @@ impl From<(usize, usize)> for NumberingProperty {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::__test_read_write;
-
-    __test_read_write!(
-        NumberingProperty,
-        NumberingProperty::default(),
-        r#"<w:numPr><w:numId w:val="0"/><w:ilvl w:val="0"/></w:numPr>"#,
-        NumberingProperty::from((20, 40)),
-        r#"<w:numPr><w:numId w:val="20"/><w:ilvl w:val="40"/></w:numPr>"#,
-    );
-}
+__xml_test_suites!(
+    NumberingProperty,
+    NumberingProperty::default(),
+    r#"<w:numPr><w:numId w:val="0"/><w:ilvl w:val="0"/></w:numPr>"#,
+    NumberingProperty::from((20, 40)),
+    r#"<w:numPr><w:numId w:val="20"/><w:ilvl w:val="40"/></w:numPr>"#,
+);

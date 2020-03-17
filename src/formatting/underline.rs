@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 use strong_xml::{XmlRead, XmlWrite};
 
-use crate::__string_enum;
+use crate::{__string_enum, __xml_test_suites};
 
 /// Underline
 ///
@@ -15,7 +15,7 @@ use crate::__string_enum;
 /// ```
 #[derive(Debug, Default, XmlRead, XmlWrite)]
 #[cfg_attr(test, derive(PartialEq))]
-#[xml(leaf, tag = "w:u")]
+#[xml(tag = "w:u")]
 pub struct Underline<'a> {
     #[xml(attr = "w:color")]
     pub color: Option<Cow<'a, str>>,
@@ -114,22 +114,16 @@ __string_enum! {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::__test_read_write;
-
-    __test_read_write!(
-        Underline,
-        Underline::default(),
-        r#"<w:u/>"#,
-        Underline::from("00ff00"),
-        r#"<w:u w:color="00ff00"/>"#,
-        Underline::from(String::from("ff0000")),
-        r#"<w:u w:color="ff0000"/>"#,
-        Underline::from(("00ff00", UnderlineStyle::Dash)),
-        r#"<w:u w:color="00ff00" w:val="dash"/>"#,
-        Underline::from((String::from("ff0000"), UnderlineStyle::DotDash)),
-        r#"<w:u w:color="ff0000" w:val="dotDash"/>"#,
-    );
-}
+__xml_test_suites!(
+    Underline,
+    Underline::default(),
+    r#"<w:u/>"#,
+    Underline::from("00ff00"),
+    r#"<w:u w:color="00ff00"/>"#,
+    Underline::from(String::from("ff0000")),
+    r#"<w:u w:color="ff0000"/>"#,
+    Underline::from(("00ff00", UnderlineStyle::Dash)),
+    r#"<w:u w:color="00ff00" w:val="dash"/>"#,
+    Underline::from((String::from("ff0000"), UnderlineStyle::DotDash)),
+    r#"<w:u w:color="ff0000" w:val="dotDash"/>"#,
+);

@@ -1,6 +1,6 @@
 use strong_xml::{XmlRead, XmlWrite};
 
-use crate::__string_enum;
+use crate::{__string_enum, __xml_test_suites};
 
 /// Table Width
 ///
@@ -13,7 +13,7 @@ use crate::__string_enum;
 /// ```
 #[derive(Debug, Default, XmlRead, XmlWrite)]
 #[cfg_attr(test, derive(PartialEq))]
-#[xml(leaf, tag = "w:tblW")]
+#[xml(tag = "w:tblW")]
 pub struct TableWidth {
     #[xml(attr = "w:w")]
     pub value: Option<usize>,
@@ -66,20 +66,14 @@ __string_enum! {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::__test_read_write;
-
-    __test_read_write!(
-        TableWidth,
-        TableWidth::default(),
-        "<w:tblW/>",
-        TableWidth::from(42),
-        r#"<w:tblW w:w="42"/>"#,
-        TableWidth::from(TableWidthUnit::Pct),
-        r#"<w:tblW w:type="pct"/>"#,
-        TableWidth::from((42, TableWidthUnit::Dxa)),
-        r#"<w:tblW w:w="42" w:type="dxa"/>"#,
-    );
-}
+__xml_test_suites!(
+    TableWidth,
+    TableWidth::default(),
+    "<w:tblW/>",
+    TableWidth::from(42),
+    r#"<w:tblW w:w="42"/>"#,
+    TableWidth::from(TableWidthUnit::Pct),
+    r#"<w:tblW w:type="pct"/>"#,
+    TableWidth::from((42, TableWidthUnit::Dxa)),
+    r#"<w:tblW w:w="42" w:type="dxa"/>"#,
+);

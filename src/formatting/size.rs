@@ -1,5 +1,7 @@
 use strong_xml::{XmlRead, XmlWrite};
 
+use crate::__xml_test_suites;
+
 /// Size
 ///
 /// ```rust
@@ -9,7 +11,7 @@ use strong_xml::{XmlRead, XmlWrite};
 /// ```
 #[derive(Debug, XmlRead, XmlWrite)]
 #[cfg_attr(test, derive(PartialEq))]
-#[xml(leaf, tag = "w:sz")]
+#[xml(tag = "w:sz")]
 pub struct Size {
     #[xml(attr = "w:val")]
     pub value: usize,
@@ -21,10 +23,4 @@ impl<T: Into<usize>> From<T> for Size {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::__test_read_write;
-
-    __test_read_write!(Size, Size::from(42usize), r#"<w:sz w:val="42"/>"#,);
-}
+__xml_test_suites!(Size, Size::from(42usize), r#"<w:sz w:val="42"/>"#,);

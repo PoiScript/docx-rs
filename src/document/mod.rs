@@ -24,6 +24,7 @@ pub use self::{
 use std::io::Write;
 use strong_xml::{XmlRead, XmlResult, XmlWrite};
 
+use crate::__xml_test_suites;
 use crate::schema::SCHEMA_MAIN;
 
 /// The root element of the main document part.
@@ -50,18 +51,12 @@ fn document_extend_attrs<W: Write>(_: &Document, mut w: W) -> XmlResult<()> {
     Ok(())
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::__test_read_write;
-
-    __test_read_write!(
-        Document,
-        Document::default(),
-        format!(
-            r#"<w:document xmlns:w="{}"><w:body></w:body></w:document>"#,
-            SCHEMA_MAIN
-        )
-        .as_str(),
-    );
-}
+__xml_test_suites!(
+    Document,
+    Document::default(),
+    format!(
+        r#"<w:document xmlns:w="{}"><w:body/></w:document>"#,
+        SCHEMA_MAIN
+    )
+    .as_str(),
+);

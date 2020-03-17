@@ -1,12 +1,12 @@
 use std::borrow::Cow;
 use strong_xml::{XmlRead, XmlWrite};
 
-use crate::__setter;
+use crate::{__setter, __xml_test_suites};
 
 /// Beginning of bookmark
 #[derive(Debug, Default, XmlRead, XmlWrite)]
 #[cfg_attr(test, derive(PartialEq))]
-#[xml(leaf, tag = "w:bookmarkStart")]
+#[xml(tag = "w:bookmarkStart")]
 pub struct BookmarkStart<'a> {
     /// Specifies a unique identifier for the bookmark.
     #[xml(attr = "w:id")]
@@ -21,18 +21,12 @@ impl<'a> BookmarkStart<'a> {
     __setter!(name: Option<Cow<'a, str>>);
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::__test_read_write;
-
-    __test_read_write!(
-        BookmarkStart,
-        BookmarkStart::default(),
-        r#"<w:bookmarkStart/>"#,
-        BookmarkStart::default().id(""),
-        r#"<w:bookmarkStart w:id=""/>"#,
-        BookmarkStart::default().name(""),
-        r#"<w:bookmarkStart w:name=""/>"#,
-    );
-}
+__xml_test_suites!(
+    BookmarkStart,
+    BookmarkStart::default(),
+    r#"<w:bookmarkStart/>"#,
+    BookmarkStart::default().id("id"),
+    r#"<w:bookmarkStart w:id="id"/>"#,
+    BookmarkStart::default().name("name"),
+    r#"<w:bookmarkStart w:name="name"/>"#,
+);

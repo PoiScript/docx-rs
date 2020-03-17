@@ -44,19 +44,17 @@ macro_rules! __setter {
 }
 
 #[macro_export]
-macro_rules! __test_read_write {
+macro_rules! __xml_test_suites {
     ($type:tt, $($struct:expr, $string:expr,)*) => {
         #[test]
-        fn test_read_write() -> strong_xml::XmlResult<()> {
+        fn xml_test_suites() -> strong_xml::XmlResult<()> {
             let _ = env_logger::builder()
                 .is_test(true)
                 .format_timestamp(None)
                 .try_init();
 
             $(
-                // test writing
                 assert_eq!($string, ($struct).to_string()?);
-                // test reading
                 assert_eq!($struct, $type::from_str($string)?);
             )*
 

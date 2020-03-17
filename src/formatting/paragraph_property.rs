@@ -2,7 +2,7 @@ use std::borrow::Cow;
 use strong_xml::{XmlRead, XmlWrite};
 
 use crate::{
-    __setter,
+    __setter, __xml_test_suites,
     formatting::{Borders, Justification, NumberingProperty},
 };
 
@@ -43,7 +43,7 @@ impl<'a> ParagraphProperty<'a> {
 
 #[derive(Debug, XmlRead, XmlWrite)]
 #[cfg_attr(test, derive(PartialEq))]
-#[xml(leaf, tag = "w:pStyle")]
+#[xml(tag = "w:pStyle")]
 pub struct ParagraphStyleId<'a> {
     #[xml(attr = "w:val")]
     pub value: Cow<'a, str>,
@@ -56,22 +56,18 @@ impl<'a, T: Into<Cow<'a, str>>> From<T> for ParagraphStyleId<'a> {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::__test_read_write;
-    use crate::formatting::JustificationVal;
+use crate::formatting::JustificationVal;
 
-    __test_read_write!(
-        ParagraphProperty,
-        ParagraphProperty::default(),
-        r#"<w:pPr></w:pPr>"#,
-        ParagraphProperty::default().style_id(""),
-        r#"<w:pPr><w:pStyle w:val=""/></w:pPr>"#,
-        ParagraphProperty::default().justification(JustificationVal::Start),
-        r#"<w:pPr><w:jc w:val="start"/></w:pPr>"#,
-        ParagraphProperty::default().border(Borders::default()),
-        r#"<w:pPr><w:pBdr></w:pBdr></w:pPr>"#,
-        ParagraphProperty::default().numbering(NumberingProperty::default()),
-        r#"<w:pPr><w:numPr><w:numId w:val="0"/><w:ilvl w:val="0"/></w:numPr></w:pPr>"#,
-    );
-}
+__xml_test_suites!(
+    ParagraphProperty,
+    ParagraphProperty::default(),
+    r#"<w:pPr/>"#,
+    ParagraphProperty::default().style_id("id"),
+    r#"<w:pPr><w:pStyle w:val="id"/></w:pPr>"#,
+    ParagraphProperty::default().justification(JustificationVal::Start),
+    r#"<w:pPr><w:jc w:val="start"/></w:pPr>"#,
+    ParagraphProperty::default().border(Borders::default()),
+    r#"<w:pPr><w:pBdr/></w:pPr>"#,
+    ParagraphProperty::default().numbering(NumberingProperty::default()),
+    r#"<w:pPr><w:numPr><w:numId w:val="0"/><w:ilvl w:val="0"/></w:numPr></w:pPr>"#,
+);

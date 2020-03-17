@@ -1,5 +1,7 @@
 use strong_xml::{XmlRead, XmlWrite};
 
+use crate::__xml_test_suites;
+
 /// Bold
 ///
 /// ```rust
@@ -10,7 +12,7 @@ use strong_xml::{XmlRead, XmlWrite};
 /// ```
 #[derive(Debug, Default, XmlRead, XmlWrite)]
 #[cfg_attr(test, derive(PartialEq))]
-#[xml(leaf, tag = "w:b")]
+#[xml(tag = "w:b")]
 pub struct Bold {
     #[xml(attr = "w:val")]
     pub value: Option<bool>,
@@ -22,18 +24,12 @@ impl<T: Into<Option<bool>>> From<T> for Bold {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::__test_read_write;
-
-    __test_read_write!(
-        Bold,
-        Bold::default(),
-        r#"<w:b/>"#,
-        Bold::from(false),
-        r#"<w:b w:val="false"/>"#,
-        Bold::from(true),
-        r#"<w:b w:val="true"/>"#,
-    );
-}
+__xml_test_suites!(
+    Bold,
+    Bold::default(),
+    r#"<w:b/>"#,
+    Bold::from(false),
+    r#"<w:b w:val="false"/>"#,
+    Bold::from(true),
+    r#"<w:b w:val="true"/>"#,
+);

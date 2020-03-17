@@ -1,6 +1,6 @@
 use strong_xml::{XmlRead, XmlWrite};
 
-use crate::__string_enum;
+use crate::{__string_enum, __xml_test_suites};
 
 /// Break
 ///
@@ -11,7 +11,7 @@ use crate::__string_enum;
 /// ```
 #[derive(Debug, Default, XmlRead, XmlWrite)]
 #[cfg_attr(test, derive(PartialEq))]
-#[xml(leaf, tag = "w:br")]
+#[xml(tag = "w:br")]
 pub struct Break {
     /// Specifies the break type of this break.
     #[xml(attr = "type")]
@@ -46,16 +46,10 @@ __string_enum! {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::__test_read_write;
-
-    __test_read_write!(
-        Break,
-        Break::default(),
-        r#"<w:br/>"#,
-        Break::from(BreakType::Page),
-        r#"<w:br type="page"/>"#,
-    );
-}
+__xml_test_suites!(
+    Break,
+    Break::default(),
+    r#"<w:br/>"#,
+    Break::from(BreakType::Page),
+    r#"<w:br type="page"/>"#,
+);

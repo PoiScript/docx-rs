@@ -1,7 +1,7 @@
 use derive_more::From;
 use strong_xml::{XmlRead, XmlWrite};
 
-use crate::{__setter, document::Paragraph, formatting::TableCellProperty};
+use crate::{__setter, __xml_test_suites, document::Paragraph, formatting::TableCellProperty};
 
 /// Table Cell
 ///
@@ -18,18 +18,18 @@ use crate::{__setter, document::Paragraph, formatting::TableCellProperty};
 #[cfg_attr(test, derive(PartialEq))]
 #[xml(tag = "w:tc")]
 pub struct TableCell<'a> {
-    #[xml(child = "w:tcPr")]
-    pub prop: Option<TableCellProperty>,
+    #[xml(default, child = "w:tcPr")]
+    pub prop: TableCellProperty,
     #[xml(child = "w:p")]
     pub content: TableCellContent<'a>,
 }
 
 impl<'a> TableCell<'a> {
-    __setter!(prop: Option<TableCellProperty>);
+    __setter!(prop: TableCellProperty);
 
     pub fn pargraph<T: Into<Paragraph<'a>>>(par: T) -> Self {
         TableCell {
-            prop: None,
+            prop: TableCellProperty::default(),
             content: TableCellContent::Paragraph(par.into()),
         }
     }
@@ -38,7 +38,7 @@ impl<'a> TableCell<'a> {
 impl<'a, T: Into<TableCellContent<'a>>> From<T> for TableCell<'a> {
     fn from(content: T) -> Self {
         TableCell {
-            prop: None,
+            prop: TableCellProperty::default(),
             content: content.into(),
         }
     }
@@ -53,17 +53,8 @@ pub enum TableCellContent<'a> {
     // Table(Table<'a>),
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::__test_read_write;
-    use crate::document::Paragraph;
-
-    __test_read_write!(
-        TableCell,
-        TableCell::pargraph(Paragraph::default()),
-        "<w:tc><w:p></w:p></w:tc>",
-        TableCell::pargraph(Paragraph::default()).prop(TableCellProperty::default()),
-        "<w:tc><w:tcPr></w:tcPr><w:p></w:p></w:tc>",
-    );
-}
+__xml_test_suites!(
+    TableCell,
+    TableCell::pargraph(Paragraph::default()),
+    "<w:tc><w:tcPr/><w:p><w:pPr/></w:p></w:tc>",
+);

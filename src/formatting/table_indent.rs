@@ -1,6 +1,6 @@
 use strong_xml::{XmlRead, XmlWrite};
 
-use crate::__string_enum;
+use crate::{__string_enum, __xml_test_suites};
 
 /// Table Indent
 ///
@@ -13,7 +13,7 @@ use crate::__string_enum;
 /// ```
 #[derive(Debug, Default, XmlRead, XmlWrite)]
 #[cfg_attr(test, derive(PartialEq))]
-#[xml(leaf, tag = "w:tblInd")]
+#[xml(tag = "w:tblInd")]
 pub struct TableIndent {
     #[xml(attr = "w:w")]
     pub value: Option<usize>,
@@ -66,20 +66,14 @@ __string_enum! {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::__test_read_write;
-
-    __test_read_write!(
-        TableIndent,
-        TableIndent::default(),
-        "<w:tblInd/>",
-        TableIndent::from(42),
-        r#"<w:tblInd w:w="42"/>"#,
-        TableIndent::from(TableIndentUnit::Pct),
-        r#"<w:tblInd w:type="pct"/>"#,
-        TableIndent::from((42, TableIndentUnit::Dxa)),
-        r#"<w:tblInd w:w="42" w:type="dxa"/>"#,
-    );
-}
+__xml_test_suites!(
+    TableIndent,
+    TableIndent::default(),
+    "<w:tblInd/>",
+    TableIndent::from(42),
+    r#"<w:tblInd w:w="42"/>"#,
+    TableIndent::from(TableIndentUnit::Pct),
+    r#"<w:tblInd w:type="pct"/>"#,
+    TableIndent::from((42, TableIndentUnit::Dxa)),
+    r#"<w:tblInd w:w="42" w:type="dxa"/>"#,
+);

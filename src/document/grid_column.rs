@@ -1,5 +1,7 @@
 use strong_xml::{XmlRead, XmlWrite};
 
+use crate::__xml_test_suites;
+
 /// Grid Column
 ///
 /// ```rust
@@ -21,14 +23,8 @@ impl From<usize> for GridColumn {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::__test_read_write;
-
-    __test_read_write!(
-        GridColumn,
-        GridColumn::from(42usize),
-        r#"<w:gridCol w:w="42"></w:gridCol>"#,
-    );
-}
+__xml_test_suites!(
+    GridColumn,
+    GridColumn::from(42usize),
+    r#"<w:gridCol w:w="42"/>"#,
+);

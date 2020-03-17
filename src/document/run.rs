@@ -3,7 +3,7 @@ use std::borrow::Cow;
 use strong_xml::{XmlRead, XmlWrite};
 
 use crate::{
-    __setter,
+    __setter, __xml_test_suites,
     document::{r#break::Break, text::Text},
     formatting::CharacterProperty,
 };
@@ -30,15 +30,15 @@ pub struct Run<'a> {
     /// Specifies the properties of a run
     ///
     /// Just as paragraph, a run's properties is applied to all the contents of the run.
-    #[xml(child = "w:rPr")]
-    pub prop: Option<CharacterProperty<'a>>,
+    #[xml(default, child = "w:rPr")]
+    pub prop: CharacterProperty<'a>,
     #[xml(child = "w:t", child = "w:br")]
     /// Specifies the content of a run
     pub content: Vec<RunContent<'a>>,
 }
 
 impl<'a> Run<'a> {
-    __setter!(prop: Option<CharacterProperty<'a>>);
+    __setter!(prop: CharacterProperty<'a>);
 
     #[inline(always)]
     pub fn push<T: Into<RunContent<'a>>>(mut self, content: T) -> Self {
@@ -83,20 +83,12 @@ pub enum RunContent<'a> {
     Break(Break),
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::__test_read_write;
-
-    __test_read_write!(
-        Run,
-        Run::default(),
-        r#"<w:r></w:r>"#,
-        Run::default().prop(CharacterProperty::default()),
-        r#"<w:r><w:rPr></w:rPr></w:r>"#,
-        Run::default().push_break(None),
-        r#"<w:r><w:br/></w:r>"#,
-        Run::default().push_text(""),
-        r#"<w:r><w:t></w:t></w:r>"#,
-    );
-}
+__xml_test_suites!(
+    Run,
+    Run::default(),
+    r#"<w:r><w:rPr/></w:r>"#,
+    Run::default().push_break(None),
+    r#"<w:r><w:rPr/><w:br/></w:r>"#,
+    Run::default().push_text("text"),
+    r#"<w:r><w:rPr/><w:t>text</w:t></w:r>"#,
+);

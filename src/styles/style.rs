@@ -2,7 +2,7 @@ use std::borrow::Cow;
 use strong_xml::{XmlRead, XmlWrite};
 
 use crate::{
-    __setter, __string_enum,
+    __setter, __string_enum, __xml_test_suites,
     formatting::{CharacterProperty, ParagraphProperty},
 };
 
@@ -36,10 +36,10 @@ pub struct Style<'a> {
     pub name: Option<StyleName<'a>>,
     /// Specifies a set of paragraph properties
     #[xml(child = "w:pPr")]
-    pub para: Option<ParagraphProperty<'a>>,
+    pub para: ParagraphProperty<'a>,
     /// Specifies a set of character properties
     #[xml(child = "w:rPr")]
-    pub char: Option<CharacterProperty<'a>>,
+    pub char: CharacterProperty<'a>,
 }
 
 impl<'a> Style<'a> {
@@ -48,8 +48,8 @@ impl<'a> Style<'a> {
             ty: StyleType::Paragraph,
             style_id: style_id.into(),
             name: None,
-            para: None,
-            char: None,
+            para: ParagraphProperty::default(),
+            char: CharacterProperty::default(),
         }
     }
 
@@ -58,8 +58,8 @@ impl<'a> Style<'a> {
             ty: StyleType::Character,
             style_id: style_id.into(),
             name: None,
-            para: None,
-            char: None,
+            para: ParagraphProperty::default(),
+            char: CharacterProperty::default(),
         }
     }
 
@@ -68,8 +68,8 @@ impl<'a> Style<'a> {
             ty: StyleType::Table,
             style_id: style_id.into(),
             name: None,
-            para: None,
-            char: None,
+            para: ParagraphProperty::default(),
+            char: CharacterProperty::default(),
         }
     }
 
@@ -78,20 +78,20 @@ impl<'a> Style<'a> {
             ty: StyleType::Numbering,
             style_id: style_id.into(),
             name: None,
-            para: None,
-            char: None,
+            para: ParagraphProperty::default(),
+            char: CharacterProperty::default(),
         }
     }
 
     __setter!(ty: StyleType);
     __setter!(name: Option<StyleName<'a>>);
-    __setter!(para: Option<ParagraphProperty<'a>>);
-    __setter!(char: Option<CharacterProperty<'a>>);
+    __setter!(para: ParagraphProperty<'a>);
+    __setter!(char: CharacterProperty<'a>);
 }
 
 #[derive(Debug, XmlRead, XmlWrite)]
 #[cfg_attr(test, derive(PartialEq))]
-#[xml(leaf, tag = "w:name")]
+#[xml(tag = "w:name")]
 pub struct StyleName<'a> {
     #[xml(attr = "w:val")]
     pub value: Cow<'a, str>,
@@ -121,20 +121,14 @@ __string_enum! {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::__test_read_write;
-
-    __test_read_write!(
-        Style,
-        Style::numbering(""),
-        r#"<w:style w:type="numbering" w:styleId=""></w:style>"#,
-        Style::table("").name(""),
-        r#"<w:style w:type="table" w:styleId=""><w:name w:val=""/></w:style>"#,
-        Style::paragraph("").para(ParagraphProperty::default()),
-        r#"<w:style w:type="paragraph" w:styleId=""><w:pPr></w:pPr></w:style>"#,
-        Style::character("").char(CharacterProperty::default()),
-        r#"<w:style w:type="character" w:styleId=""><w:rPr></w:rPr></w:style>"#,
-    );
-}
+__xml_test_suites!(
+    Style,
+    Style::numbering("id"),
+    r#"<w:style w:type="numbering" w:styleId="id"><w:pPr/><w:rPr/></w:style>"#,
+    Style::table("id").name("name"),
+    r#"<w:style w:type="table" w:styleId="id"><w:name w:val="name"/><w:pPr/><w:rPr/></w:style>"#,
+    Style::paragraph("id"),
+    r#"<w:style w:type="paragraph" w:styleId="id"><w:pPr/><w:rPr/></w:style>"#,
+    Style::character("id"),
+    r#"<w:style w:type="character" w:styleId="id"><w:pPr/><w:rPr/></w:style>"#,
+);

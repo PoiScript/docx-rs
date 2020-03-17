@@ -42,7 +42,7 @@ impl<'a> Relationships<'a> {
 }
 
 #[derive(Debug, Default, XmlRead, XmlWrite)]
-#[xml(leaf, tag = "Relationship")]
+#[xml(tag = "Relationship")]
 pub struct Relationship<'a> {
     #[xml(attr = "Id")]
     pub id: Cow<'a, str>,

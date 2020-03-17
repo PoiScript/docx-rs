@@ -1,7 +1,7 @@
 use strong_xml::{XmlRead, XmlWrite};
 
 use crate::{
-    __setter,
+    __setter, __xml_test_suites,
     formatting::{BetweenBorder, BottomBorder, LeftBorder, RightBorder, TopBorder},
 };
 
@@ -30,24 +30,18 @@ impl<'a> Borders<'a> {
     __setter!(between: Option<BetweenBorder<'a>>);
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::__test_read_write;
-
-    __test_read_write!(
-        Borders,
-        Borders::default(),
-        r#"<w:pBdr></w:pBdr>"#,
-        Borders::default().top(TopBorder::default()),
-        r#"<w:pBdr><w:top/></w:pBdr>"#,
-        Borders::default().bottom(BottomBorder::default()),
-        r#"<w:pBdr><w:bottom/></w:pBdr>"#,
-        Borders::default().left(LeftBorder::default()),
-        r#"<w:pBdr><w:left/></w:pBdr>"#,
-        Borders::default().right(RightBorder::default()),
-        r#"<w:pBdr><w:right/></w:pBdr>"#,
-        Borders::default().between(BetweenBorder::default()),
-        r#"<w:pBdr><w:between/></w:pBdr>"#,
-    );
-}
+__xml_test_suites!(
+    Borders,
+    Borders::default(),
+    r#"<w:pBdr/>"#,
+    Borders::default().top(TopBorder::default()),
+    r#"<w:pBdr><w:top/></w:pBdr>"#,
+    Borders::default().bottom(BottomBorder::default()),
+    r#"<w:pBdr><w:bottom/></w:pBdr>"#,
+    Borders::default().left(LeftBorder::default()),
+    r#"<w:pBdr><w:left/></w:pBdr>"#,
+    Borders::default().right(RightBorder::default()),
+    r#"<w:pBdr><w:right/></w:pBdr>"#,
+    Borders::default().between(BetweenBorder::default()),
+    r#"<w:pBdr><w:between/></w:pBdr>"#,
+);

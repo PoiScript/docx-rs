@@ -12,6 +12,7 @@ pub use self::{charset::*, family::*, font::*, pitch::*};
 use std::io::Write;
 use strong_xml::{XmlRead, XmlResult, XmlWrite};
 
+use crate::__xml_test_suites;
 use crate::schema::{SCHEMA_MAIN, SCHEMA_RELATIONSHIPS};
 
 /// Font Table
@@ -46,26 +47,20 @@ impl<'a> FontTable<'a> {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::__test_read_write;
-
-    __test_read_write!(
-        FontTable,
-        FontTable::default(),
-        format!(
-            r#"<w:fonts xmlns:w="{}" xmlns:r="{}"></w:fonts>"#,
-            SCHEMA_MAIN, SCHEMA_RELATIONSHIPS
-        )
-        .as_str(),
-        FontTable {
-            fonts: vec!["Arial".into()]
-        },
-        format!(
-            r#"<w:fonts xmlns:w="{}" xmlns:r="{}"><w:font w:name="Arial"></w:font></w:fonts>"#,
-            SCHEMA_MAIN, SCHEMA_RELATIONSHIPS
-        )
-        .as_str(),
-    );
-}
+__xml_test_suites!(
+    FontTable,
+    FontTable::default(),
+    format!(
+        r#"<w:fonts xmlns:w="{}" xmlns:r="{}"/>"#,
+        SCHEMA_MAIN, SCHEMA_RELATIONSHIPS
+    )
+    .as_str(),
+    FontTable {
+        fonts: vec!["Arial".into()]
+    },
+    format!(
+        r#"<w:fonts xmlns:w="{}" xmlns:r="{}"><w:font w:name="Arial"/></w:fonts>"#,
+        SCHEMA_MAIN, SCHEMA_RELATIONSHIPS
+    )
+    .as_str(),
+);

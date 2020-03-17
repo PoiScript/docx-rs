@@ -15,8 +15,7 @@ travis-ci = { repository = "PoiScript/docx-rs" }
 [dependencies]
 derive_more = "0.99.3"
 log = "0.4.8"
-xmlparser = "0.13.0"
-strong-xml = "0.1.3"
+strong-xml = "0.2.0"
 zip = "0.5.4"
 
 [dev-dependencies]

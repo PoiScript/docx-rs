@@ -2,7 +2,7 @@ use std::borrow::Cow;
 use strong_xml::{XmlRead, XmlWrite};
 
 use crate::{
-    __setter,
+    __setter, __xml_test_suites,
     font_table::{Charset, Family, Pitch},
 };
 
@@ -49,20 +49,14 @@ impl<'a, T: Into<Cow<'a, str>>> From<T> for Font<'a> {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::__test_read_write;
-
-    __test_read_write!(
-        Font,
-        Font::new("Arial"),
-        r#"<w:font w:name="Arial"></w:font>"#,
-        Font::new("Arial").charset("00"),
-        r#"<w:font w:name="Arial"><w:charset w:val="00"/></w:font>"#,
-        Font::new("Arial").family("swiss"),
-        r#"<w:font w:name="Arial"><w:family w:val="swiss"/></w:font>"#,
-        Font::new("Arial").pitch("variable"),
-        r#"<w:font w:name="Arial"><w:pitch w:val="variable"/></w:font>"#,
-    );
-}
+__xml_test_suites!(
+    Font,
+    Font::new("Arial"),
+    r#"<w:font w:name="Arial"/>"#,
+    Font::new("Arial").charset("00"),
+    r#"<w:font w:name="Arial"><w:charset w:val="00"/></w:font>"#,
+    Font::new("Arial").family("swiss"),
+    r#"<w:font w:name="Arial"><w:family w:val="swiss"/></w:font>"#,
+    Font::new("Arial").pitch("variable"),
+    r#"<w:font w:name="Arial"><w:pitch w:val="variable"/></w:font>"#,
+);

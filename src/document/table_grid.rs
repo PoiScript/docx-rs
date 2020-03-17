@@ -1,5 +1,6 @@
 use strong_xml::{XmlRead, XmlWrite};
 
+use crate::__xml_test_suites;
 use crate::document::GridColumn;
 
 /// Table Grid
@@ -36,20 +37,14 @@ impl From<Vec<usize>> for TableGrid {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::__test_read_write;
-
-    __test_read_write!(
-        TableGrid,
-        TableGrid::default(),
-        "<w:tblGrid></w:tblGrid>",
-        TableGrid::default().push_column(42),
-        r#"<w:tblGrid><w:gridCol w:w="42"></w:gridCol></w:tblGrid>"#,
-        TableGrid::default().push_column(42).push_column(42),
-        r#"<w:tblGrid><w:gridCol w:w="42"></w:gridCol><w:gridCol w:w="42"></w:gridCol></w:tblGrid>"#,
-        TableGrid::from(vec![42, 42]),
-        r#"<w:tblGrid><w:gridCol w:w="42"></w:gridCol><w:gridCol w:w="42"></w:gridCol></w:tblGrid>"#,
-    );
-}
+__xml_test_suites!(
+    TableGrid,
+    TableGrid::default(),
+    "<w:tblGrid/>",
+    TableGrid::default().push_column(42),
+    r#"<w:tblGrid><w:gridCol w:w="42"/></w:tblGrid>"#,
+    TableGrid::default().push_column(42).push_column(42),
+    r#"<w:tblGrid><w:gridCol w:w="42"/><w:gridCol w:w="42"/></w:tblGrid>"#,
+    TableGrid::from(vec![42, 42]),
+    r#"<w:tblGrid><w:gridCol w:w="42"/><w:gridCol w:w="42"/></w:tblGrid>"#,
+);

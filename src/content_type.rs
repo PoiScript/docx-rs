@@ -70,7 +70,7 @@ impl Default for ContentTypes<'static> {
 }
 
 #[derive(Debug, Default, XmlRead, XmlWrite)]
-#[xml(leaf, tag = "Default")]
+#[xml(tag = "Default")]
 pub struct DefaultContentType<'a> {
     #[xml(attr = "Extension")]
     pub ext: Cow<'a, str>,
@@ -79,7 +79,7 @@ pub struct DefaultContentType<'a> {
 }
 
 #[derive(Debug, Default, XmlRead, XmlWrite)]
-#[xml(leaf, tag = "Override")]
+#[xml(tag = "Override")]
 pub struct OverrideContentType<'a> {
     #[xml(attr = "PartName")]
     pub part: Cow<'a, str>,

@@ -1,6 +1,6 @@
 use strong_xml::{XmlRead, XmlWrite};
 
-use crate::{__setter, formatting::TableJustification};
+use crate::{__setter, __xml_test_suites, formatting::TableJustification};
 
 /// Table Row Property
 ///
@@ -23,17 +23,10 @@ impl TableRowProperty {
     __setter!(justification: Option<TableJustification>);
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::__test_read_write;
-    use crate::formatting::TableJustificationVal;
-
-    __test_read_write!(
-        TableRowProperty,
-        TableRowProperty::default(),
-        r#"<w:trPr></w:trPr>"#,
-        TableRowProperty::default().justification(TableJustificationVal::Start),
-        r#"<w:trPr><w:jc w:val="start"/></w:trPr>"#,
-    );
-}
+__xml_test_suites!(
+    TableRowProperty,
+    TableRowProperty::default(),
+    r#"<w:trPr/>"#,
+    TableRowProperty::default().justification(crate::formatting::TableJustificationVal::Start),
+    r#"<w:trPr><w:jc w:val="start"/></w:trPr>"#,
+);

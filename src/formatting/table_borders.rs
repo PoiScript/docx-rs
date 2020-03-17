@@ -1,7 +1,7 @@
 use strong_xml::{XmlRead, XmlWrite};
 
 use crate::{
-    __setter,
+    __setter, __xml_test_suites,
     formatting::{BottomBorder, TopBorder},
 };
 
@@ -20,18 +20,12 @@ impl<'a> TableBorders<'a> {
     __setter!(bottom: Option<BottomBorder<'a>>);
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::__test_read_write;
-
-    __test_read_write!(
-        TableBorders,
-        TableBorders::default(),
-        r#"<w:tblBorders></w:tblBorders>"#,
-        TableBorders::default().top(TopBorder::default()),
-        r#"<w:tblBorders><w:top/></w:tblBorders>"#,
-        TableBorders::default().bottom(BottomBorder::default()),
-        r#"<w:tblBorders><w:bottom/></w:tblBorders>"#,
-    );
-}
+__xml_test_suites!(
+    TableBorders,
+    TableBorders::default(),
+    r#"<w:tblBorders/>"#,
+    TableBorders::default().top(TopBorder::default()),
+    r#"<w:tblBorders><w:top/></w:tblBorders>"#,
+    TableBorders::default().bottom(BottomBorder::default()),
+    r#"<w:tblBorders><w:bottom/></w:tblBorders>"#,
+);

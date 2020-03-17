@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 use strong_xml::{XmlRead, XmlWrite};
 
-use crate::__string_enum;
+use crate::{__string_enum, __xml_test_suites};
 
 /// Literal Text
 ///
@@ -81,20 +81,14 @@ __string_enum! {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::__test_read_write;
-
-    __test_read_write!(
-        Text,
-        Text::from("text"),
-        "<w:t>text</w:t>",
-        Text::from(String::from("text")),
-        "<w:t>text</w:t>",
-        Text::from(("text", TextSpace::Preserve)),
-        r#"<w:t xml:space="preserve">text</w:t>"#,
-        Text::from((String::from("text"), TextSpace::Default)),
-        r#"<w:t xml:space="default">text</w:t>"#,
-    );
-}
+__xml_test_suites!(
+    Text,
+    Text::from("text"),
+    "<w:t>text</w:t>",
+    Text::from(String::from("text")),
+    "<w:t>text</w:t>",
+    Text::from(("text", TextSpace::Preserve)),
+    r#"<w:t xml:space="preserve">text</w:t>"#,
+    Text::from((String::from("text"), TextSpace::Default)),
+    r#"<w:t xml:space="default">text</w:t>"#,
+);

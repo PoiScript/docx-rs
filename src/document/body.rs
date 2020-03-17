@@ -1,6 +1,7 @@
 use derive_more::From;
 use strong_xml::{XmlRead, XmlWrite};
 
+use crate::__xml_test_suites;
 use crate::document::{Paragraph, Table};
 
 /// Document Body
@@ -51,22 +52,16 @@ pub enum BodyContent<'a> {
     // SecProp,
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::__test_read_write;
-
-    __test_read_write!(
-        Body,
-        Body::default(),
-        r#"<w:body></w:body>"#,
-        Body {
-            content: vec![Paragraph::default().into()]
-        },
-        r#"<w:body><w:p></w:p></w:body>"#,
-        Body {
-            content: vec![Table::default().into()]
-        },
-        r#"<w:body><w:tbl></w:tbl></w:body>"#,
-    );
-}
+__xml_test_suites!(
+    Body,
+    Body::default(),
+    r#"<w:body/>"#,
+    Body {
+        content: vec![Paragraph::default().into()]
+    },
+    r#"<w:body><w:p><w:pPr/></w:p></w:body>"#,
+    Body {
+        content: vec![Table::default().into()]
+    },
+    r#"<w:body><w:tbl><w:tblPr/></w:tbl></w:body>"#,
+);

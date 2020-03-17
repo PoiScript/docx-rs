@@ -2,7 +2,7 @@ use std::borrow::Cow;
 use strong_xml::{XmlRead, XmlWrite};
 
 use crate::{
-    __setter,
+    __setter, __xml_test_suites,
     formatting::{Bold, Color, Dstrike, Italics, Outline, Size, Strike, Underline},
 };
 
@@ -72,7 +72,7 @@ impl<'a> CharacterProperty<'a> {
 
 #[derive(Debug, XmlRead, XmlWrite)]
 #[cfg_attr(test, derive(PartialEq))]
-#[xml(leaf, tag = "w:rStyle")]
+#[xml(tag = "w:rStyle")]
 pub struct CharacterStyleId<'a> {
     #[xml(attr = "w:val")]
     pub value: Cow<'a, str>,
@@ -84,32 +84,26 @@ impl<'a, T: Into<Cow<'a, str>>> From<T> for CharacterStyleId<'a> {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::__test_read_write;
-
-    __test_read_write!(
-        CharacterProperty,
-        CharacterProperty::default(),
-        r#"<w:rPr></w:rPr>"#,
-        CharacterProperty::default().style_id(""),
-        r#"<w:rPr><w:rStyle w:val=""/></w:rPr>"#,
-        CharacterProperty::default().color("00ff00"),
-        r#"<w:rPr><w:color w:val="00ff00"/></w:rPr>"#,
-        CharacterProperty::default().size(42usize),
-        r#"<w:rPr><w:sz w:val="42"/></w:rPr>"#,
-        CharacterProperty::default().bold(true),
-        r#"<w:rPr><w:b w:val="true"/></w:rPr>"#,
-        CharacterProperty::default().italics(false),
-        r#"<w:rPr><w:i w:val="false"/></w:rPr>"#,
-        CharacterProperty::default().outline(true),
-        r#"<w:rPr><w:outline w:val="true"/></w:rPr>"#,
-        CharacterProperty::default().strike(false),
-        r#"<w:rPr><w:strike w:val="false"/></w:rPr>"#,
-        CharacterProperty::default().dstrike(true),
-        r#"<w:rPr><w:dstrike w:val="true"/></w:rPr>"#,
-        CharacterProperty::default().underline(Underline::default()),
-        r#"<w:rPr><w:u/></w:rPr>"#,
-    );
-}
+__xml_test_suites!(
+    CharacterProperty,
+    CharacterProperty::default(),
+    r#"<w:rPr/>"#,
+    CharacterProperty::default().style_id("id"),
+    r#"<w:rPr><w:rStyle w:val="id"/></w:rPr>"#,
+    CharacterProperty::default().color("00ff00"),
+    r#"<w:rPr><w:color w:val="00ff00"/></w:rPr>"#,
+    CharacterProperty::default().size(42usize),
+    r#"<w:rPr><w:sz w:val="42"/></w:rPr>"#,
+    CharacterProperty::default().bold(true),
+    r#"<w:rPr><w:b w:val="true"/></w:rPr>"#,
+    CharacterProperty::default().italics(false),
+    r#"<w:rPr><w:i w:val="false"/></w:rPr>"#,
+    CharacterProperty::default().outline(true),
+    r#"<w:rPr><w:outline w:val="true"/></w:rPr>"#,
+    CharacterProperty::default().strike(false),
+    r#"<w:rPr><w:strike w:val="false"/></w:rPr>"#,
+    CharacterProperty::default().dstrike(true),
+    r#"<w:rPr><w:dstrike w:val="true"/></w:rPr>"#,
+    CharacterProperty::default().underline(Underline::default()),
+    r#"<w:rPr><w:u/></w:rPr>"#,
+);

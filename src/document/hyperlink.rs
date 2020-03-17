@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 use strong_xml::{XmlRead, XmlWrite};
 
-use crate::{__setter, document::Run};
+use crate::{__setter, __xml_test_suites, document::Run};
 
 /// The root element of a hyperlink within the paragraph
 #[derive(Debug, Default, XmlRead, XmlWrite)]
@@ -25,18 +25,12 @@ impl<'a> Hyperlink<'a> {
     __setter!(content: Run<'a>);
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::__test_read_write;
-
-    __test_read_write!(
-        Hyperlink,
-        Hyperlink::default(),
-        r#"<w:hyperlink><w:r></w:r></w:hyperlink>"#,
-        Hyperlink::default().id(""),
-        r#"<w:hyperlink r:id=""><w:r></w:r></w:hyperlink>"#,
-        Hyperlink::default().anchor(""),
-        r#"<w:hyperlink w:anchor=""><w:r></w:r></w:hyperlink>"#,
-    );
-}
+__xml_test_suites!(
+    Hyperlink,
+    Hyperlink::default(),
+    r#"<w:hyperlink><w:r><w:rPr/></w:r></w:hyperlink>"#,
+    Hyperlink::default().id("id"),
+    r#"<w:hyperlink r:id="id"><w:r><w:rPr/></w:r></w:hyperlink>"#,
+    Hyperlink::default().anchor("anchor"),
+    r#"<w:hyperlink w:anchor="anchor"><w:r><w:rPr/></w:r></w:hyperlink>"#,
+);
