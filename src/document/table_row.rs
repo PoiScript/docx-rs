@@ -20,7 +20,7 @@ use crate::{__setter, __xml_test_suites, document::TableCell, formatting::TableR
 #[cfg_attr(test, derive(PartialEq))]
 #[xml(tag = "w:tr")]
 pub struct TableRow<'a> {
-    #[xml(child = "w:trPr")]
+    #[xml(default, child = "w:trPr")]
     pub property: TableRowProperty,
     #[xml(child = "w:tc")]
     pub cells: Vec<TableCell<'a>>,

@@ -35,10 +35,10 @@ pub struct Style<'a> {
     #[xml(child = "w:name")]
     pub name: Option<StyleName<'a>>,
     /// Specifies a set of paragraph properties
-    #[xml(child = "w:pPr")]
+    #[xml(default, child = "w:pPr")]
     pub paragraph: ParagraphProperty<'a>,
     /// Specifies a set of character properties
-    #[xml(child = "w:rPr")]
+    #[xml(default, child = "w:rPr")]
     pub character: CharacterProperty<'a>,
 }
 
