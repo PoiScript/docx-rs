@@ -17,7 +17,7 @@ use crate::{
 /// use docx::formatting::*;
 ///
 /// let run = Run::default()
-///     .prop(CharacterProperty::default())
+///     .property(CharacterProperty::default())
 ///     .push_text("text")
 ///     .push_break(None)
 ///     .push_text((" text ", TextSpace::Preserve))
@@ -31,14 +31,14 @@ pub struct Run<'a> {
     ///
     /// Just as paragraph, a run's properties is applied to all the contents of the run.
     #[xml(default, child = "w:rPr")]
-    pub prop: CharacterProperty<'a>,
+    pub property: CharacterProperty<'a>,
     #[xml(child = "w:t", child = "w:br")]
     /// Specifies the content of a run
     pub content: Vec<RunContent<'a>>,
 }
 
 impl<'a> Run<'a> {
-    __setter!(prop: CharacterProperty<'a>);
+    __setter!(property: CharacterProperty<'a>);
 
     #[inline(always)]
     pub fn push<T: Into<RunContent<'a>>>(mut self, content: T) -> Self {

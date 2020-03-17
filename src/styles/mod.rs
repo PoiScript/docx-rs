@@ -22,7 +22,7 @@ use crate::schema::SCHEMA_MAIN;
 ///
 /// let style = Styles::new()
 ///     .default(DefaultStyle::default())
-///     .push(Style::paragraph("style_id"));
+///     .push(Style::new(StyleType::Paragraph, "style_id"));
 /// ```
 #[derive(Debug, Default, XmlRead, XmlWrite)]
 #[cfg_attr(test, derive(PartialEq))]
@@ -68,7 +68,7 @@ __xml_test_suites!(
     )
     .as_str(),
     Styles {
-        styles: vec![Style::paragraph("id")],
+        styles: vec![Style::new(crate::styles::StyleType::Paragraph, "id")],
         ..Default::default()
     },
     format!(

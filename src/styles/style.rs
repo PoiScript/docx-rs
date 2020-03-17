@@ -14,10 +14,10 @@ use crate::{
 /// use docx::formatting::*;
 /// use docx::styles::*;
 ///
-/// let style = Style::paragraph("style_id")
+/// let style = Style::new(StyleType::Paragraph, "style_id")
 ///     .name("Style Name")
-///     .para(ParagraphProperty::default())
-///     .char(CharacterProperty::default());
+///     .paragraph(ParagraphProperty::default())
+///     .character(CharacterProperty::default());
 /// ```
 #[derive(Debug, XmlRead, XmlWrite)]
 #[cfg_attr(test, derive(PartialEq))]
@@ -36,57 +36,27 @@ pub struct Style<'a> {
     pub name: Option<StyleName<'a>>,
     /// Specifies a set of paragraph properties
     #[xml(child = "w:pPr")]
-    pub para: ParagraphProperty<'a>,
+    pub paragraph: ParagraphProperty<'a>,
     /// Specifies a set of character properties
     #[xml(child = "w:rPr")]
-    pub char: CharacterProperty<'a>,
+    pub character: CharacterProperty<'a>,
 }
 
 impl<'a> Style<'a> {
-    pub fn paragraph<T: Into<Cow<'a, str>>>(style_id: T) -> Self {
+    pub fn new<T: Into<Cow<'a, str>>>(ty: StyleType, style_id: T) -> Self {
         Style {
-            ty: StyleType::Paragraph,
+            ty,
             style_id: style_id.into(),
             name: None,
-            para: ParagraphProperty::default(),
-            char: CharacterProperty::default(),
-        }
-    }
-
-    pub fn character<T: Into<Cow<'a, str>>>(style_id: T) -> Self {
-        Style {
-            ty: StyleType::Character,
-            style_id: style_id.into(),
-            name: None,
-            para: ParagraphProperty::default(),
-            char: CharacterProperty::default(),
-        }
-    }
-
-    pub fn table<T: Into<Cow<'a, str>>>(style_id: T) -> Self {
-        Style {
-            ty: StyleType::Table,
-            style_id: style_id.into(),
-            name: None,
-            para: ParagraphProperty::default(),
-            char: CharacterProperty::default(),
-        }
-    }
-
-    pub fn numbering<T: Into<Cow<'a, str>>>(style_id: T) -> Self {
-        Style {
-            ty: StyleType::Numbering,
-            style_id: style_id.into(),
-            name: None,
-            para: ParagraphProperty::default(),
-            char: CharacterProperty::default(),
+            paragraph: ParagraphProperty::default(),
+            character: CharacterProperty::default(),
         }
     }
 
     __setter!(ty: StyleType);
     __setter!(name: Option<StyleName<'a>>);
-    __setter!(para: ParagraphProperty<'a>);
-    __setter!(char: CharacterProperty<'a>);
+    __setter!(paragraph: ParagraphProperty<'a>);
+    __setter!(character: CharacterProperty<'a>);
 }
 
 #[derive(Debug, XmlRead, XmlWrite)]
@@ -123,12 +93,12 @@ __string_enum! {
 
 __xml_test_suites!(
     Style,
-    Style::numbering("id"),
+    Style::new(StyleType::Numbering, "id"),
     r#"<w:style w:type="numbering" w:styleId="id"><w:pPr/><w:rPr/></w:style>"#,
-    Style::table("id").name("name"),
+    Style::new(StyleType::Table, "id").name("name"),
     r#"<w:style w:type="table" w:styleId="id"><w:name w:val="name"/><w:pPr/><w:rPr/></w:style>"#,
-    Style::paragraph("id"),
+    Style::new(StyleType::Paragraph, "id"),
     r#"<w:style w:type="paragraph" w:styleId="id"><w:pPr/><w:rPr/></w:style>"#,
-    Style::character("id"),
+    Style::new(StyleType::Character, "id"),
     r#"<w:style w:type="character" w:styleId="id"><w:pPr/><w:rPr/></w:style>"#,
 );

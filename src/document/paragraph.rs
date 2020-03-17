@@ -17,7 +17,7 @@ use crate::{
 /// use docx::formatting::*;
 ///
 /// let par = Paragraph::default()
-///     .prop(ParagraphProperty::default())
+///     .property(ParagraphProperty::default())
 ///     .push_text("hello,")
 ///     .push_text((" world.", TextSpace::Preserve))
 ///     .push(Run::default())
@@ -32,7 +32,7 @@ pub struct Paragraph<'a> {
     ///
     /// This information is applied to all the contents of the paragraph.
     #[xml(default, child = "w:pPr")]
-    pub prop: ParagraphProperty<'a>,
+    pub property: ParagraphProperty<'a>,
     /// Specifes the run contents of a paragraph
     ///
     /// Run is a region of text with properties. Each paragraph containes one or more runs.
@@ -46,7 +46,7 @@ pub struct Paragraph<'a> {
 }
 
 impl<'a> Paragraph<'a> {
-    __setter!(prop: ParagraphProperty<'a>);
+    __setter!(property: ParagraphProperty<'a>);
 
     #[inline(always)]
     pub fn push<T: Into<ParagraphContent<'a>>>(mut self, content: T) -> Self {

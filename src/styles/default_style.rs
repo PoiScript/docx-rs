@@ -14,22 +14,22 @@ use crate::{
 /// use docx::styles::*;
 ///
 /// let style = DefaultStyle::default()
-///     .char(CharacterProperty::default())
-///     .para(ParagraphProperty::default());
+///     .character(CharacterProperty::default())
+///     .paragraph(ParagraphProperty::default());
 /// ```
 #[derive(Debug, Default, XmlRead, XmlWrite)]
 #[cfg_attr(test, derive(PartialEq))]
 #[xml(tag = "w:docDefaults")]
 pub struct DefaultStyle<'a> {
     #[xml(default, child = "w:rPrDefault")]
-    pub char: DefaultCharacterProperty<'a>,
+    pub character: DefaultCharacterProperty<'a>,
     #[xml(default, child = "w:pPrDefault")]
-    pub para: DefaultParagraphProperty<'a>,
+    pub paragraph: DefaultParagraphProperty<'a>,
 }
 
 impl<'a> DefaultStyle<'a> {
-    __setter!(char: DefaultCharacterProperty<'a>);
-    __setter!(para: DefaultParagraphProperty<'a>);
+    __setter!(character: DefaultCharacterProperty<'a>);
+    __setter!(paragraph: DefaultParagraphProperty<'a>);
 }
 
 /// Default Character Properties

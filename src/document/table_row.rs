@@ -9,11 +9,11 @@ use crate::{__setter, __xml_test_suites, document::TableCell, formatting::TableR
 /// use docx::formatting::*;
 ///
 /// let row = TableRow::default()
-///     .prop(TableRowProperty::default())
+///     .property(TableRowProperty::default())
 ///     .push_cell(Paragraph::default())
 ///     .push_cell(
 ///         TableCell::pargraph(Paragraph::default())
-///             .prop(TableCellProperty::default())
+///             .property(TableCellProperty::default())
 ///     );
 /// ```
 #[derive(Debug, Default, XmlRead, XmlWrite)]
@@ -21,13 +21,13 @@ use crate::{__setter, __xml_test_suites, document::TableCell, formatting::TableR
 #[xml(tag = "w:tr")]
 pub struct TableRow<'a> {
     #[xml(child = "w:trPr")]
-    pub prop: TableRowProperty,
+    pub property: TableRowProperty,
     #[xml(child = "w:tc")]
     pub cells: Vec<TableCell<'a>>,
 }
 
 impl<'a> TableRow<'a> {
-    __setter!(prop: TableRowProperty);
+    __setter!(property: TableRowProperty);
 
     pub fn push_cell<T: Into<TableCell<'a>>>(mut self, cell: T) -> Self {
         self.cells.push(cell.into());

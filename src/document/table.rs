@@ -13,7 +13,7 @@ use crate::{
 /// use docx::formatting::*;
 ///
 /// let tbl = Table::default()
-///     .prop(TableProperty::default())
+///     .property(TableProperty::default())
 ///     .push_grid(vec![1, 2, 3])
 ///     .push_grid(TableGrid::default())
 ///     .push_row(TableRow::default());
@@ -23,7 +23,7 @@ use crate::{
 #[xml(tag = "w:tbl")]
 pub struct Table<'a> {
     #[xml(default, child = "w:tblPr")]
-    pub prop: TableProperty<'a>,
+    pub property: TableProperty<'a>,
     #[xml(child = "w:tblGrid")]
     pub grids: Vec<TableGrid>,
     #[xml(child = "w:tr")]
@@ -31,7 +31,7 @@ pub struct Table<'a> {
 }
 
 impl<'a> Table<'a> {
-    __setter!(prop: TableProperty<'a>);
+    __setter!(property: TableProperty<'a>);
 
     pub fn push_grid<T: Into<TableGrid>>(mut self, grid: T) -> Self {
         self.grids.push(grid.into());
