@@ -21,7 +21,7 @@ pub struct TableCell<'a> {
     #[xml(default, child = "w:tcPr")]
     pub property: TableCellProperty,
     #[xml(child = "w:p")]
-    pub content: TableCellContent<'a>,
+    pub content: Vec<TableCellContent<'a>>,
 }
 
 impl<'a> TableCell<'a> {
@@ -30,7 +30,7 @@ impl<'a> TableCell<'a> {
     pub fn pargraph<T: Into<Paragraph<'a>>>(par: T) -> Self {
         TableCell {
             property: TableCellProperty::default(),
-            content: TableCellContent::Paragraph(par.into()),
+            content: vec![TableCellContent::Paragraph(par.into())],
         }
     }
 }
@@ -39,7 +39,7 @@ impl<'a, T: Into<TableCellContent<'a>>> From<T> for TableCell<'a> {
     fn from(content: T) -> Self {
         TableCell {
             property: TableCellProperty::default(),
-            content: content.into(),
+            content: vec![content.into()],
         }
     }
 }
