@@ -8,7 +8,7 @@ mod style;
 pub use self::{default_style::*, style::*};
 
 use std::io::Write;
-use strong_xml::{XmlRead, XmlResult, XmlWrite};
+use strong_xml::{XmlRead, XmlResult, XmlWriter};
 
 use crate::__xml_test_suites;
 use crate::schema::SCHEMA_MAIN;
@@ -24,10 +24,9 @@ use crate::schema::SCHEMA_MAIN;
 ///     .default(DefaultStyle::default())
 ///     .push(Style::new(StyleType::Paragraph, "style_id"));
 /// ```
-#[derive(Debug, Default, XmlRead, XmlWrite)]
+#[derive(Debug, Default, XmlRead)]
 #[cfg_attr(test, derive(PartialEq))]
 #[xml(tag = "w:styles")]
-#[xml(extend_attrs = "styles_extend_attrs")]
 pub struct Styles<'a> {
     /// Specifies the default set of properties.
     #[xml(default, child = "w:docDefaults")]
@@ -37,10 +36,37 @@ pub struct Styles<'a> {
     pub styles: Vec<Style<'a>>,
 }
 
-#[inline]
-fn styles_extend_attrs<W: Write>(_: &Styles, mut w: W) -> XmlResult<()> {
-    write!(w, " xmlns:w=\"{}\"", SCHEMA_MAIN)?;
-    Ok(())
+impl<'a> Styles<'a> {
+    #[cfg(test)]
+    pub(crate) fn to_string(&self) -> strong_xml::XmlResult<String> {
+        let mut writer = XmlWriter::new(Vec::new());
+        self.to_writer(&mut writer)?;
+        Ok(String::from_utf8(writer.inner)?)
+    }
+
+    pub(crate) fn to_writer<W: Write>(&self, mut writer: &mut XmlWriter<W>) -> XmlResult<()> {
+        let Styles { default, styles } = self;
+
+        log::debug!("[Styles] Started writing.");
+
+        writer.write_element_start("w:styles")?;
+
+        writer.write_attribute("xmlns:w", SCHEMA_MAIN)?;
+
+        writer.write_element_end_open()?;
+
+        default.to_writer(&mut writer)?;
+
+        for ele in styles {
+            ele.to_writer(&mut writer)?;
+        }
+
+        writer.write_element_end_close("w:styles")?;
+
+        log::debug!("[Styles] Finished writing.");
+
+        Ok(())
+    }
 }
 
 impl<'a> Styles<'a> {

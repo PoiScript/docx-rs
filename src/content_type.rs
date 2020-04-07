@@ -4,7 +4,7 @@
 
 use std::borrow::Cow;
 use std::io::Write;
-use strong_xml::{XmlRead, XmlResult, XmlWrite};
+use strong_xml::{XmlRead, XmlResult, XmlWrite, XmlWriter};
 
 use crate::schema::SCHEMA_CONTENT_TYPES;
 
@@ -18,20 +18,13 @@ const CONTENT_TYPE_DOCUMENT: &str =
 const CONTENT_TYPE_STYLES: &str =
     "application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml";
 
-#[derive(Debug, XmlRead, XmlWrite)]
+#[derive(Debug, XmlRead)]
 #[xml(tag = "Types")]
-#[xml(extend_attrs = "content_types_extend_attrs")]
 pub struct ContentTypes<'a> {
     #[xml(child = "Default")]
     pub defaults: Vec<DefaultContentType<'a>>,
     #[xml(child = "Override")]
     pub overrides: Vec<OverrideContentType<'a>>,
-}
-
-#[inline]
-fn content_types_extend_attrs<W: Write>(_: &ContentTypes, mut w: W) -> XmlResult<()> {
-    write!(w, " xmlns=\"{}\"", SCHEMA_CONTENT_TYPES)?;
-    Ok(())
 }
 
 impl Default for ContentTypes<'static> {
@@ -66,6 +59,38 @@ impl Default for ContentTypes<'static> {
                 },
             ],
         }
+    }
+}
+
+impl<'a> ContentTypes<'a> {
+    pub(crate) fn to_writer<W: Write>(&self, mut writer: &mut XmlWriter<W>) -> XmlResult<()> {
+        let ContentTypes {
+            defaults,
+            overrides,
+        } = self;
+
+        log::debug!("[ContentTypes] Started writing.");
+
+        writer.write_element_start("Types")?;
+
+        writer.write_attribute("xmlns", SCHEMA_CONTENT_TYPES)?;
+
+        if defaults.is_empty() && overrides.is_empty() {
+            writer.write_element_end_empty()?;
+        } else {
+            writer.write_element_end_open()?;
+            for ele in defaults {
+                ele.to_writer(&mut writer)?;
+            }
+            for ele in overrides {
+                ele.to_writer(&mut writer)?;
+            }
+            writer.write_element_end_close("Types")?;
+        }
+
+        log::debug!("[ContentTypes] Finished writing.");
+
+        Ok(())
     }
 }
 

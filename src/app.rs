@@ -4,13 +4,12 @@
 
 use std::borrow::Cow;
 use std::io::Write;
-use strong_xml::{XmlRead, XmlResult, XmlWrite};
+use strong_xml::{XmlRead, XmlResult, XmlWriter};
 
 use crate::schema::{SCHEMAS_EXTENDED, SCHEMA_DOC_PROPS_V_TYPES};
 
-#[derive(Debug, XmlRead, XmlWrite)]
+#[derive(Debug, XmlRead)]
 #[xml(tag = "Properties")]
-#[xml(extend_attrs = "app_extend_attrs")]
 pub struct App<'a> {
     #[xml(flatten_text = "Template")]
     pub template: Option<Cow<'a, str>>,
@@ -46,13 +45,6 @@ pub struct App<'a> {
     pub app_version: Option<Cow<'a, str>>,
 }
 
-#[inline]
-fn app_extend_attrs<W: Write>(_: &App, mut w: W) -> XmlResult<()> {
-    write!(&mut w, r#" xmlns="{}""#, SCHEMAS_EXTENDED)?;
-    write!(&mut w, r#" xmlns:vt="{}""#, SCHEMA_DOC_PROPS_V_TYPES)?;
-    Ok(())
-}
-
 impl Default for App<'static> {
     fn default() -> App<'static> {
         App {
@@ -73,5 +65,110 @@ impl Default for App<'static> {
             hyperlinks_changed: Some("false".into()),
             app_version: Some("12.0000".into()),
         }
+    }
+}
+
+impl<'a> App<'a> {
+    pub(crate) fn to_writer<W: Write>(&self, writer: &mut XmlWriter<W>) -> XmlResult<()> {
+        let App {
+            template,
+            total_time,
+            pages,
+            words,
+            characters,
+            application,
+            doc_security,
+            lines,
+            paragraphs,
+            scale_crop,
+            company,
+            links_up_to_date,
+            characters_with_spaces,
+            shared_doc,
+            hyperlinks_changed,
+            app_version,
+        } = self;
+
+        log::debug!("[App] Started writing.");
+
+        writer.write_element_start("Properties")?;
+
+        writer.write_attribute("xmlns", SCHEMAS_EXTENDED)?;
+        writer.write_attribute("xmlns:vt", SCHEMA_DOC_PROPS_V_TYPES)?;
+
+        if template.is_none()
+            && total_time.is_none()
+            && pages.is_none()
+            && words.is_none()
+            && characters.is_none()
+            && application.is_none()
+            && doc_security.is_none()
+            && lines.is_none()
+            && paragraphs.is_none()
+            && scale_crop.is_none()
+            && company.is_none()
+            && links_up_to_date.is_none()
+            && characters_with_spaces.is_none()
+            && shared_doc.is_none()
+            && hyperlinks_changed.is_none()
+            && app_version.is_none()
+        {
+            writer.write_element_end_empty()?;
+        } else {
+            writer.write_element_end_open()?;
+            if let Some(val) = template {
+                writer.write_flatten_text("Template", val)?;
+            }
+            if let Some(val) = total_time {
+                writer.write_flatten_text("TotalTime", val)?;
+            }
+            if let Some(val) = pages {
+                writer.write_flatten_text("Pages", val)?;
+            }
+            if let Some(val) = words {
+                writer.write_flatten_text("Words", val)?;
+            }
+            if let Some(val) = characters {
+                writer.write_flatten_text("Characters", val)?;
+            }
+            if let Some(val) = application {
+                writer.write_flatten_text("Application", val)?;
+            }
+            if let Some(val) = doc_security {
+                writer.write_flatten_text("DocSecurity", val)?;
+            }
+            if let Some(val) = lines {
+                writer.write_flatten_text("Lines", val)?;
+            }
+            if let Some(val) = paragraphs {
+                writer.write_flatten_text("Paragraphs", val)?;
+            }
+            if let Some(val) = scale_crop {
+                writer.write_flatten_text("ScaleCrop", val)?;
+            }
+            if let Some(val) = company {
+                writer.write_flatten_text("Company", val)?;
+            }
+            if let Some(val) = links_up_to_date {
+                writer.write_flatten_text("LinksUpToDate", val)?;
+            }
+            if let Some(val) = characters_with_spaces {
+                writer.write_flatten_text("CharactersWithSpaces", val)?;
+            }
+            if let Some(val) = shared_doc {
+                writer.write_flatten_text("SharedDoc", val)?;
+            }
+            if let Some(val) = hyperlinks_changed {
+                writer.write_flatten_text("HyperlinksChanged", val)?;
+            }
+            if let Some(val) = app_version {
+                writer.write_flatten_text("AppVersion", val)?;
+            }
+            writer.write_element_end_close("Properties")?;
+        }
+
+        log::debug!("[App] Finished writing.");
+
+        Ok(())
     }
 }

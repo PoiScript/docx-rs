@@ -5,22 +5,41 @@
 
 use std::borrow::Cow;
 use std::io::Write;
-use strong_xml::{XmlRead, XmlResult, XmlWrite};
+use strong_xml::{XmlRead, XmlResult, XmlWrite, XmlWriter};
 
 use crate::schema::SCHEMA_RELATIONSHIPS;
 
-#[derive(Debug, Default, XmlRead, XmlWrite)]
+#[derive(Debug, Default, XmlRead)]
 #[xml(tag = "Relationships")]
-#[xml(extend_attrs = "relationships_extend_attrs")]
 pub struct Relationships<'a> {
     #[xml(child = "Relationship")]
     pub relationships: Vec<Relationship<'a>>,
 }
 
-#[inline]
-fn relationships_extend_attrs<W: Write>(_: &Relationships, mut w: W) -> XmlResult<()> {
-    write!(w, " xmlns=\"{}\"", SCHEMA_RELATIONSHIPS)?;
-    Ok(())
+impl<'a> Relationships<'a> {
+    pub(crate) fn to_writer<W: Write>(&self, mut writer: &mut XmlWriter<W>) -> XmlResult<()> {
+        let Relationships { relationships } = self;
+
+        log::debug!("[Relationships] Started writing.");
+
+        writer.write_element_start("Relationships")?;
+
+        writer.write_attribute("xmlns", SCHEMA_RELATIONSHIPS)?;
+
+        if relationships.is_empty() {
+            writer.write_element_end_empty()?;
+        } else {
+            writer.write_element_end_open()?;
+            for ele in relationships {
+                ele.to_writer(&mut writer)?;
+            }
+            writer.write_element_end_close("Relationships")?;
+        }
+
+        log::debug!("[Relationships] Finished writing.");
+
+        Ok(())
+    }
 }
 
 impl<'a> Relationships<'a> {

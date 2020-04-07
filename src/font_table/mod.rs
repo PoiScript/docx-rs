@@ -10,7 +10,7 @@ mod pitch;
 pub use self::{charset::*, family::*, font::*, pitch::*};
 
 use std::io::Write;
-use strong_xml::{XmlRead, XmlResult, XmlWrite};
+use strong_xml::{XmlRead, XmlResult, XmlWriter};
 
 use crate::__xml_test_suites;
 use crate::schema::{SCHEMA_MAIN, SCHEMA_RELATIONSHIPS};
@@ -24,20 +24,46 @@ use crate::schema::{SCHEMA_MAIN, SCHEMA_RELATIONSHIPS};
 ///     .push_font("Arial")
 ///     .push_font(Font::new("Helvetica").family("swiss"));
 /// ```
-#[derive(Debug, Default, XmlRead, XmlWrite)]
+#[derive(Debug, Default, XmlRead)]
 #[cfg_attr(test, derive(PartialEq))]
 #[xml(tag = "w:fonts")]
-#[xml(extend_attrs = "font_table_extend_attrs")]
 pub struct FontTable<'a> {
     #[xml(child = "w:font")]
     pub fonts: Vec<Font<'a>>,
 }
 
-#[inline]
-fn font_table_extend_attrs<W: Write>(_: &FontTable, mut w: W) -> XmlResult<()> {
-    write!(&mut w, r#" xmlns:w="{}""#, SCHEMA_MAIN)?;
-    write!(&mut w, r#" xmlns:r="{}""#, SCHEMA_RELATIONSHIPS)?;
-    Ok(())
+impl<'a> FontTable<'a> {
+    #[cfg(test)]
+    pub(crate) fn to_string(&self) -> XmlResult<String> {
+        let mut writer = XmlWriter::new(Vec::new());
+        self.to_writer(&mut writer)?;
+        Ok(String::from_utf8(writer.inner)?)
+    }
+
+    pub(crate) fn to_writer<W: Write>(&self, mut writer: &mut XmlWriter<W>) -> XmlResult<()> {
+        let FontTable { fonts } = self;
+
+        log::debug!("[FontTable] Started writing.");
+
+        writer.write_element_start("w:fonts")?;
+
+        writer.write_attribute("xmlns:w", SCHEMA_MAIN)?;
+        writer.write_attribute("xmlns:r", SCHEMA_RELATIONSHIPS)?;
+
+        if fonts.is_empty() {
+            writer.write_element_end_empty()?;
+        } else {
+            writer.write_element_end_open()?;
+            for ele in fonts {
+                ele.to_writer(&mut writer)?;
+            }
+            writer.write_element_end_close("w:fonts")?;
+        }
+
+        log::debug!("[FontTable] Finished writing.");
+
+        Ok(())
+    }
 }
 
 impl<'a> FontTable<'a> {
