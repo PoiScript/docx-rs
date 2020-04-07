@@ -10,15 +10,16 @@ macro_rules! __string_enum {
         }
 
         impl std::str::FromStr for $name {
-            type Err = strong_xml::XmlError;
+            type Err = String;
 
-            fn from_str(s: &str) -> strong_xml::XmlResult<Self> {
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
                 match s {
                     $($value => Ok($name::$variant),)*
-                    s => Err(strong_xml::XmlError::UnknownValue {
-                        expected: stringify!($($value,)*).to_owned(),
-                        found: String::from(s),
-                    })
+                    s => Err(format!(
+                        "Unkown Value. Found `{}`, Expected `{}`",
+                        s,
+                        stringify!($($value,)*)
+                    ))
                 }
             }
         }

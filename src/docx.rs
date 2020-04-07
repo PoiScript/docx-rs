@@ -1,6 +1,7 @@
 use std::fs::File;
 use std::io::{Read, Seek, Write};
 use std::path::Path;
+use strong_xml::XmlWriter;
 use zip::{result::ZipError, write::FileOptions, CompressionMethod, ZipArchive, ZipWriter};
 
 use crate::{
@@ -40,15 +41,16 @@ pub struct Docx<'a> {
 
 impl<'a> Docx<'a> {
     pub fn write<W: Write + Seek>(&mut self, writer: W) -> DocxResult<W> {
-        let mut zip = ZipWriter::new(writer);
+        let mut writer = XmlWriter::new(ZipWriter::new(writer));
+
         let opt = FileOptions::default()
             .compression_method(CompressionMethod::Deflated)
             .unix_permissions(0o755);
 
         macro_rules! write {
             ($xml:expr, $name:tt) => {
-                zip.start_file($name, opt)?;
-                $xml.to_writer(&mut zip)?;
+                writer.inner.start_file($name, opt)?;
+                $xml.to_writer(&mut writer)?;
             };
             ($xml:expr, $name:tt, $rel:expr, $schema:expr, $target:tt) => {
                 write!($xml, $name);
@@ -108,7 +110,7 @@ impl<'a> Docx<'a> {
         write!(self.rels, "_rels/.rels");
         option_write!(self.document_rels, "word/_rels/document.xml.rels");
 
-        Ok(zip.finish()?)
+        Ok(writer.inner.finish()?)
     }
 
     pub fn write_file<P: AsRef<Path>>(&mut self, path: P) -> DocxResult<File> {
