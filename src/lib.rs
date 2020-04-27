@@ -66,6 +66,12 @@
 //!
 //! [`DocxFile::from_reader`]: struct.DocxFile.html#method.from_reader
 //!
+//! # Similar Projects
+//!
+//! [`bokuweb/docx-rs`]: A .docx file writer with Rust/WebAssembly.
+//!
+//! [`bokuweb/docx-rs`]: https://github.com/bokuweb/docx-rs
+//!
 //! # License
 //!
 //! MIT
