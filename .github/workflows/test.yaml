@@ -53,4 +53,5 @@ jobs:
       - name: Run exmaple and validate
         run: |
           cargo run --example hello_world
-          dotnet run --project validator/ hello_world.docx
+          cargo run --example table
+          dotnet run --project validator/

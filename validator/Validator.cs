@@ -6,12 +6,8 @@ using DocumentFormat.OpenXml.Wordprocessing;
 
 class Validator {
 	static void Main(string[] args) {
-		if (args.Length == 0) {
-			foreach(string filepath in Directory.GetFiles(Directory.GetCurrentDirectory(), "*.docx")) {
-				ValidateWordDocument(filepath);
-			}
-		} else {
-			ValidateWordDocument(args[0]);
+		foreach(string filepath in Directory.GetFiles(Directory.GetCurrentDirectory(), "*.docx")) {
+			ValidateWordDocument(filepath);
 		}
 	}
 

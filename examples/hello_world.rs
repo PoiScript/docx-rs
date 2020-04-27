@@ -6,8 +6,10 @@ use docx::{
 };
 
 fn main() -> DocxResult<()> {
+    // Create an empty docx
     let mut docx = Docx::default();
 
+    // Change the default text size and text color
     docx.styles.default(
         DefaultStyle::default().character(
             CharacterProperty::default()
@@ -16,17 +18,18 @@ fn main() -> DocxResult<()> {
         ),
     );
 
+    // Create a new paragraph style called `TestStyle`
     docx.styles.push(
-        // create a new paragraph style called `TestStyle`
         Style::new(StyleType::Paragraph, "TestStyle")
             .name("Test Style")
-            .character(CharacterProperty::default().color(0xff0000)), // override default font color
+            .character(CharacterProperty::default().color(0xff0000)), // override the default text color
     );
 
+    // Insert a left-aligned, bold paragraph
     let para = Paragraph::default()
         .property(
             ParagraphProperty::default()
-                .style_id("TestStyle") // inherite from `TestStyle`
+                .style_id("TestStyle") // inherites from `TestStyle`
                 .justification(JustificationVal::Start),
         )
         .push(
@@ -37,6 +40,7 @@ fn main() -> DocxResult<()> {
 
     docx.document.push(para);
 
+    // Insert a centered paragraph with an outline
     let para = Paragraph::default()
         .property(
             ParagraphProperty::default()
@@ -51,6 +55,7 @@ fn main() -> DocxResult<()> {
 
     docx.document.push(para);
 
+    // Insert a right-aligned, italics paragraph
     let para = Paragraph::default()
         .property(
             ParagraphProperty::default()
