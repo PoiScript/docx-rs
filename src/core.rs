@@ -4,7 +4,7 @@
 
 use std::borrow::Cow;
 use std::io::Write;
-use strong_xml::{XmlRead, XmlResult, XmlWriter};
+use strong_xml::{XmlRead, XmlResult, XmlWrite, XmlWriter};
 
 use crate::schema::SCHEMA_CORE;
 
@@ -27,8 +27,8 @@ pub struct Core<'a> {
     pub revision: Option<Cow<'a, str>>,
 }
 
-impl<'a> Core<'a> {
-    pub(crate) fn to_writer<W: Write>(&self, writer: &mut XmlWriter<W>) -> XmlResult<()> {
+impl<'a> XmlWrite for Core<'a> {
+    fn to_writer<W: Write>(&self, writer: &mut XmlWriter<W>) -> XmlResult<()> {
         let Core {
             title,
             subject,

@@ -1,4 +1,5 @@
 #[macro_export]
+#[doc(hidden)]
 macro_rules! __string_enum {
     ($name:ident { $($variant:ident = $value:expr, )* }) => {
         impl std::fmt::Display for $name {
@@ -27,6 +28,7 @@ macro_rules! __string_enum {
 }
 
 #[macro_export]
+#[doc(hidden)]
 macro_rules! __setter {
     ($field:ident: Option<$ty:ty>) => {
         #[inline(always)]
@@ -45,6 +47,7 @@ macro_rules! __setter {
 }
 
 #[macro_export]
+#[doc(hidden)]
 macro_rules! __xml_test_suites {
     ($type:tt, $($struct:expr, $string:expr,)*) => {
         #[test]

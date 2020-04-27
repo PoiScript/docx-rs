@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::io::{Read, Seek, Write};
 use std::path::Path;
-use strong_xml::XmlWriter;
+use strong_xml::{XmlRead, XmlWrite, XmlWriter};
 use zip::{result::ZipError, write::FileOptions, CompressionMethod, ZipArchive, ZipWriter};
 
 use crate::{
@@ -47,68 +47,61 @@ impl<'a> Docx<'a> {
             .compression_method(CompressionMethod::Deflated)
             .unix_permissions(0o755);
 
-        macro_rules! write {
-            ($xml:expr, $name:tt) => {
+        // ==== Add Relationships ====
+
+        if self.app.is_some() {
+            self.rels.add_rel(SCHEMA_REL_EXTENDED, "docProps/app.xml");
+        }
+
+        if self.core.is_some() {
+            self.rels.add_rel(SCHEMA_CORE, "docProps/core.xml");
+        }
+
+        self.rels
+            .add_rel(SCHEMA_OFFICE_DOCUMENT, "word/document.xml");
+
+        self.document_rels
+            .get_or_insert(Relationships::default())
+            .add_rel(SCHEMA_STYLES, "styles.xml");
+
+        if self.font_table.is_some() {
+            self.document_rels
+                .get_or_insert(Relationships::default())
+                .add_rel(SCHEMA_FONT_TABLE, "fontTable.xml");
+        }
+
+        // ==== Write Zip Item ====
+
+        macro_rules! write_xml {
+            (Some($xml:expr) => $name:tt) => {
+                if let Some(ref xml) = $xml {
+                    write_xml!(xml => $name);
+                }
+            };
+            (Some($xml:expr) => $name:tt $($rest:tt)*) => {
+                write_xml!(Some($xml) => $name);
+                write_xml!($($rest)*);
+            };
+            ($xml:expr => $name:tt) => {
                 writer.inner.start_file($name, opt)?;
                 $xml.to_writer(&mut writer)?;
             };
-            ($xml:expr, $name:tt, $rel:expr, $schema:expr, $target:tt) => {
-                write!($xml, $name);
-                $rel.add_rel($schema, $target);
+            ($xml:expr => $name:tt $($rest:tt)*) => {
+                write_xml!($xml => $name);
+                write_xml!($($rest)*);
             };
         }
 
-        macro_rules! option_write {
-            ($xml:expr, $($rest:tt)*) => {
-                if let Some(ref xml) = $xml {
-                    write!(xml, $($rest)*);
-                }
-            };
-        }
-
-        // content types
-        write!(self.content_types, "[Content_Types].xml");
-
-        // document properties
-        option_write!(
-            self.app,
-            "docProps/app.xml",
-            self.rels,
-            SCHEMA_REL_EXTENDED,
-            "docProps/app.xml"
+        write_xml!(
+            self.content_types        => "[Content_Types].xml"
+            Some(self.app)            => "docProps/app.xml"
+            Some(self.core)           => "docProps/core.xml"
+            self.rels                 => "_rels/.rels"
+            self.document             => "word/document.xml"
+            self.styles               => "word/styles.xml"
+            Some(self.font_table)     => "word/fontTable.xml"
+            Some(self.document_rels)  => "word/_rels/document.xml.rels"
         );
-        option_write!(
-            self.core,
-            "docProps/core.xml",
-            self.rels,
-            SCHEMA_CORE,
-            "docProps/core.xml"
-        );
-
-        // documents specific parts
-        write!(
-            self.document,
-            "word/document.xml",
-            self.rels, SCHEMA_OFFICE_DOCUMENT, "word/document.xml"
-        );
-        write!(
-            self.styles,
-            "word/styles.xml",
-            self.document_rels.get_or_insert(Relationships::default()),
-            SCHEMA_STYLES,
-            "styles.xml"
-        );
-        option_write!(
-            self.font_table,
-            "word/fontTable.xml",
-            self.document_rels.get_or_insert(Relationships::default()),
-            SCHEMA_FONT_TABLE,
-            "fontTable.xml"
-        );
-
-        // relationships
-        write!(self.rels, "_rels/.rels");
-        option_write!(self.document_rels, "word/_rels/document.xml.rels");
 
         Ok(writer.inner.finish()?)
     }
@@ -119,7 +112,7 @@ impl<'a> Docx<'a> {
     }
 }
 
-/// A extracted docx file
+/// An extracted docx file
 pub struct DocxFile {
     app: Option<String>,
     content_types: String,

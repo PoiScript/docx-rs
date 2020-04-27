@@ -4,7 +4,7 @@
 
 use std::borrow::Cow;
 use std::io::Write;
-use strong_xml::{XmlRead, XmlResult, XmlWriter};
+use strong_xml::{XmlRead, XmlResult, XmlWrite, XmlWriter};
 
 use crate::schema::{SCHEMAS_EXTENDED, SCHEMA_DOC_PROPS_V_TYPES};
 
@@ -68,8 +68,8 @@ impl Default for App<'static> {
     }
 }
 
-impl<'a> App<'a> {
-    pub(crate) fn to_writer<W: Write>(&self, writer: &mut XmlWriter<W>) -> XmlResult<()> {
+impl<'a> XmlWrite for App<'a> {
+    fn to_writer<W: Write>(&self, writer: &mut XmlWriter<W>) -> XmlResult<()> {
         let App {
             template,
             total_time,

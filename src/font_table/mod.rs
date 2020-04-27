@@ -10,7 +10,7 @@ mod pitch;
 pub use self::{charset::*, family::*, font::*, pitch::*};
 
 use std::io::Write;
-use strong_xml::{XmlRead, XmlResult, XmlWriter};
+use strong_xml::{XmlRead, XmlResult, XmlWrite, XmlWriter};
 
 use crate::__xml_test_suites;
 use crate::schema::{SCHEMA_MAIN, SCHEMA_RELATIONSHIPS};
@@ -32,15 +32,8 @@ pub struct FontTable<'a> {
     pub fonts: Vec<Font<'a>>,
 }
 
-impl<'a> FontTable<'a> {
-    #[cfg(test)]
-    pub(crate) fn to_string(&self) -> XmlResult<String> {
-        let mut writer = XmlWriter::new(Vec::new());
-        self.to_writer(&mut writer)?;
-        Ok(String::from_utf8(writer.inner)?)
-    }
-
-    pub(crate) fn to_writer<W: Write>(&self, mut writer: &mut XmlWriter<W>) -> XmlResult<()> {
+impl<'a> XmlWrite for FontTable<'a> {
+    fn to_writer<W: Write>(&self, writer: &mut XmlWriter<W>) -> XmlResult<()> {
         let FontTable { fonts } = self;
 
         log::debug!("[FontTable] Started writing.");
@@ -55,7 +48,7 @@ impl<'a> FontTable<'a> {
         } else {
             writer.write_element_end_open()?;
             for ele in fonts {
-                ele.to_writer(&mut writer)?;
+                ele.to_writer(writer)?;
             }
             writer.write_element_end_close("w:fonts")?;
         }

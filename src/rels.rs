@@ -16,8 +16,8 @@ pub struct Relationships<'a> {
     pub relationships: Vec<Relationship<'a>>,
 }
 
-impl<'a> Relationships<'a> {
-    pub(crate) fn to_writer<W: Write>(&self, mut writer: &mut XmlWriter<W>) -> XmlResult<()> {
+impl<'a> XmlWrite for Relationships<'a> {
+    fn to_writer<W: Write>(&self, writer: &mut XmlWriter<W>) -> XmlResult<()> {
         let Relationships { relationships } = self;
 
         log::debug!("[Relationships] Started writing.");
@@ -31,7 +31,7 @@ impl<'a> Relationships<'a> {
         } else {
             writer.write_element_end_open()?;
             for ele in relationships {
-                ele.to_writer(&mut writer)?;
+                ele.to_writer(writer)?;
             }
             writer.write_element_end_close("Relationships")?;
         }

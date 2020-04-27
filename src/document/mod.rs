@@ -22,7 +22,7 @@ pub use self::{
 };
 
 use std::io::Write;
-use strong_xml::{XmlRead, XmlResult, XmlWriter};
+use strong_xml::{XmlRead, XmlResult, XmlWrite, XmlWriter};
 
 use crate::__xml_test_suites;
 use crate::schema::SCHEMA_MAIN;
@@ -44,15 +44,8 @@ impl<'a> Document<'a> {
     }
 }
 
-impl<'a> Document<'a> {
-    #[cfg(test)]
-    pub(crate) fn to_string(&self) -> XmlResult<String> {
-        let mut writer = XmlWriter::new(Vec::new());
-        self.to_writer(&mut writer)?;
-        Ok(String::from_utf8(writer.inner)?)
-    }
-
-    pub(crate) fn to_writer<W: Write>(&self, mut writer: &mut XmlWriter<W>) -> XmlResult<()> {
+impl<'a> XmlWrite for Document<'a> {
+    fn to_writer<W: Write>(&self, writer: &mut XmlWriter<W>) -> XmlResult<()> {
         let Document { body } = self;
 
         log::debug!("[Document] Started writing.");
@@ -63,7 +56,7 @@ impl<'a> Document<'a> {
 
         writer.write_element_end_open()?;
 
-        body.to_writer(&mut writer)?;
+        body.to_writer(writer)?;
 
         writer.write_element_end_close("w:document")?;
 

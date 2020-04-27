@@ -64,7 +64,7 @@
 //!
 //! Also see: [`DocxFile::from_reader`].
 //!
-//! [`DoxFile::from_reader`]: struct.DocxFile.html#method.from_reader
+//! [`DocxFile::from_reader`]: struct.DocxFile.html#method.from_reader
 //!
 //! # License
 //!

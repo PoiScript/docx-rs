@@ -8,7 +8,7 @@ mod style;
 pub use self::{default_style::*, style::*};
 
 use std::io::Write;
-use strong_xml::{XmlRead, XmlResult, XmlWriter};
+use strong_xml::{XmlRead, XmlResult, XmlWrite, XmlWriter};
 
 use crate::__xml_test_suites;
 use crate::schema::SCHEMA_MAIN;
@@ -36,15 +36,8 @@ pub struct Styles<'a> {
     pub styles: Vec<Style<'a>>,
 }
 
-impl<'a> Styles<'a> {
-    #[cfg(test)]
-    pub(crate) fn to_string(&self) -> strong_xml::XmlResult<String> {
-        let mut writer = XmlWriter::new(Vec::new());
-        self.to_writer(&mut writer)?;
-        Ok(String::from_utf8(writer.inner)?)
-    }
-
-    pub(crate) fn to_writer<W: Write>(&self, mut writer: &mut XmlWriter<W>) -> XmlResult<()> {
+impl<'a> XmlWrite for Styles<'a> {
+    fn to_writer<W: Write>(&self, writer: &mut XmlWriter<W>) -> XmlResult<()> {
         let Styles { default, styles } = self;
 
         log::debug!("[Styles] Started writing.");
@@ -55,10 +48,10 @@ impl<'a> Styles<'a> {
 
         writer.write_element_end_open()?;
 
-        default.to_writer(&mut writer)?;
+        default.to_writer(writer)?;
 
         for ele in styles {
-            ele.to_writer(&mut writer)?;
+            ele.to_writer(writer)?;
         }
 
         writer.write_element_end_close("w:styles")?;
