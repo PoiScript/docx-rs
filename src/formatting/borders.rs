@@ -2,7 +2,7 @@ use strong_xml::{XmlRead, XmlWrite};
 
 use crate::{
     __setter, __xml_test_suites,
-    formatting::{BetweenBorder, BottomBorder, LeftBorder, RightBorder, TopBorder},
+    formatting::{BetweenBorder, BottomBorder, LeftBorder, RightBorder, TopBorder, InsideHBorder, InsideVBorder},
 };
 
 /// Borders
@@ -20,6 +20,10 @@ pub struct Borders<'a> {
     pub right: Option<RightBorder<'a>>,
     #[xml(child = "w:between")]
     pub between: Option<BetweenBorder<'a>>,
+    #[xml(child = "w:insideH")]
+    pub insideH: Option<InsideHBorder<'a>>,
+    #[xml(child = "w:insideV")]
+    pub insideV: Option<InsideVBorder<'a>>,
 }
 
 impl<'a> Borders<'a> {
@@ -28,6 +32,8 @@ impl<'a> Borders<'a> {
     __setter!(left: Option<LeftBorder<'a>>);
     __setter!(right: Option<RightBorder<'a>>);
     __setter!(between: Option<BetweenBorder<'a>>);
+    __setter!(insideH: Option<InsideHBorder<'a>>);
+    __setter!(insideV: Option<InsideVBorder<'a>>);
 }
 
 __xml_test_suites!(
@@ -44,4 +50,8 @@ __xml_test_suites!(
     r#"<w:pBdr><w:right/></w:pBdr>"#,
     Borders::default().between(BetweenBorder::default()),
     r#"<w:pBdr><w:between/></w:pBdr>"#,
+    Borders::default().insideH(InsideHBorder::default()),
+    r#"<w:pBdr><w:insideH/></w:pBdr>"#,
+    Borders::default().insideV(InsideVBorder::default()),
+    r#"<w:pBdr><w:insideV/></w:pBdr>"#,
 );
