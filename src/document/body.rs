@@ -3,6 +3,7 @@ use strong_xml::{XmlRead, XmlWrite};
 
 use crate::__xml_test_suites;
 use crate::document::{Paragraph, Table};
+use std::ops::{Deref, DerefMut};
 
 /// Document Body
 ///
@@ -17,28 +18,24 @@ pub struct Body<'a> {
 }
 
 impl<'a> Body<'a> {
-    pub fn push<T: Into<BodyContent<'a>>>(&mut self, content: T) -> &mut Self {
+    pub fn add_content<T: Into<BodyContent<'a>>>(&mut self, content: T) -> &mut Self {
         self.content.push(content.into());
         self
     }
+}
 
-    // pub fn iter_text(&self) -> impl Iterator<Item = &Cow<'a, str>> {
-    //     self.content
-    //         .iter()
-    //         .filter_map(|content| match content {
-    //             BodyContent::Paragraph(para) => Some(para.iter_text()),
-    //         })
-    //         .flatten()
-    // }
+impl<'a> Deref for Body<'a> {
+    type Target = Vec<BodyContent<'a>>;
 
-    // pub fn iter_text_mut(&mut self) -> impl Iterator<Item = &mut Cow<'a, str>> {
-    //     self.content
-    //         .iter_mut()
-    //         .filter_map(|content| match content {
-    //             BodyContent::Paragraph(para) => Some(para.iter_text_mut()),
-    //         })
-    //         .flatten()
-    // }
+    fn deref(&self) -> &Self::Target {
+        &self.content
+    }
+}
+
+impl<'a> DerefMut for Body<'a> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.content
+    }
 }
 
 /// A set of elements that can be contained in the body

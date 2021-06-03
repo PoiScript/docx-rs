@@ -24,7 +24,7 @@ fn main() -> DocxResult<()> {
         );
 
     // Add the table to the document
-    docx.document.push(tbl);
+    docx.document.add_content(tbl);
 
     // Persist the document to a file
     docx.write_file("table.docx")?;

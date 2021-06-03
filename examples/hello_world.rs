@@ -38,7 +38,7 @@ fn main() -> DocxResult<()> {
                 .push_text("hello, world"),
         );
 
-    docx.document.push(para);
+    docx.document.add_content(para);
 
     // Insert a centered paragraph with an outline
     let para = Paragraph::default()
@@ -53,7 +53,7 @@ fn main() -> DocxResult<()> {
                 .push_text("hello, world"),
         );
 
-    docx.document.push(para);
+    docx.document.add_content(para);
 
     // Insert a right-aligned, italics paragraph
     let para = Paragraph::default()
@@ -69,7 +69,7 @@ fn main() -> DocxResult<()> {
                 .push_text("world"),
         );
 
-    docx.document.push(para);
+    docx.document.add_content(para);
 
     docx.write_file("hello_world.docx")?;
 
