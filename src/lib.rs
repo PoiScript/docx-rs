@@ -15,7 +15,7 @@
 //!
 //! // create a new paragraph and insert it
 //! let para = Paragraph::default().push_text("Lorem Ipsum");
-//! docx.document.push(para);
+//! docx.document.add_content(para);
 //!
 //! docx.write_file("demo.docx").unwrap();
 //! ```
@@ -40,7 +40,7 @@
 //! let mut docx = docx.parse().unwrap();
 //!
 //! let para = Paragraph::default().push_text("Lorem Ipsum");
-//! docx.document.push(para);
+//! docx.document.add_content(para);
 //!
 //! docx.write_file("origin_appended.docx").unwrap();
 //! ```

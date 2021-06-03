@@ -26,6 +26,7 @@ use strong_xml::{XmlRead, XmlResult, XmlWrite, XmlWriter};
 
 use crate::__xml_test_suites;
 use crate::schema::SCHEMA_MAIN;
+use std::ops::{Deref, DerefMut};
 
 /// The root element of the main document part.
 #[derive(Debug, Default, XmlRead)]
@@ -38,9 +39,23 @@ pub struct Document<'a> {
 }
 
 impl<'a> Document<'a> {
-    pub fn push<T: Into<BodyContent<'a>>>(&mut self, content: T) -> &mut Self {
-        self.body.push(content);
+    pub fn add_content<T: Into<BodyContent<'a>>>(&mut self, content: T) -> &mut Self {
+        self.body.add_content(content);
         self
+    }
+}
+
+impl<'a> Deref for Document<'a> {
+    type Target = Body<'a>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.body
+    }
+}
+
+impl<'a> DerefMut for Document<'a> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.body
     }
 }
 
