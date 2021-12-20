@@ -117,52 +117,52 @@ impl<'a> XmlWrite for App<'a> {
         } else {
             writer.write_element_end_open()?;
             if let Some(val) = template {
-                writer.write_flatten_text("Template", val)?;
+                writer.write_flatten_text("Template", val, true)?;
             }
             if let Some(val) = total_time {
-                writer.write_flatten_text("TotalTime", val)?;
+                writer.write_flatten_text("TotalTime", val, true)?;
             }
             if let Some(val) = pages {
-                writer.write_flatten_text("Pages", val)?;
+                writer.write_flatten_text("Pages", val, true)?;
             }
             if let Some(val) = words {
-                writer.write_flatten_text("Words", val)?;
+                writer.write_flatten_text("Words", val, true)?;
             }
             if let Some(val) = characters {
-                writer.write_flatten_text("Characters", val)?;
+                writer.write_flatten_text("Characters", val, true)?;
             }
             if let Some(val) = application {
-                writer.write_flatten_text("Application", val)?;
+                writer.write_flatten_text("Application", val, true)?;
             }
             if let Some(val) = doc_security {
-                writer.write_flatten_text("DocSecurity", val)?;
+                writer.write_flatten_text("DocSecurity", val, true)?;
             }
             if let Some(val) = lines {
-                writer.write_flatten_text("Lines", val)?;
+                writer.write_flatten_text("Lines", val, true)?;
             }
             if let Some(val) = paragraphs {
-                writer.write_flatten_text("Paragraphs", val)?;
+                writer.write_flatten_text("Paragraphs", val, true)?;
             }
             if let Some(val) = scale_crop {
-                writer.write_flatten_text("ScaleCrop", val)?;
+                writer.write_flatten_text("ScaleCrop", val, true)?;
             }
             if let Some(val) = company {
-                writer.write_flatten_text("Company", val)?;
+                writer.write_flatten_text("Company", val, true)?;
             }
             if let Some(val) = links_up_to_date {
-                writer.write_flatten_text("LinksUpToDate", val)?;
+                writer.write_flatten_text("LinksUpToDate", val, true)?;
             }
             if let Some(val) = characters_with_spaces {
-                writer.write_flatten_text("CharactersWithSpaces", val)?;
+                writer.write_flatten_text("CharactersWithSpaces", val, true)?;
             }
             if let Some(val) = shared_doc {
-                writer.write_flatten_text("SharedDoc", val)?;
+                writer.write_flatten_text("SharedDoc", val, true)?;
             }
             if let Some(val) = hyperlinks_changed {
-                writer.write_flatten_text("HyperlinksChanged", val)?;
+                writer.write_flatten_text("HyperlinksChanged", val, true)?;
             }
             if let Some(val) = app_version {
-                writer.write_flatten_text("AppVersion", val)?;
+                writer.write_flatten_text("AppVersion", val, true)?;
             }
             writer.write_element_end_close("Properties")?;
         }

@@ -2,3 +2,8 @@
 **/*.rs.bk
 *.docx
 Cargo.lock
+
+# IDE
+.vscode/
+.idea/
+*.iml
