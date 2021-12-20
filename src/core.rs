@@ -57,25 +57,25 @@ impl<'a> XmlWrite for Core<'a> {
         } else {
             writer.write_element_end_open()?;
             if let Some(val) = title {
-                writer.write_flatten_text("dc:title", val)?;
+                writer.write_flatten_text("dc:title", val, true)?;
             }
             if let Some(val) = subject {
-                writer.write_flatten_text("dc:subject", val)?;
+                writer.write_flatten_text("dc:subject", val, true)?;
             }
             if let Some(val) = creator {
-                writer.write_flatten_text("dc:creator", val)?;
+                writer.write_flatten_text("dc:creator", val, true)?;
             }
             if let Some(val) = keywords {
-                writer.write_flatten_text("cp:keywords", val)?;
+                writer.write_flatten_text("cp:keywords", val, true)?;
             }
             if let Some(val) = description {
-                writer.write_flatten_text("dc:description", val)?;
+                writer.write_flatten_text("dc:description", val, true)?;
             }
             if let Some(val) = last_modified_by {
-                writer.write_flatten_text("cp:lastModifiedBy", val)?;
+                writer.write_flatten_text("cp:lastModifiedBy", val, true)?;
             }
             if let Some(val) = revision {
-                writer.write_flatten_text("cp:revision", val)?;
+                writer.write_flatten_text("cp:revision", val, true)?;
             }
             writer.write_element_end_close("cp:coreProperties")?;
         }
