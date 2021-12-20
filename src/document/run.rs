@@ -1,3 +1,4 @@
+#![allow(unused_must_use)]
 use derive_more::From;
 use std::borrow::Cow;
 use strong_xml::{XmlRead, XmlWrite};

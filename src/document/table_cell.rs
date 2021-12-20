@@ -1,3 +1,4 @@
+#![allow(unused_must_use)]
 use derive_more::From;
 use strong_xml::{XmlRead, XmlWrite};
 
